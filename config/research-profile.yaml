@@ -1,0 +1,27 @@
+profile:
+  researcher: 'KangK'
+  library_name: 'KangK Research Library'
+  description: 'A focused research library for LLM-based code generation and AI4SE.'
+research_scope:
+  primary:
+    - 'LLM-based Code Generation'
+  secondary:
+    - 'High-quality and interesting LLM-related AI4SE'
+paper_selection:
+  recent_year_window: 3
+  priority: [quality, relevance]
+  relevance_levels: [High, Medium, Low]
+  ranking_systems: [CCF, CAS, JCR]
+  conferences: { prefer: [CCF-A, CCF-B], allow: [CCF-C] }
+  journals: { prefer: [CAS-Q1, CAS-Q2, JCR-Q1, JCR-Q2], allow: [CAS-Q3, JCR-Q3] }
+  preprints: { allowed: true, require_exact_source: true }
+language:
+  explanation: 'zh-CN'
+  terminology: 'mixed-zh-en'
+daily:
+  papers_per_run: 1
+  timezone: 'Asia/Shanghai'
+  scheduled_time: '08:00'
+editor:
+  owner_github_username: 'kangkang03jug'
+  api_origin: ''

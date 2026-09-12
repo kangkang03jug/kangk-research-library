@@ -1,0 +1,6 @@
+{
+  "date": "2026-09-13",
+  "recommendations": [
+    { "paper_id": "swe-agent-agent-computer-interfaces", "primary": true, "run_type": "scheduled" }
+  ]
+}

@@ -1,0 +1,4 @@
+---
+import Layout from '../layouts/Layout.astro'; import PaperCard from '../components/PaperCard.astro'; import { getProfile, getPapers, getStates } from '../lib/data'; import { joinState } from '../lib/library'; const profile=getProfile(); const joined=joinState(getPapers(),getStates()).filter(({state})=>state?.favorite);
+---
+<Layout title="Favorites" profile={profile}><section class="page-head"><div><p class="eyebrow">Your shortlist</p><h1>Favorites</h1><p class="lede">A small, intentional list of papers you want close at hand.</p></div><span class="count">{joined.length} papers</span></section>{joined.length ? <div class="paper-list">{joined.map(({paper,state})=><PaperCard paper={paper} state={state}/>)}</div> : <div class="empty"><strong>No favorites yet.</strong>Star a paper when it earns a place in your shortlist.</div>}<script src="../scripts/library.js"></script></Layout>

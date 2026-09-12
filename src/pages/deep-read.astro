@@ -1,0 +1,4 @@
+---
+import Layout from '../layouts/Layout.astro'; import PaperCard from '../components/PaperCard.astro'; import { getProfile, getPapers, getStates } from '../lib/data'; import { joinState } from '../lib/library'; const profile=getProfile(); const joined=joinState(getPapers(),getStates()).filter(({state})=>state?.deep_read);
+---
+<Layout title="Deep Read" profile={profile}><section class="page-head"><div><p class="eyebrow">Reading progress</p><h1>Deep Read</h1><p class="lede">Papers you have marked after reading their Detail View.</p></div><span class="count">{joined.length} papers</span></section>{joined.length ? <div class="paper-list">{joined.map(({paper,state})=><PaperCard paper={paper} state={state}/>)}</div> : <div class="empty"><strong>No deep reads yet.</strong>Use “Mark as Deep Read” on a paper after reading its detail.</div>}<script src="../scripts/library.js"></script></Layout>

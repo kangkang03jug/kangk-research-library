@@ -1,0 +1,36 @@
+{
+  "name": "kangk-research-library",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "npm run validate:data && astro build",
+    "preview": "astro preview",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "typecheck": "astro check",
+    "worker:check": "tsc --noEmit --ignoreConfig --target ES2022 --module ESNext --moduleResolution Bundler --lib ES2022,DOM worker/src/index.ts",
+    "validate:data": "node scripts/validate-data.mjs",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run worker:check && npm run validate:data && npm test && npm run build",
+    "bootstrap": "node scripts/bootstrap-library.mjs",
+    "paper:next": "node scripts/run-research-agent.mjs --manual"
+  },
+  "dependencies": {
+    "@astrojs/check": "latest",
+    "astro": "latest",
+    "js-yaml": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@playwright/test": "latest",
+    "@types/js-yaml": "latest",
+    "@types/node": "latest",
+    "eslint": "latest",
+    "prettier": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  }
+}

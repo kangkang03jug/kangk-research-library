@@ -1,0 +1,16 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getProfile, getPapers, getStates, getDaily } from '../lib/data';
+import { stats } from '../lib/library';
+const profile = getProfile(); const papers = getPapers(); const states = getStates(); const daily = getDaily(); const summary = stats(papers, states, daily);
+const today = summary.today?.recommendations.find((r) => r.primary); const todayPaper = papers.find((p) => p.id === today?.paper_id);
+---
+<Layout title="Home" profile={profile}>
+  <section class="hero"><p class="eyebrow">Research Library · {profile.profile.researcher}</p><h1>{profile.profile.library_name}</h1><p class="lede">A quiet, searchable record of ideas worth returning to. Structured papers, personal notes, and a daily research habit in one repository.</p></section>
+  <section class="today" aria-labelledby="today-heading">
+    <div><div class="section-label"><h2 id="today-heading">Today’s Paper</h2><span class="count">{profile.daily.scheduled_time} · {profile.daily.timezone}</span></div>
+      {todayPaper ? <div class="today-paper"><div class="meta-line"><span>{todayPaper.year}</span><span>{todayPaper.venue_or_source}</span><span>{todayPaper.relevance} relevance</span></div><h2>{todayPaper.title}</h2><p class="authors">{todayPaper.authors.join(' · ')}</p><p>{todayPaper.quick_read.tldr}</p><a class="cta" href={`${import.meta.env.BASE_URL}papers/${todayPaper.id}/`}>Read paper →</a></div> : <div class="empty"><strong>No papers yet.</strong>The research agent will add the first paper on its next run.</div>}
+    </div>
+    <div><div class="section-label"><h2>At a glance</h2></div><div class="stats"><div class="stat"><span class="stat-value">{summary.total}</span><span class="stat-label">Total Papers</span></div><div class="stat"><span class="stat-value">{summary.deepRead}</span><span class="stat-label">Deep Read</span></div><div class="stat"><span class="stat-value">{summary.thisMonth}</span><span class="stat-label">This Month Added</span></div><div class="stat"><span class="stat-value">{summary.preprints}</span><span class="stat-label">Preprints</span></div></div></div>
+  </section>
+</Layout>
