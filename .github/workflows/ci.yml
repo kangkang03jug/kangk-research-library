@@ -9,4 +9,6 @@ jobs:
       - uses: actions/setup-node@v6
         with: { node-version: 22, cache: npm }
       - run: npm ci
+      - run: npx playwright install --with-deps chromium
       - run: npm run verify
+      - run: npm run test:e2e
