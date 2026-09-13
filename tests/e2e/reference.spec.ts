@@ -57,11 +57,31 @@ test('reference library reading, locale switching, and paper-pool interactions w
   await page.locator('[data-filter="topic"]').selectOption('Coding Agents');
   await page.getByRole('link', { name: /SWE-agent:/ }).click();
   await expect(page.getByRole('heading', { name: '快速阅读' })).toBeVisible();
+  const chineseSummary = page.getByText(
+    /SWE-agent 研究语言模型与软件仓库之间的交互界面如何影响 Agent 能力/,
+  );
+  await expect(chineseSummary).toBeVisible();
   await page.getByRole('button', { name: '阅读详情 ↓' }).click();
   await expect(page.getByRole('heading', { name: '研究问题' })).toBeVisible();
+  await expect(
+    page.getByText(
+      /本文从一个关键观察出发：解决软件任务的语言模型 Agent 需要适合仓库级工作的交互界面/,
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/SWE-agent 将语言模型与 Agent-Computer Interface 结合/),
+  ).toBeVisible();
+  await page.locator('.abstract summary').click();
+  await expect(page.locator('.abstract p')).toContainText(
+    'Language model (LM) agents are increasingly being used',
+  );
   await page.getByRole('button', { name: '切换为 English' }).click();
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.getByRole('heading', { name: 'Quick Read' })).toBeVisible();
+  await expect(chineseSummary).toBeVisible();
+  await expect(page.locator('.abstract p')).toContainText(
+    'Language model (LM) agents are increasingly being used',
+  );
   await expect(page.getByRole('link', { name: 'Paper Pool', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Switch to Chinese' }).click();
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');

@@ -96,6 +96,32 @@ const dailySchema = z.object({
     }),
   ),
 });
+const profile = yaml.load(fs.readFileSync(path.join(root, 'config/research-profile.yaml'), 'utf8'));
+const containsChinese = (value) => /[\u3400-\u9fff]/u.test(value);
+const summaryFields = (paper) => [
+  ...Object.entries(paper.quick_read).map(([name, value]) => [`quick_read.${name}`, value]),
+  ...[
+    'motivation',
+    'method',
+    'experiments_and_key_findings',
+    'relation_to_research',
+    'what_can_be_done_next',
+  ].map((name) => [`detail.${name}`, paper.detail[name]]),
+  ...paper.detail.research_questions.flatMap((question, index) =>
+    ['question', 'how', 'answer', 'meaning'].map((name) => [
+      `detail.research_questions[${index}].${name}`,
+      question[name],
+    ]),
+  ),
+  ...paper.detail.limitations.author_reported.map((value, index) => [
+    `detail.limitations.author_reported[${index}]`,
+    value,
+  ]),
+  ...paper.detail.limitations.ai_analysis.map((value, index) => [
+    `detail.limitations.ai_analysis[${index}]`,
+    value,
+  ]),
+];
 const read = (dir, schema) =>
   files(dir).map((file) => {
     const value = JSON.parse(fs.readFileSync(path.join(root, dir, file), 'utf8'));
@@ -126,13 +152,19 @@ for (const paper of papers) {
     .trim();
   if (title.has(normalized)) throw new Error(`normalized title collision: ${paper.title}`);
   title.add(normalized);
+  if (profile?.language?.explanation === 'zh-CN') {
+    for (const [field, value] of summaryFields(paper)) {
+      if (value && !containsChinese(value)) {
+        throw new Error(`${paper.id}: ${field} must contain Chinese text for zh-CN summaries`);
+      }
+    }
+  }
 }
 for (const state of states)
   if (!ids.has(state.paper_id)) throw new Error(`dangling user state: ${state.paper_id}`);
 for (const day of daily)
   for (const rec of day.recommendations)
     if (!ids.has(rec.paper_id)) throw new Error(`dangling daily reference: ${rec.paper_id}`);
-yaml.load(fs.readFileSync(path.join(root, 'config/research-profile.yaml'), 'utf8'));
 console.log(
   `Validated ${papers.length} papers, ${states.length} user states, ${daily.length} daily archives.`,
 );

@@ -28,29 +28,29 @@
   "relevance": "High",
   "reading_basis": "official_html",
   "quick_read": {
-    "tldr": "This survey organizes LLM-based code generation agents around autonomy, broader software-development task coverage, and engineering practicality. It connects single-agent and multi-agent techniques with SDLC applications, benchmarks, tools, and open challenges.",
-    "problem_and_motivation": "Standalone code generation is not enough for repository-scale software work: agents must decompose tasks, interact with development environments, validate code, and recover from errors. The survey addresses the need for a methods-oriented map of this rapidly expanding area.",
-    "core_method": "The authors conduct a systematic literature retrieval covering ACM Digital Library, IEEE Xplore, SpringerLink, Google Scholar, DBLP, and CNKI, with bilingual search terms and a 2022–June 2025 scope. They classify agent techniques, applications, evaluation methods, and representative tools.",
-    "key_results": "The survey identifies a shift from isolated code correctness toward system design, process management, tool integration, reliability, and human–agent collaboration. It covers planning/reasoning, retrieval/tool use, reflection, single-agent and multi-agent architectures, SDLC applications, and benchmarks.",
-    "why_it_matters": "For Code Generation research, this is a useful map for locating mechanisms and evaluation gaps before designing another agent scaffold. Its emphasis on engineering practicality aligns directly with reliability, debugging, testing, and benchmark design questions."
+    "tldr": "本文围绕自主性、更广的软件开发任务覆盖和工程实用性，系统梳理基于 LLM 的 Code Generation Agent，并将单 Agent、多 Agent 方法与 SDLC 应用、Benchmark、工具及开放挑战联系起来。",
+    "problem_and_motivation": "面向仓库级软件任务，单次生成代码远远不够：Agent 还需要分解任务、与开发环境交互、验证代码并从错误中恢复。本文试图为这一快速扩展的研究领域建立一张以方法为核心的全景图。",
+    "core_method": "作者在 ACM Digital Library、IEEE Xplore、SpringerLink、Google Scholar、DBLP 和 CNKI 等来源中开展系统文献检索，使用中英文检索词，覆盖 2022 年至 2025 年 6 月，并据此归纳 Agent 技术、应用场景、评测方法和代表性工具。",
+    "key_results": "综述指出，研究重点正从孤立的代码正确性转向系统设计、流程管理、工具集成、可靠性与人机协作；内容覆盖 Planning/Reasoning、检索与工具使用、Reflection、单 Agent 与多 Agent 架构、SDLC 应用及相关 Benchmark。",
+    "why_it_matters": "对于 Code Generation 研究，这篇综述可用于在设计新的 Agent scaffold 前定位关键机制和评测空白。其对工程实用性的强调，直接对应可靠性、Debugging、Testing 与 Benchmark 设计等核心问题。"
   },
   "detail": {
-    "motivation": "Traditional code-generation systems often operate in a single-response mode and struggle with ambiguous requirements, cross-file context, dynamic debugging, and iterative validation. The survey positions code-generation agents as systems that can autonomously manage workflows, expand beyond snippets to the software-development lifecycle, and address practical engineering concerns such as process management and tool integration.",
+    "motivation": "传统 Code Generation 系统通常采用单次响应模式，难以处理模糊需求、跨文件上下文、动态 Debugging 和迭代验证。本文将 Code Generation Agent 视为能够自主组织工作流的系统：它不仅生成代码片段，还覆盖软件开发生命周期，并处理流程管理、工具集成等实际工程问题。",
     "research_questions": [],
-    "method": "The paper reports a systematic retrieval process across ACM Digital Library, IEEE Xplore, SpringerLink, Google Scholar, DBLP, and CNKI. Its search combines Code Generation/Software Development with LLM and Agent/Multi-agent terms, uses Chinese and English queries, and covers literature from 2022 through June 2025. The resulting synthesis is organized by single-agent and multi-agent methods, applications across the SDLC, evaluation, tools, challenges, and future directions.",
-    "experiments_and_key_findings": "This is a survey rather than a new benchmark experiment. Its main findings are taxonomic: code-generation agents differ from earlier code-generation techniques through autonomy, expanded task scope, and engineering practicality; evaluation is moving from isolated function generation toward interactive repository-scale tasks; and reliability, workflow management, external tools, testing, and human–agent collaboration remain central challenges.",
+    "method": "论文在 ACM Digital Library、IEEE Xplore、SpringerLink、Google Scholar、DBLP 和 CNKI 中进行系统检索，将 Code Generation/Software Development 与 LLM、Agent/Multi-agent 等关键词组合，使用中英文查询，覆盖 2022 年至 2025 年 6 月的文献。最终按单 Agent 与多 Agent 方法、SDLC 应用、评测、工具、挑战和未来方向组织综述。",
+    "experiments_and_key_findings": "本文是综述，并未提出新的 Benchmark 实验。其主要结论体现在分类体系上：Code Generation Agent 以自主性、扩展的任务范围和工程实用性区别于早期代码生成技术；评测正从孤立的函数生成转向交互式仓库级任务；可靠性、工作流管理、外部工具、Testing 和人机协作仍是关键挑战。",
     "limitations": {
       "author_reported": [
-        "The survey's literature retrieval covers 2022 through June 2025, so later work is outside the stated collection window.",
-        "The source describes broad database and ranking preferences, but a complete assessment of inclusion/exclusion decisions requires reading the full paper's retrieval details."
+        "综述的文献检索范围为 2022 年至 2025 年 6 月，因此未覆盖此后的研究。",
+        "现有来源说明了所用数据库和大致筛选偏好，但要完整评估纳入与排除标准，仍需查阅全文中的检索细节。"
       ],
       "ai_analysis": [
-        "A taxonomy can become outdated quickly in a fast-moving agent ecosystem; future use should treat its categories as a snapshot rather than a stable ontology.",
-        "The paper is useful for mapping research space, but it should not be used as evidence that a particular agent mechanism improves benchmark performance without checking the cited primary study."
+        "Agent 生态发展迅速，分类体系可能很快过时；后续使用时应将其视为阶段性快照，而非稳定不变的本体。",
+        "该综述适合用于勾勒研究空间，但不能直接证明某种 Agent 机制能够提升 Benchmark 表现；相关结论仍需回到其引用的原始研究核验。"
       ]
     },
-    "relation_to_research": "The survey is directly relevant to LLM-based Code Generation and AI4SE. It provides a vocabulary for comparing planning, tool use, retrieval, reflection, multi-agent collaboration, testing, debugging, and evaluation. Its distinction between model capability and engineering workflow is especially useful when designing experiments that isolate interface, process, or reliability effects.",
-    "what_can_be_done_next": "Use the survey's categories to build a controlled matrix of agent mechanisms and evaluation settings. For example, hold the base model and repository tasks fixed while varying planning, retrieval, test feedback, and self-reflection, then report success, repair loops, tool cost, and failure modes. A second study could test whether benchmark results transfer across SDLC stages rather than assuming gains on function-level generation transfer to repository maintenance."
+    "relation_to_research": "本文与基于 LLM 的 Code Generation 和 AI4SE 直接相关，为比较 Planning、工具使用、检索、Reflection、多 Agent 协作、Testing、Debugging 与评测提供了统一术语。它对模型能力和工程工作流的区分，尤其适合用于设计能够隔离界面、流程或可靠性影响的实验。",
+    "what_can_be_done_next": "可依据本文分类建立受控的 Agent 机制与评测设置矩阵。例如固定基础模型和仓库任务，仅改变 Planning、检索、测试反馈和 Self-reflection，并报告成功率、修复循环、工具成本与失败模式。还可进一步检验不同 SDLC 阶段间的 Benchmark 结果能否迁移，而不是默认函数级生成的提升会自然延伸到仓库维护。"
   },
   "original_abstract": "Code generation agents powered by large language models (LLMs) are revolutionizing the software development paradigm. Distinct from previous code generation techniques, code generation agents are characterized by three core features. 1) Autonomy: the ability to independently manage the entire workflow, from task decomposition to coding and debugging. 2) Expanded task scope: capabilities that extend beyond generating code snippets to encompass the full software development lifecycle (SDLC). 3) Enhancement of engineering practicality: a shift in research emphasis from algorithmic innovation toward practical engineering challenges, such as system reliability, process management, and tool integration. This domain has recently witnessed rapid development and an explosion in research, demonstrating significant application potential. This paper presents a systematic survey of the field of LLM-based code generation agents. We trace the technology's developmental trajectory from its inception and systematically categorize its core techniques, including both single-agent and multi-agent architectures. Furthermore, this survey details the applications of LLM-based agents across the full SDLC, summarizes mainstream evaluation benchmarks and metrics, and catalogs representative tools. Finally, by analyzing the primary challenges, we identify and propose several foundational, long-term research directions for the future work of the field.",
   "bibtex": null,

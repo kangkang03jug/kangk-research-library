@@ -28,27 +28,25 @@
   "relevance": "High",
   "reading_basis": "abstract_and_metadata",
   "quick_read": {
-    "tldr": "SWE-agent studies how the interface between a language model and a software repository changes what an agent can accomplish. Its custom agent-computer interface exposes repository navigation, file editing, and test execution as a coherent workflow, and the paper reports 12.5% pass@1 on SWE-bench and 87.7% on HumanEvalFix.",
-    "problem_and_motivation": "Software engineering agents need to work across repositories, not only emit an isolated patch. The authors argue that a purpose-built interface can reduce interaction friction and make the agent's available actions better match real software work.",
-    "core_method": "The system couples a language model with a custom agent-computer interface for browsing files, editing code, and running programs/tests. The study then compares the resulting agent on software-engineering benchmarks and analyzes how interface design affects behavior.",
-    "key_results": "The arXiv abstract reports 12.5% pass@1 on SWE-bench and 87.7% on HumanEvalFix, described as exceeding prior non-interactive language-model results.",
-    "why_it_matters": "This is a useful AI4SE reference because it treats tool/interface design as a first-class research variable. For code-generation research, it suggests evaluating the action environment and feedback loop together with the model."
+    "tldr": "SWE-agent 研究语言模型与软件仓库之间的交互界面如何影响 Agent 能力。其定制的 Agent-Computer Interface 将仓库导航、文件编辑和测试执行组织为连贯工作流；论文报告在 SWE-bench 上达到 12.5% pass@1，在 HumanEvalFix 上达到 87.7%。",
+    "problem_and_motivation": "Software Engineering Agent 需要在完整仓库中持续工作，而不只是输出一次性的 patch。作者认为，面向 Agent 专门设计的交互界面可以降低操作摩擦，使可用动作更贴近真实软件工程流程。",
+    "core_method": "系统将语言模型与定制的 Agent-Computer Interface 结合，使其能够浏览文件、编辑代码并运行程序或测试；随后在 Software Engineering Benchmark 上评测该 Agent，并分析界面设计如何影响其行为与性能。",
+    "key_results": "arXiv 摘要报告 SWE-agent 在 SWE-bench 上取得 12.5% pass@1，在 HumanEvalFix 上取得 87.7%，并称两项结果均超过此前非交互式语言模型的最佳表现。",
+    "why_it_matters": "本文将工具和界面设计视为一等研究变量，是 AI4SE 的重要参考。对于 Code Generation 研究，它提示我们应把 Agent 的动作环境、反馈回路与模型本身放在一起评测。"
   },
   "detail": {
-    "motivation": "The work starts from the observation that language-model agents solving software tasks need interfaces suited to repository-scale work. A model that can only produce a single text answer or patch has limited ability to inspect context, iterate on failures, and run validation. The paper therefore studies the agent-computer interface as part of the system rather than treating it as incidental plumbing.",
+    "motivation": "本文从一个关键观察出发：解决软件任务的语言模型 Agent 需要适合仓库级工作的交互界面。只能生成单次文本回答或 patch 的模型，难以充分检查上下文、针对失败迭代并执行验证。因此，论文把 Agent-Computer Interface 作为系统核心组成进行研究，而非无关紧要的工程管道。",
     "research_questions": [],
-    "method": "SWE-agent combines a language model with an agent-computer interface that supports repository navigation, code-file creation and editing, and execution of tests and other programs. The paper also analyzes how interface decisions shape agent behavior. Because the available source here is the official abstract and metadata, this record does not claim details about internal modules or unreported ablations.",
-    "experiments_and_key_findings": "The reported evaluations use SWE-bench and HumanEvalFix. The abstract reports pass@1 results of 12.5% and 87.7%, respectively, and states that the results exceed the prior state of the art from non-interactive language models. Detailed baselines, model versions, and tables require a full-text review.",
+    "method": "SWE-agent 将语言模型与 Agent-Computer Interface 结合，支持仓库导航、代码文件创建与编辑，以及测试和其他程序的执行。论文还分析了不同界面决策如何塑造 Agent 行为。由于当前记录依据官方摘要和 metadata，不对内部模块或摘要未报告的 ablation 作额外推断。",
+    "experiments_and_key_findings": "论文使用 SWE-bench 和 HumanEvalFix 进行评测。摘要分别报告 12.5% 和 87.7% 的 pass@1，并指出这些结果超过此前非交互式语言模型的最佳水平。具体 baseline、模型版本和完整结果表仍需通过全文核验。",
     "limitations": {
-      "author_reported": [
-        "The abstract-level record does not preserve the paper's complete limitations section."
-      ],
+      "author_reported": ["当前基于摘要的记录无法保留论文完整的 Limitations 讨论。"],
       "ai_analysis": [
-        "A follow-up review should inspect benchmark contamination, task distribution, interface ablations, and how results vary across models before generalizing the conclusion."
+        "在推广结论前，后续精读应检查 Benchmark contamination、任务分布、界面 ablation，以及结果在不同模型之间的变化。"
       ]
     },
-    "relation_to_research": "The paper directly connects to LLM-based code generation through repository-scale generation, iterative debugging, and test feedback. Its strongest design lesson is that reliability may depend on the action interface and feedback loop, not only on model scale or prompt wording.",
-    "what_can_be_done_next": "A concrete next study could hold the model and task set fixed while varying interface affordances: shell-only, structured patching, repository retrieval, and test-guided repair. Report success, tool-call cost, failure modes, and recovery latency, then test whether a learned router can select the lightest interface that still reaches a reliable solution."
+    "relation_to_research": "本文通过仓库级生成、迭代 Debugging 和测试反馈，直接关联基于 LLM 的 Code Generation。其最重要的设计启示是：系统可靠性不仅取决于模型规模或 Prompt 写法，也可能显著受动作界面与反馈回路影响。",
+    "what_can_be_done_next": "后续可固定模型和任务集，仅改变界面能力，例如纯 shell、结构化 patch、仓库检索和测试引导修复，并报告成功率、工具调用成本、失败模式与恢复延迟。在此基础上，还可检验学习型 router 能否为任务选择足以可靠完成工作的最轻量界面。"
   },
   "original_abstract": "Language model (LM) agents are increasingly being used to automate complicated tasks in digital environments. Just as humans benefit from powerful software applications, such as integrated development environments, for complex software engineering, we posit that LM agents represent a new category of end users and would benefit from specially-built interfaces to the software they use. We investigate how interface design affects the performance of language model agents. As a result of this exploration, we introduce SWE-agent: a system that facilitates LM agents to autonomously use computers to solve software engineering tasks. SWE-agent's custom agent-computer interface (ACI) significantly enhances an agent's ability to create and edit code files, navigate entire repositories, and execute tests and other programs. We evaluate SWE-agent on SWE-bench and HumanEvalFix, achieving state-of-the-art performance on both with a pass@1 rate of 12.5% and 87.7%, respectively, far exceeding the previous state-of-the-art achieved with non-interactive LMs. Finally, we provide insight on how the design of the ACI can impact agents' behavior and performance.",
   "bibtex": null,

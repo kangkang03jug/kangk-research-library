@@ -12,7 +12,7 @@ const args = Object.fromEntries(
 );
 if (!args.name || !args.primary) {
   console.error(
-    'Usage: npm run bootstrap -- --name "Your Name" --primary "Research Direction" [--secondary "Interest 1,Interest 2"] [--library-name "Library"] [--github-owner username]',
+    'Usage: npm run bootstrap -- --name "Your Name" --primary "Research Direction" [--secondary "Interest 1,Interest 2"] [--library-name "Library"] [--github-owner username] [--summary-language zh-CN]',
   );
   process.exit(1);
 }
@@ -39,7 +39,7 @@ const profile = {
     journals: { prefer: [], allow: [] },
     preprints: { allowed: true, require_exact_source: true },
   },
-  language: { explanation: 'en', terminology: 'mixed-zh-en' },
+  language: { explanation: args['summary-language'] || 'zh-CN', terminology: 'mixed-zh-en' },
   daily: { papers_per_run: 1, timezone: 'Asia/Shanghai', scheduled_time: '08:00' },
   editor: { owner_github_username: args['github-owner'] || '', api_origin: '' },
 };
