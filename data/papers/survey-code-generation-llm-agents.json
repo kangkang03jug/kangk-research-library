@@ -1,0 +1,79 @@
+{
+  "id": "survey-code-generation-llm-agents",
+  "title": "A Survey on Code Generation with LLM-based Agents",
+  "authors": [
+    "Yihong Dong",
+    "Xue Jiang",
+    "Jiaru Qian",
+    "Tian Wang",
+    "Kechi Zhang",
+    "Zhi Jin",
+    "Ge Li"
+  ],
+  "year": 2025,
+  "publication_date": "2025-07-31",
+  "venue_or_source": "arXiv",
+  "venue_type": "Preprint",
+  "status": "Preprint",
+  "ranking": {
+    "ccf": null,
+    "cas": null,
+    "jcr": null,
+    "ranking_year": null,
+    "ranking_source": null
+  },
+  "identifiers": { "doi": null, "arxiv": "2508.00083", "openreview": null },
+  "urls": { "paper": "https://arxiv.org/abs/2508.00083", "code": null },
+  "topics": ["Code Generation", "Coding Agents", "Multi-Agent", "Evaluation", "Reliability"],
+  "relevance": "High",
+  "reading_basis": "official_html",
+  "quick_read": {
+    "tldr": "This survey organizes LLM-based code generation agents around autonomy, broader software-development task coverage, and engineering practicality. It connects single-agent and multi-agent techniques with SDLC applications, benchmarks, tools, and open challenges.",
+    "problem_and_motivation": "Standalone code generation is not enough for repository-scale software work: agents must decompose tasks, interact with development environments, validate code, and recover from errors. The survey addresses the need for a methods-oriented map of this rapidly expanding area.",
+    "core_method": "The authors conduct a systematic literature retrieval covering ACM Digital Library, IEEE Xplore, SpringerLink, Google Scholar, DBLP, and CNKI, with bilingual search terms and a 2022–June 2025 scope. They classify agent techniques, applications, evaluation methods, and representative tools.",
+    "key_results": "The survey identifies a shift from isolated code correctness toward system design, process management, tool integration, reliability, and human–agent collaboration. It covers planning/reasoning, retrieval/tool use, reflection, single-agent and multi-agent architectures, SDLC applications, and benchmarks.",
+    "why_it_matters": "For Code Generation research, this is a useful map for locating mechanisms and evaluation gaps before designing another agent scaffold. Its emphasis on engineering practicality aligns directly with reliability, debugging, testing, and benchmark design questions."
+  },
+  "detail": {
+    "motivation": "Traditional code-generation systems often operate in a single-response mode and struggle with ambiguous requirements, cross-file context, dynamic debugging, and iterative validation. The survey positions code-generation agents as systems that can autonomously manage workflows, expand beyond snippets to the software-development lifecycle, and address practical engineering concerns such as process management and tool integration.",
+    "research_questions": [],
+    "method": "The paper reports a systematic retrieval process across ACM Digital Library, IEEE Xplore, SpringerLink, Google Scholar, DBLP, and CNKI. Its search combines Code Generation/Software Development with LLM and Agent/Multi-agent terms, uses Chinese and English queries, and covers literature from 2022 through June 2025. The resulting synthesis is organized by single-agent and multi-agent methods, applications across the SDLC, evaluation, tools, challenges, and future directions.",
+    "experiments_and_key_findings": "This is a survey rather than a new benchmark experiment. Its main findings are taxonomic: code-generation agents differ from earlier code-generation techniques through autonomy, expanded task scope, and engineering practicality; evaluation is moving from isolated function generation toward interactive repository-scale tasks; and reliability, workflow management, external tools, testing, and human–agent collaboration remain central challenges.",
+    "limitations": {
+      "author_reported": [
+        "The survey's literature retrieval covers 2022 through June 2025, so later work is outside the stated collection window.",
+        "The source describes broad database and ranking preferences, but a complete assessment of inclusion/exclusion decisions requires reading the full paper's retrieval details."
+      ],
+      "ai_analysis": [
+        "A taxonomy can become outdated quickly in a fast-moving agent ecosystem; future use should treat its categories as a snapshot rather than a stable ontology.",
+        "The paper is useful for mapping research space, but it should not be used as evidence that a particular agent mechanism improves benchmark performance without checking the cited primary study."
+      ]
+    },
+    "relation_to_research": "The survey is directly relevant to LLM-based Code Generation and AI4SE. It provides a vocabulary for comparing planning, tool use, retrieval, reflection, multi-agent collaboration, testing, debugging, and evaluation. Its distinction between model capability and engineering workflow is especially useful when designing experiments that isolate interface, process, or reliability effects.",
+    "what_can_be_done_next": "Use the survey's categories to build a controlled matrix of agent mechanisms and evaluation settings. For example, hold the base model and repository tasks fixed while varying planning, retrieval, test feedback, and self-reflection, then report success, repair loops, tool cost, and failure modes. A second study could test whether benchmark results transfer across SDLC stages rather than assuming gains on function-level generation transfer to repository maintenance."
+  },
+  "original_abstract": "Code generation agents powered by large language models (LLMs) are revolutionizing the software development paradigm. Distinct from previous code generation techniques, code generation agents are characterized by three core features. 1) Autonomy: the ability to independently manage the entire workflow, from task decomposition to coding and debugging. 2) Expanded task scope: capabilities that extend beyond generating code snippets to encompass the full software development lifecycle (SDLC). 3) Enhancement of engineering practicality: a shift in research emphasis from algorithmic innovation toward practical engineering challenges, such as system reliability, process management, and tool integration. This domain has recently witnessed rapid development and an explosion in research, demonstrating significant application potential. This paper presents a systematic survey of the field of LLM-based code generation agents. We trace the technology's developmental trajectory from its inception and systematically categorize its core techniques, including both single-agent and multi-agent architectures. Furthermore, this survey details the applications of LLM-based agents across the full SDLC, summarizes mainstream evaluation benchmarks and metrics, and catalogs representative tools. Finally, by analyzing the primary challenges, we identify and propose several foundational, long-term research directions for the future work of the field.",
+  "bibtex": null,
+  "figures": [],
+  "evidence": [
+    {
+      "claim": "The paper defines autonomy, expanded task scope, and engineering practicality as three distinguishing features of code-generation agents.",
+      "locator": "Abstract",
+      "url": "https://arxiv.org/abs/2508.00083"
+    },
+    {
+      "claim": "The literature retrieval uses multiple academic databases, bilingual search terms, and a 2022–June 2025 time span.",
+      "locator": "Sec. 2.1 Literature Collection",
+      "url": "https://arxiv.org/html/2508.00083"
+    },
+    {
+      "claim": "The survey covers single-agent and multi-agent methods, SDLC applications, evaluation benchmarks, and tools.",
+      "locator": "Abstract; Sec. 1",
+      "url": "https://arxiv.org/abs/2508.00083"
+    }
+  ],
+  "generated_by": "ChatGPT/Codex",
+  "generated_at": "2026-09-14T08:19:00+08:00",
+  "updated_at": "2026-09-14T08:19:00+08:00",
+  "owner_edited": false
+}
