@@ -1,13 +1,100 @@
+import { message, normalizeLocale } from '../i18n';
+
 (() => {
   const q = (selector, root = document) => root.querySelector(selector);
   const rows = [...document.querySelectorAll('[data-paper-row]')];
+  const state = { locale: normalizeLocale(document.documentElement.dataset.locale) };
+  const tr = (key) => message(state.locale, key);
+
+  function formatCount(value, kind) {
+    const key =
+      kind === 'paper'
+        ? value === 1
+          ? 'labels.paper'
+          : 'labels.papers'
+        : kind === 'day'
+          ? value === 1
+            ? 'labels.day'
+            : 'labels.days'
+          : value === 1
+            ? 'labels.recommendation'
+            : 'labels.recommendations';
+    return `${value} ${tr(key)}`;
+  }
+
+  function updateCounts() {
+    document.querySelectorAll('[data-count-value]').forEach((element) => {
+      element.textContent = formatCount(
+        Number(element.dataset.countValue || 0),
+        element.dataset.countKind,
+      );
+    });
+  }
+
+  function updateSummaryButtons() {
+    document.querySelectorAll('[data-toggle-summary]').forEach((button) => {
+      button.textContent =
+        button.dataset.summaryOpen === 'true' ? tr('paper.hideQuickRead') : tr('paper.quickRead');
+    });
+  }
+
+  function updateEditor() {
+    const editor = q('[data-editor]');
+    if (!editor) return;
+    const status = q('[data-editor-status]', editor);
+    if (status)
+      status.textContent = tr(
+        editor.dataset.editorState === 'ready'
+          ? 'paper.editorReady'
+          : editor.dataset.editorState === 'signin'
+            ? 'paper.signIn'
+            : 'paper.editorDisabled',
+      );
+  }
+
+  function applyLocale(locale) {
+    state.locale = normalizeLocale(locale);
+    document.documentElement.dataset.locale = state.locale;
+    document.documentElement.lang = state.locale;
+    document.querySelectorAll('[data-i18n]').forEach((element) => {
+      element.textContent = tr(element.dataset.i18n);
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach((element) => {
+      element.setAttribute('placeholder', tr(element.dataset.i18nPlaceholder));
+    });
+    document.querySelectorAll('[data-i18n-aria-label]').forEach((element) => {
+      element.setAttribute('aria-label', tr(element.dataset.i18nAriaLabel));
+    });
+    const toggle = q('[data-locale-toggle]');
+    if (toggle)
+      toggle.setAttribute(
+        'aria-label',
+        tr(state.locale === 'zh-CN' ? 'locale.toEnglish' : 'locale.toChinese'),
+      );
+    updateCounts();
+    updateSummaryButtons();
+    updateEditor();
+  }
+
+  const localeToggle = q('[data-locale-toggle]');
+  localeToggle?.addEventListener('click', () => {
+    const next = state.locale === 'zh-CN' ? 'en' : 'zh-CN';
+    try {
+      localStorage.setItem('research-library-locale', next);
+    } catch {}
+    applyLocale(next);
+  });
+  applyLocale(state.locale);
+
   document.querySelectorAll('[data-toggle-summary]').forEach((button) =>
     button.addEventListener('click', () => {
       const summary = button.closest('[data-paper-row]').querySelector('.inline-summary');
       summary.hidden = !summary.hidden;
-      button.textContent = summary.hidden ? 'Quick Read' : 'Hide Quick Read';
+      button.dataset.summaryOpen = String(!summary.hidden);
+      updateSummaryButtons();
     }),
   );
+
   const search = q('[data-search]');
   const filterEls = [...document.querySelectorAll('[data-filter]')];
   const sort = q('[data-sort]');
@@ -25,9 +112,7 @@
             value === 'all' ||
             (key === 'topic'
               ? row.dataset.topic.split('|').includes(value)
-              : key === 'favorite' || key === 'deep-read'
-                ? row.dataset[key] === value
-                : row.dataset[key] === value),
+              : row.dataset[key] === value),
         )
       );
     });
@@ -50,10 +135,14 @@
     rows.forEach((row) => {
       row.hidden = !visible.includes(row);
     });
-    if (count) count.textContent = `${visible.length} paper${visible.length === 1 ? '' : 's'}`;
+    if (count) {
+      count.dataset.countValue = visible.length;
+      updateCounts();
+    }
   }
   [search, sort, ...filterEls].filter(Boolean).forEach((el) => el.addEventListener('input', apply));
   apply();
+
   const detail = q('[data-detail]');
   const readButton = q('[data-read-detail]');
   readButton?.addEventListener('click', () => {
@@ -61,6 +150,7 @@
     readButton.hidden = true;
     detail.querySelector('h2')?.focus();
   });
+
   const editor = q('[data-editor]');
   if (editor) {
     const api = editor.dataset.api;
@@ -68,20 +158,22 @@
     const status = q('[data-editor-status]', editor);
     const note = q('[data-notes]', editor);
     if (!api) {
-      status.textContent =
-        'Owner editing is disabled until an authenticated write backend is configured. This public site remains read-only.';
-      buttons.forEach((b) => {
-        b.disabled = true;
+      editor.dataset.editorState = 'disabled';
+      buttons.forEach((button) => {
+        button.disabled = true;
       });
       if (note) note.disabled = true;
     } else {
-      status.textContent = 'Owner editor ready. Sign in with GitHub to enable protected writes.';
-      buttons.forEach((b) =>
-        b.addEventListener('click', async () => {
-          status.textContent = 'Opening secure GitHub sign-in…';
+      editor.dataset.editorState = 'ready';
+      buttons.forEach((button) =>
+        button.addEventListener('click', async () => {
+          editor.dataset.editorState = 'signin';
+          updateEditor();
           window.location.href = `${api.replace(/\/$/, '')}/auth/login?return_to=${encodeURIComponent(location.href)}`;
         }),
       );
     }
+    updateEditor();
+    void status;
   }
 })();

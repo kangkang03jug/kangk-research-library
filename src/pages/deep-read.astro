@@ -1,4 +1,9 @@
 ---
-import Layout from '../layouts/Layout.astro'; import PaperCard from '../components/PaperCard.astro'; import { getProfile, getPapers, getStates } from '../lib/data'; import { joinState } from '../lib/library'; const profile=getProfile(); const joined=joinState(getPapers(),getStates()).filter(({state})=>state?.deep_read);
+import Layout from '../layouts/Layout.astro';
+import PaperCard from '../components/PaperCard.astro';
+import { getProfile, getPapers, getStates } from '../lib/data';
+import { joinState } from '../lib/library';
+const profile = getProfile();
+const joined = joinState(getPapers(), getStates()).filter(({ state }) => state?.deep_read);
 ---
-<Layout title="Deep Read" profile={profile}><section class="page-head"><div><p class="eyebrow">Reading progress</p><h1>Deep Read</h1><p class="lede">Papers you have marked after reading their Detail View.</p></div><span class="count">{joined.length} papers</span></section>{joined.length ? <div class="paper-list">{joined.map(({paper,state})=><PaperCard paper={paper} state={state}/>)}</div> : <div class="empty"><strong>No deep reads yet.</strong>Use “Mark as Deep Read” on a paper after reading its detail.</div>}<script src="../scripts/library.js"></script></Layout>
+<Layout title="Deep Read" profile={profile}><section class="page-head"><div><p class="eyebrow" data-i18n="pages.readingProgress">阅读进度</p><h1 data-i18n="pages.deepRead">精读</h1><p class="lede" data-i18n="pages.deepReadLede">你在详情页阅读后标记的论文。</p></div><span class="count" data-count-value={joined.length} data-count-kind="paper">{joined.length} 篇论文</span></section>{joined.length ? <div class="paper-list">{joined.map(({ paper, state }) => <PaperCard paper={paper} state={state} />)}</div> : <div class="empty"><strong data-i18n="pages.noDeepReads">还没有精读论文。</strong><span data-i18n="pages.useDeepRead">阅读详情后使用“标记为精读”。</span></div>}</Layout>

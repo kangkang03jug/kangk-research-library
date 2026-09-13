@@ -14,7 +14,8 @@
     "validate:data": "node scripts/validate-data.mjs",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run worker:check && npm run validate:data && npm test && npm run build",
+    "test:base-path": "node scripts/check-base-path.mjs",
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run worker:check && npm run validate:data && npm test && npm run test:base-path && npm run build",
     "bootstrap": "node scripts/bootstrap-library.mjs",
     "paper:next": "node scripts/run-research-agent.mjs --manual"
   },

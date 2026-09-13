@@ -1,7 +1,25 @@
 ---
-import Layout from '../layouts/Layout.astro'; import PaperCard from '../components/PaperCard.astro'; import { getProfile, getPapers, getStates } from '../lib/data'; import { joinState } from '../lib/library';
-const profile = getProfile(); const joined = joinState(getPapers(), getStates()); const papers = joined.map((x) => x.paper); const topics = [...new Set(papers.flatMap((p) => p.topics))].sort(); const venues = [...new Set(papers.map((p) => p.venue_or_source))].sort(); const years = [...new Set(papers.map((p) => p.year))].sort((a,b) => b-a);
+import Layout from '../layouts/Layout.astro';
+import PaperCard from '../components/PaperCard.astro';
+import { getProfile, getPapers, getStates } from '../lib/data';
+import { joinState } from '../lib/library';
+const profile = getProfile();
+const joined = joinState(getPapers(), getStates());
+const papers = joined.map((x) => x.paper);
+const topics = [...new Set(papers.flatMap((p) => p.topics))].sort();
+const venues = [...new Set(papers.map((p) => p.venue_or_source))].sort();
+const years = [...new Set(papers.map((p) => p.year))].sort((a, b) => b - a);
 ---
-<Layout title="Paper Pool" profile={profile}><section class="page-head"><div><p class="eyebrow">Library index</p><h1>Paper Pool</h1><p class="lede">Every paper in the library, with the context you need to decide what comes next.</p></div><span class="count" data-result-count>{papers.length} papers</span></section>
-  <div class="toolbar"><input class="search" type="search" placeholder="Search title, method, authors, notes…" aria-label="Search papers" data-search /><div class="filters"><label>Topic<select data-filter="topic"><option value="all">All topics</option>{topics.map((x) => <option value={x}>{x}</option>)}</select></label><label>Venue / Source<select data-filter="venue"><option value="all">All venues</option>{venues.map((x) => <option value={x}>{x}</option>)}</select></label><label>Year<select data-filter="year"><option value="all">All years</option>{years.map((x) => <option value={x}>{x}</option>)}</select></label><label>Relevance<select data-filter="relevance"><option value="all">All levels</option><option>High</option><option>Medium</option><option>Low</option></select></label><label>Deep Read<select data-filter="deep-read"><option value="all">Any</option><option value="true">Yes</option><option value="false">No</option></select></label><label>Favorite<select data-filter="favorite"><option value="all">Any</option><option value="true">Yes</option><option value="false">No</option></select></label><label>Sort<select data-sort><option value="recent">Recently Added</option><option value="publication">Publication Date</option><option value="relevance">Relevance</option><option value="ranking">Venue Ranking</option><option value="title">Title</option></select></label></div></div>
-  {papers.length ? <div class="paper-list">{joined.map(({ paper, state }) => <PaperCard paper={paper} state={state} />)}</div> : <div class="empty"><strong>No papers yet.</strong>The Paper Pool is ready for your first research agent run.</div>}<script src="../scripts/library.js"></script></Layout>
+<Layout title="Paper Pool" profile={profile}>
+  <section class="page-head"><div><p class="eyebrow" data-i18n="pages.libraryIndex">论文索引</p><h1 data-i18n="pages.paperPool">论文池</h1><p class="lede" data-i18n="pages.paperPoolLede">库中的全部论文，以及帮助你决定下一步的上下文。</p></div><span class="count" data-result-count data-count-value={papers.length} data-count-kind="paper">{papers.length} 篇论文</span></section>
+  <div class="toolbar"><input class="search" type="search" placeholder="搜索标题、方法、作者、笔记…" aria-label="搜索论文" data-i18n-placeholder="search.placeholder" data-i18n-aria-label="search.papers" data-search /><div class="filters">
+    <label><span data-i18n="search.topic">主题</span><select data-filter="topic"><option value="all" data-i18n="search.allTopics">全部主题</option>{topics.map((x) => <option value={x}>{x}</option>)}</select></label>
+    <label><span data-i18n="search.venue">会议 / 来源</span><select data-filter="venue"><option value="all" data-i18n="search.allVenues">全部会议 / 来源</option>{venues.map((x) => <option value={x}>{x}</option>)}</select></label>
+    <label><span data-i18n="search.year">年份</span><select data-filter="year"><option value="all" data-i18n="search.allYears">全部年份</option>{years.map((x) => <option value={x}>{x}</option>)}</select></label>
+    <label><span data-i18n="search.relevance">相关性</span><select data-filter="relevance"><option value="all" data-i18n="search.allLevels">全部等级</option><option value="High" data-i18n="labels.high">高</option><option value="Medium" data-i18n="labels.medium">中</option><option value="Low" data-i18n="labels.low">低</option></select></label>
+    <label><span data-i18n="search.deepRead">精读</span><select data-filter="deep-read"><option value="all" data-i18n="search.any">不限</option><option value="true" data-i18n="search.yes">是</option><option value="false" data-i18n="search.no">否</option></select></label>
+    <label><span data-i18n="search.favorite">收藏</span><select data-filter="favorite"><option value="all" data-i18n="search.any">不限</option><option value="true" data-i18n="search.yes">是</option><option value="false" data-i18n="search.no">否</option></select></label>
+    <label><span data-i18n="search.sort">排序</span><select data-sort><option value="recent" data-i18n="search.recent">最近添加</option><option value="publication" data-i18n="search.publication">发表日期</option><option value="relevance" data-i18n="search.relevanceSort">相关性</option><option value="ranking" data-i18n="search.ranking">会议排名</option><option value="title" data-i18n="search.title">标题</option></select></label>
+  </div></div>
+  {papers.length ? <div class="paper-list">{joined.map(({ paper, state }) => <PaperCard paper={paper} state={state} />)}</div> : <div class="empty"><strong data-i18n="home.noPapers">还没有论文。</strong><span data-i18n="pages.agentArchive">论文池已准备好迎接第一次研究 Agent 运行。</span></div>}
+</Layout>

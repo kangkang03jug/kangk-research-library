@@ -105,6 +105,17 @@ nav a:hover {
   height: 34px;
   line-height: 1;
 }
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.locale-toggle {
+  border: 1px solid var(--line);
+  background: transparent;
+  padding: 7px 9px;
+  font-size: 0.72rem;
+}
 main {
   max-width: var(--max);
   margin: 0 auto;

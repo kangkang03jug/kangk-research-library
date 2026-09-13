@@ -1,5 +1,6 @@
 ---
 import type { Paper, UserState } from '../lib/schema';
+import { withBase } from '../lib/url';
 const { paper, state } = Astro.props as { paper: Paper; state?: UserState };
 const base = import.meta.env.BASE_URL;
 const rank = paper.ranking.ccf || paper.ranking.cas || paper.ranking.jcr || 'Unranked';
@@ -7,10 +8,10 @@ const rank = paper.ranking.ccf || paper.ranking.cas || paper.ranking.jcr || 'Unr
 <article class="paper-row" data-paper-row data-search-text={JSON.stringify({ paper, state })} data-topic={paper.topics.join('|')} data-venue={paper.venue_or_source} data-year={paper.year} data-ranking={rank} data-relevance={paper.relevance} data-status={state?.status || 'New'} data-deep-read={state?.deep_read || false} data-favorite={state?.favorite || false}>
   <div class="paper-row-main">
     <div class="paper-kicker"><span>{paper.year}</span><span>{paper.venue_or_source}</span><span>{rank}</span><span class={`relevance relevance-${paper.relevance.toLowerCase()}`}>{paper.relevance}</span></div>
-    <h2><a href={`${base}papers/${paper.id}/`}>{paper.title}</a></h2>
+    <h2><a href={withBase(`/papers/${paper.id}/`, base)}>{paper.title}</a></h2>
     <p class="authors">{paper.authors.join(' · ')}</p>
     <div class="topic-list">{paper.topics.map((topic) => <span>{topic}</span>)}</div>
   </div>
-  <div class="paper-row-actions"><span title="Deep Read">{state?.deep_read ? '◉' : '○'}</span><span title="Favorite">{state?.favorite ? '★' : '☆'}</span><button type="button" class="text-button" data-toggle-summary>Quick Read</button></div>
-  <div class="inline-summary" hidden><p>{paper.quick_read.tldr}</p><a href={`${base}papers/${paper.id}/`}>Open paper →</a></div>
+  <div class="paper-row-actions"><span title="Deep Read">{state?.deep_read ? '◉' : '○'}</span><span title="Favorite">{state?.favorite ? '★' : '☆'}</span><button type="button" class="text-button" data-toggle-summary data-i18n="paper.quickRead">快速阅读</button></div>
+  <div class="inline-summary" hidden><p>{paper.quick_read.tldr}</p><a href={withBase(`/papers/${paper.id}/`, base)} data-i18n="paper.openPaper">打开论文 →</a></div>
 </article>
