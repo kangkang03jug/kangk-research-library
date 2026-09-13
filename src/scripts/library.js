@@ -175,8 +175,15 @@ import { message, normalizeLocale } from '../i18n';
       summaryEditor.hidden = !authenticated;
     };
     const authorizationHeaders = () => (session ? { Authorization: `Bearer ${session}` } : {});
-    const request = (path, options = {}) =>
-      fetch(`${api}${path}`, {
+    const saveSession = (value) => {
+      session = value;
+      try {
+        if (value) sessionStorage.setItem(sessionKey, value);
+        else sessionStorage.removeItem(sessionKey);
+      } catch {}
+    };
+    const request = async (path, options = {}) => {
+      const response = await fetch(`${api}${path}`, {
         ...options,
         credentials: 'include',
         headers: {
@@ -185,12 +192,14 @@ import { message, normalizeLocale } from '../i18n';
           ...(options.headers || {}),
         },
       });
-    const saveSession = (value) => {
-      session = value;
-      try {
-        if (value) sessionStorage.setItem(sessionKey, value);
-        else sessionStorage.removeItem(sessionKey);
-      } catch {}
+      if (response.ok) {
+        const payload = await response
+          .clone()
+          .json()
+          .catch(() => null);
+        if (payload?.session) saveSession(payload.session);
+      }
+      return response;
     };
     const showCommit = (url) => {
       commitLink.hidden = !url;

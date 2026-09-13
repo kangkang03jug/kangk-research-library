@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import worker, { configuredOwner, validPaperPatch, validUserPatch } from '../worker/src/index';
+import worker, {
+  SESSION_AGE_SECONDS,
+  configuredOwner,
+  createEditorSession,
+  validPaperPatch,
+  validUserPatch,
+  verifyEditorSession,
+} from '../worker/src/index';
 
 const env = {
   GITHUB_APP_ID: '1',
@@ -13,6 +20,25 @@ const env = {
 };
 
 describe('owner editor security boundaries', () => {
+  it('uses a revocable 90-day session lifetime', () => {
+    expect(SESSION_AGE_SECONDS).toBe(90 * 24 * 60 * 60);
+  });
+
+  it('expires sessions and invalidates them when SESSION_SECRET rotates', async () => {
+    const issuedAt = Date.UTC(2026, 8, 14);
+    const session = await createEditorSession('paper-owner', 'original-secret', issuedAt);
+    await expect(
+      verifyEditorSession(session, 'original-secret', issuedAt + 1),
+    ).resolves.toMatchObject({
+      login: 'paper-owner',
+      expiresAt: issuedAt + SESSION_AGE_SECONDS * 1000,
+    });
+    await expect(verifyEditorSession(session, 'rotated-secret', issuedAt + 1)).resolves.toBeNull();
+    await expect(
+      verifyEditorSession(session, 'original-secret', issuedAt + SESSION_AGE_SECONDS * 1000),
+    ).resolves.toBeNull();
+  });
+
   it('reads the owner only from the Research Profile editor block', () => {
     expect(
       configuredOwner(

@@ -81,7 +81,7 @@ Runs process one paper. If no new paper clears the quality bar, the agent recomm
 
 The public site is read-only until its optional editor backend is configured. After GitHub login, the Worker calls `/api/me`, reads the allowed Owner from `config/research-profile.yaml`, and enables editing only when the two GitHub usernames match. Non-owners remain read-only. Deep Read, Favorite, Status, My Tags, and My Notes update `data/user/<paper-id>.json`; AI summary corrections update only the summary fields in `data/papers/<paper-id>.json`.
 
-The browser never receives a GitHub OAuth token, PAT, App private key, or installation token. It receives only a one-hour signed editor session. The Worker exchanges its GitHub App key for a short-lived installation token, obtains the latest file and SHA, restricts changes to approved fields, and writes through the GitHub Contents API. Concurrent changes return `409`; refresh before retrying. A successful save links to the commit and explains that Pages may take time to rebuild.
+The browser never receives a GitHub OAuth token, PAT, App private key, or installation token. It receives only a time-limited signed editor session. The session uses a 90-day sliding expiry: every successful authenticated `/api/me` or `/api/update` response renews it for another 90 days in both the `HttpOnly`, `Secure`, `SameSite=None` cookie and the browser-held signed editor credential. It expires after 90 days without successful activity and is never permanent; rotating `SESSION_SECRET` immediately invalidates every existing session. The Worker exchanges its GitHub App key for a short-lived installation token, obtains the latest file and SHA, restricts changes to approved fields, and writes through the GitHub Contents API. Concurrent changes return `409`; refresh before retrying. A successful save links to the commit and explains that Pages may take time to rebuild.
 
 AI Summary is generated reading context. **My Notes** are the researcher's long-term Markdown memory, and **My Tags** are the researcher's own taxonomy. They are kept in `data/user/<paper-id>.json`, separate from generated `data/papers/<paper-id>.json`. The repository is also the backup: clone it, inspect history, and recover an earlier commit when needed.
 
@@ -181,25 +181,25 @@ The Pages workflow runs validation and build before deployment, configures the p
 
 ## Troubleshooting
 
-| Symptom                              | Fix                                                                                                                                                                 |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| GitHub Pages 404                     | Confirm the URL includes `/<repository>/`, the Pages source is GitHub Actions, and the Pages run is green.                                                          |
-| Pages build failure                  | Open the workflow log; run `npm run verify` locally and fix schema/type/build errors before pushing.                                                                |
-| Missing CSS/JS or broken route       | Do not hard-code `/`; keep `import.meta.env.BASE_URL` links and push a new build.                                                                                   |
-| ChatGPT task cannot push             | Confirm the connected GitHub app has write permission for this repository. The task must report read-only access rather than claim success.                         |
-| Codex CLI not logged in/auth expired | For the server alternative, run `codex login` again with the ChatGPT account; do not add an API key.                                                                |
-| `git push` permission denied         | Authenticate Git with the repository owner account and confirm repository write permission. Never paste a token into a file.                                        |
-| Dirty repository                     | Stop the agent, review `git status`, preserve user changes, and run again only on a clean intentional checkout.                                                     |
-| Research-agent lock                  | Confirm no process is active, then remove only `.research-agent.lock`.                                                                                              |
-| Duplicate or schema validation error | Run `npm run validate:data`; fix identity fields, dangling references, enum values, URLs, or the record shape.                                                      |
-| GitHub App/OAuth failure             | Check callback URL, allowed origin, owner username, short-lived session validation, and minimum Contents permission. Do not enable writes until owner checks pass.  |
-| Cloudflare Worker failure            | Inspect Worker logs and secret names; deploy only after one-time Cloudflare login. The static site still works without the editor.                                  |
-| Website update is not immediate      | Wait for the Pages workflow and CDN propagation; verify the commit is on `main`.                                                                                    |
-| Scheduled task did not run           | Check ChatGPT **Scheduled**, task status, configured timezone, account/workspace app access, and recent run output. For the CLI alternative, also check the server. |
+| Symptom                              | Fix                                                                                                                                                                         |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GitHub Pages 404                     | Confirm the URL includes `/<repository>/`, the Pages source is GitHub Actions, and the Pages run is green.                                                                  |
+| Pages build failure                  | Open the workflow log; run `npm run verify` locally and fix schema/type/build errors before pushing.                                                                        |
+| Missing CSS/JS or broken route       | Do not hard-code `/`; keep `import.meta.env.BASE_URL` links and push a new build.                                                                                           |
+| ChatGPT task cannot push             | Confirm the connected GitHub app has write permission for this repository. The task must report read-only access rather than claim success.                                 |
+| Codex CLI not logged in/auth expired | For the server alternative, run `codex login` again with the ChatGPT account; do not add an API key.                                                                        |
+| `git push` permission denied         | Authenticate Git with the repository owner account and confirm repository write permission. Never paste a token into a file.                                                |
+| Dirty repository                     | Stop the agent, review `git status`, preserve user changes, and run again only on a clean intentional checkout.                                                             |
+| Research-agent lock                  | Confirm no process is active, then remove only `.research-agent.lock`.                                                                                                      |
+| Duplicate or schema validation error | Run `npm run validate:data`; fix identity fields, dangling references, enum values, URLs, or the record shape.                                                              |
+| GitHub App/OAuth failure             | Check callback URL, allowed origin, owner username, time-limited sliding session validation, and minimum Contents permission. Do not enable writes until owner checks pass. |
+| Cloudflare Worker failure            | Inspect Worker logs and secret names; deploy only after one-time Cloudflare login. The static site still works without the editor.                                          |
+| Website update is not immediate      | Wait for the Pages workflow and CDN propagation; verify the commit is on `main`.                                                                                            |
+| Scheduled task did not run           | Check ChatGPT **Scheduled**, task status, configured timezone, account/workspace app access, and recent run output. For the CLI alternative, also check the server.         |
 
 ## Security notes
 
-Never commit a GitHub PAT, GitHub App private key, OAuth client secret, Codex auth file, `.env`, or server secret. Never put a GitHub write token in frontend JavaScript or browser localStorage. Store secrets only in a protected server/secret store. Sanitize any Markdown before rendering HTML, validate URLs, use strict CORS and OAuth state, short-lived sessions, owner checks, conflict/SHA checks, and least-privilege App permissions. The included Worker implements the write path, but it must be deployed with real provider credentials and reviewed before enabling writes.
+Never commit a GitHub PAT, GitHub App private key, OAuth client secret, Codex auth file, `.env`, or server secret. Never put a GitHub write token in frontend JavaScript or browser localStorage. Store secrets only in a protected server/secret store. Sanitize any Markdown before rendering HTML, validate URLs, use strict CORS and OAuth state, time-limited sliding sessions, owner checks, conflict/SHA checks, and least-privilege App permissions. The included Worker implements the write path, but it must be deployed with real provider credentials and reviewed before enabling writes.
 
 ## FAQ
 

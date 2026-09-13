@@ -16,7 +16,7 @@ type JsonRecord = Record<string, unknown>;
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
-const SESSION_AGE_SECONDS = 3600;
+export const SESSION_AGE_SECONDS = 90 * 24 * 60 * 60;
 const STATUSES = new Set(['New', 'Worth Reading', 'Reading', 'Read', 'Important', 'Related Work']);
 
 const binaryString = (bytes: Uint8Array) => {
@@ -52,6 +52,22 @@ const jsonResponse = (body: unknown, status: number, origin: string) =>
     status,
     headers: { 'content-type': 'application/json', ...corsHeaders(origin) },
   });
+
+async function renewedSessionResponse(
+  body: Record<string, unknown>,
+  origin: string,
+  login: string,
+  secret: string,
+) {
+  const session = await createEditorSession(login, secret);
+  const headers = new Headers({
+    'content-type': 'application/json',
+    'cache-control': 'no-store',
+    ...corsHeaders(origin),
+  });
+  headers.append('Set-Cookie', setCookie('rl_session', session, SESSION_AGE_SECONDS, 'None'));
+  return new Response(JSON.stringify({ ...body, session }), { status: 200, headers });
+}
 
 async function hmacKey(secret: string) {
   return crypto.subtle.importKey(
@@ -90,6 +106,14 @@ async function verifiedPayload<T>(value: string, secret: string): Promise<T | nu
   } catch {
     return null;
   }
+}
+
+export const createEditorSession = (login: string, secret: string, now = Date.now()) =>
+  signedPayload({ login, expiresAt: now + SESSION_AGE_SECONDS * 1000 } satisfies Session, secret);
+
+export async function verifyEditorSession(value: string, secret: string, now = Date.now()) {
+  const session = await verifiedPayload<Session>(value, secret);
+  return session && session.expiresAt > now ? session : null;
 }
 
 const setCookie = (name: string, value: string, age: number, sameSite: 'Lax' | 'None') =>
@@ -206,8 +230,8 @@ async function repositoryOwner(env: Env, token: string) {
 
 async function authenticatedOwner(request: Request, env: Env, token: string) {
   const rawSession = bearerToken(request) || readCookie(request, 'rl_session');
-  const session = await verifiedPayload<Session>(rawSession, env.SESSION_SECRET);
-  if (!session || session.expiresAt <= Date.now()) return null;
+  const session = await verifyEditorSession(rawSession, env.SESSION_SECRET);
+  if (!session) return null;
   const owner = await repositoryOwner(env, token);
   return session.login.toLowerCase() === owner.toLowerCase() ? session.login : null;
 }
@@ -391,10 +415,7 @@ export default {
         const owner = await repositoryOwner(env, token);
         if (login.toLowerCase() !== owner.toLowerCase())
           return callbackResponse(`${state.returnTo}#editor_error=not-owner`, '');
-        const session = await signedPayload(
-          { login, expiresAt: Date.now() + SESSION_AGE_SECONDS * 1000 } satisfies Session,
-          env.SESSION_SECRET,
-        );
+        const session = await createEditorSession(login, env.SESSION_SECRET);
         return callbackResponse(
           `${state.returnTo}#editor_session=${encodeURIComponent(session)}`,
           session,
@@ -417,11 +438,14 @@ export default {
       const login = await authenticatedOwner(request, env, token);
 
       if (url.pathname === '/api/me')
-        return jsonResponse(
-          login ? { authenticated: true, login } : { authenticated: false },
-          200,
-          allowedOrigin,
-        );
+        return login
+          ? renewedSessionResponse(
+              { authenticated: true, login },
+              allowedOrigin,
+              login,
+              env.SESSION_SECRET,
+            )
+          : jsonResponse({ authenticated: false }, 200, allowedOrigin);
 
       if (!login) return jsonResponse({ error: 'Authentication required' }, 401, allowedOrigin);
 
@@ -501,10 +525,11 @@ export default {
           content?: { sha?: string };
           commit?: { html_url?: string };
         };
-        return jsonResponse(
+        return renewedSessionResponse(
           { ok: true, sha: result.content?.sha, commitUrl: result.commit?.html_url },
-          200,
           allowedOrigin,
+          login,
+          env.SESSION_SECRET,
         );
       }
       return jsonResponse({ error: 'Not found' }, 404, allowedOrigin);

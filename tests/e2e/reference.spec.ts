@@ -104,15 +104,24 @@ test('owner editor authenticates once and writes user state and summary with SHA
   page,
 }) => {
   const requests: Array<Record<string, unknown>> = [];
+  let expectedSession = 'signed-owner-session';
   await page.addInitScript(() =>
     sessionStorage.setItem('research-library-editor-session', 'signed-owner-session'),
   );
   await page.route('https://editor.test/**', async (route) => {
     const request = route.request();
     const url = new URL(request.url());
-    expect(request.headers().authorization).toBe('Bearer signed-owner-session');
-    if (url.pathname === '/api/me')
-      return route.fulfill({ json: { authenticated: true, login: 'kangkang03jug' } });
+    expect(request.headers().authorization).toBe(`Bearer ${expectedSession}`);
+    if (url.pathname === '/api/me') {
+      expectedSession = 'renewed-from-me';
+      return route.fulfill({
+        json: {
+          authenticated: true,
+          login: 'kangkang03jug',
+          session: expectedSession,
+        },
+      });
+    }
     if (url.pathname === '/api/content') {
       const path = url.searchParams.get('path');
       return route.fulfill({
@@ -123,11 +132,13 @@ test('owner editor authenticates once and writes user state and summary with SHA
     }
     if (url.pathname === '/api/update') {
       requests.push(request.postDataJSON());
+      expectedSession = requests.length === 1 ? 'renewed-after-user' : 'renewed-after-paper';
       return route.fulfill({
         json: {
           ok: true,
           sha: requests.length === 1 ? 'new-user-sha' : 'new-paper-sha',
           commitUrl: `https://github.com/example/commit/${requests.length}`,
+          session: expectedSession,
         },
       });
     }
@@ -165,6 +176,9 @@ test('owner editor authenticates once and writes user state and summary with SHA
     sha: 'paper-sha',
     patch: { quick_read: { tldr: '经 Owner 核正的中文总结。' } },
   });
+  await expect
+    .poll(() => page.evaluate(() => sessionStorage.getItem('research-library-editor-session')))
+    .toBe('renewed-after-paper');
   await expect(page.getByRole('link', { name: '查看 GitHub commit ↗' })).toBeVisible();
 });
 
