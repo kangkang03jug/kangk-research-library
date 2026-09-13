@@ -6,7 +6,7 @@ export default defineConfig({
     url: 'http://127.0.0.1:4321/',
     timeout: 120_000,
     reuseExistingServer: false,
-    env: { PORT: '4321' },
+    env: { PORT: '4321', GITHUB_ACTIONS: '' },
   },
   use: { baseURL: 'http://127.0.0.1:4321', ...devices['Desktop Chrome'] },
 });
