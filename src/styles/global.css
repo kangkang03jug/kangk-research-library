@@ -528,30 +528,90 @@ pre {
 .editor-panel h2 {
   margin-bottom: 5px;
 }
+.editor-heading,
+.editor-session,
+.editor-checks {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.editor-heading {
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.editor-session {
+  white-space: nowrap;
+}
+.editor-session span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
 .editor-status {
   color: var(--muted);
   font-size: 0.85rem;
 }
-.editor-actions {
-  display: flex;
-  gap: 9px;
-  flex-wrap: wrap;
-  margin-top: 18px;
+.editor-form {
+  margin-top: 22px;
 }
-.editor-actions button {
-  padding: 9px 12px;
+.editor-form fieldset {
+  display: grid;
+  gap: 14px;
   border: 1px solid var(--line);
-  background: transparent;
+  padding: 18px;
 }
-.editor-actions button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.editor-form legend {
+  padding: 0 7px;
+  font-weight: 650;
+}
+.editor-checks {
+  flex-wrap: wrap;
+}
+.editor-checks label {
+  flex-direction: row;
+}
+.editor-form input[type='text'],
+.editor-form select,
+.editor-form textarea {
+  width: 100%;
+}
+.editor-form textarea {
+  min-height: 110px;
+  resize: vertical;
 }
 .notes-area {
-  width: 100%;
   min-height: 140px;
+}
+.code-area {
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+}
+.editor-save {
+  justify-self: start;
+  padding: 10px 14px;
+  border: 1px solid var(--text);
+  color: var(--bg);
+  background: var(--text);
+}
+.summary-editor {
+  margin-top: 22px;
+  border: 1px solid var(--line);
+  padding: 0 18px;
+}
+.summary-editor > summary {
+  font-size: 0.9rem;
+}
+.summary-editor .editor-form {
+  margin: 0 0 18px;
+}
+.editor-hint {
   margin-top: 18px;
-  resize: vertical;
+}
+.editor-commit {
+  display: inline-block;
+  font-size: 0.82rem;
+}
+.editor-commit[hidden] {
+  display: none;
 }
 .paper-footer-meta {
   margin-top: 50px;
@@ -605,6 +665,9 @@ pre {
   }
   .authors {
     white-space: normal;
+  }
+  .editor-heading {
+    flex-direction: column;
   }
 }
 @media (prefers-reduced-motion: reduce) {

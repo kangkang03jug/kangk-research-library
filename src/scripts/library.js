@@ -42,14 +42,7 @@ import { message, normalizeLocale } from '../i18n';
     const editor = q('[data-editor]');
     if (!editor) return;
     const status = q('[data-editor-status]', editor);
-    if (status)
-      status.textContent = tr(
-        editor.dataset.editorState === 'ready'
-          ? 'paper.editorReady'
-          : editor.dataset.editorState === 'signin'
-            ? 'paper.signIn'
-            : 'paper.editorDisabled',
-      );
+    if (status) status.textContent = tr(editor.dataset.editorMessageKey || 'paper.editorChecking');
   }
 
   function applyLocale(locale) {
@@ -153,27 +146,248 @@ import { message, normalizeLocale } from '../i18n';
 
   const editor = q('[data-editor]');
   if (editor) {
-    const api = editor.dataset.api;
-    const buttons = [...editor.querySelectorAll('button[data-edit-action]')];
+    const api = (editor.dataset.api || '').replace(/\/$/, '');
+    const paperId = editor.dataset.paperId;
     const status = q('[data-editor-status]', editor);
-    const note = q('[data-notes]', editor);
+    const loginButton = q('[data-editor-login]', editor);
+    const logoutButton = q('[data-editor-logout]', editor);
+    const userLabel = q('[data-editor-user]', editor);
+    const userForm = q('[data-user-editor]', editor);
+    const paperForm = q('[data-paper-editor]', editor);
+    const summaryEditor = q('[data-summary-editor]', editor);
+    const commitLink = q('[data-editor-commit]', editor);
+    const sessionKey = 'research-library-editor-session';
+    let session = '';
+    let userSha = '';
+    let paperSha = '';
+    let paperRecord;
+
+    const setMessage = (key) => {
+      editor.dataset.editorMessageKey = key;
+      updateEditor();
+    };
+    const setAuthenticated = (authenticated, login = '') => {
+      loginButton.hidden = authenticated;
+      logoutButton.hidden = !authenticated;
+      userLabel.hidden = !authenticated;
+      userLabel.textContent = authenticated ? `@${login}` : '';
+      userForm.hidden = !authenticated;
+      summaryEditor.hidden = !authenticated;
+    };
+    const authorizationHeaders = () => (session ? { Authorization: `Bearer ${session}` } : {});
+    const request = (path, options = {}) =>
+      fetch(`${api}${path}`, {
+        ...options,
+        credentials: 'include',
+        headers: {
+          ...authorizationHeaders(),
+          ...(options.body ? { 'content-type': 'application/json' } : {}),
+          ...(options.headers || {}),
+        },
+      });
+    const saveSession = (value) => {
+      session = value;
+      try {
+        if (value) sessionStorage.setItem(sessionKey, value);
+        else sessionStorage.removeItem(sessionKey);
+      } catch {}
+    };
+    const showCommit = (url) => {
+      commitLink.hidden = !url;
+      if (url) commitLink.href = url;
+    };
+    const splitLines = (value) =>
+      value
+        .split('\n')
+        .map((item) => item.trim())
+        .filter(Boolean);
+
+    async function loadEditorData() {
+      setMessage('paper.editorLoading');
+      const userPath = `data/user/${paperId}.json`;
+      const paperPath = `data/papers/${paperId}.json`;
+      const [userResponse, paperResponse] = await Promise.all([
+        request(`/api/content?path=${encodeURIComponent(userPath)}`),
+        request(`/api/content?path=${encodeURIComponent(paperPath)}`),
+      ]);
+      if (userResponse.status === 401 || paperResponse.status === 401) {
+        saveSession('');
+        setAuthenticated(false);
+        setMessage('paper.signInRequired');
+        return;
+      }
+      if (!userResponse.ok || !paperResponse.ok) throw new Error('Unable to load editor data');
+      const userData = await userResponse.json();
+      const paperData = await paperResponse.json();
+      userSha = userData.sha;
+      paperSha = paperData.sha;
+      paperRecord = paperData.content;
+      q('[data-user-field="deep_read"]', editor).checked = userData.content.deep_read;
+      q('[data-user-field="favorite"]', editor).checked = userData.content.favorite;
+      q('[data-user-field="status"]', editor).value = userData.content.status;
+      q('[data-user-field="my_tags"]', editor).value = userData.content.my_tags.join(', ');
+      q('[data-user-field="my_notes"]', editor).value = userData.content.my_notes;
+      editor.querySelectorAll('[data-summary-group]').forEach((field) => {
+        field.value = paperRecord[field.dataset.summaryGroup][field.dataset.summaryField];
+      });
+      q('[data-research-questions]', editor).value = JSON.stringify(
+        paperRecord.detail.research_questions,
+        null,
+        2,
+      );
+      editor.querySelectorAll('[data-limitations]').forEach((field) => {
+        field.value = paperRecord.detail.limitations[field.dataset.limitations].join('\n');
+      });
+      setMessage('paper.editorAuthenticated');
+    }
+
+    async function updateFile(path, sha, patch, message) {
+      const response = await request('/api/update', {
+        method: 'POST',
+        body: JSON.stringify({ path, sha, patch, message }),
+      });
+      if (response.status === 409) {
+        setMessage('paper.editorConflict');
+        return null;
+      }
+      if (response.status === 401) {
+        saveSession('');
+        setAuthenticated(false);
+        setMessage('paper.signInRequired');
+        return null;
+      }
+      if (!response.ok) throw new Error('Save failed');
+      return response.json();
+    }
+
+    async function initializeEditor() {
+      const hash = new URLSearchParams(location.hash.slice(1));
+      const callbackSession = hash.get('editor_session');
+      const callbackError = hash.get('editor_error');
+      try {
+        session = callbackSession || sessionStorage.getItem(sessionKey) || '';
+      } catch {
+        session = callbackSession || '';
+      }
+      if (callbackSession) saveSession(callbackSession);
+      if (callbackSession || callbackError)
+        history.replaceState(null, '', `${location.pathname}${location.search}`);
+      if (callbackError === 'not-owner') {
+        saveSession('');
+        setAuthenticated(false);
+        setMessage('paper.editorNotOwner');
+        return;
+      }
+      try {
+        const me = await request('/api/me');
+        if (!me.ok) throw new Error('Editor unavailable');
+        const identity = await me.json();
+        if (!identity.authenticated) {
+          setAuthenticated(false);
+          setMessage('paper.signInRequired');
+          return;
+        }
+        setAuthenticated(true, identity.login);
+        await loadEditorData();
+      } catch {
+        setAuthenticated(false);
+        setMessage('paper.editorUnavailable');
+      }
+    }
+
     if (!api) {
       editor.dataset.editorState = 'disabled';
-      buttons.forEach((button) => {
-        button.disabled = true;
-      });
-      if (note) note.disabled = true;
+      setAuthenticated(false);
+      loginButton.hidden = true;
+      setMessage('paper.editorDisabled');
     } else {
-      editor.dataset.editorState = 'ready';
-      buttons.forEach((button) =>
-        button.addEventListener('click', async () => {
-          editor.dataset.editorState = 'signin';
-          updateEditor();
-          window.location.href = `${api.replace(/\/$/, '')}/auth/login?return_to=${encodeURIComponent(location.href)}`;
-        }),
-      );
+      loginButton.addEventListener('click', () => {
+        setMessage('paper.signIn');
+        window.location.href = `${api}/auth/login?return_to=${encodeURIComponent(location.href.split('#')[0])}`;
+      });
+      logoutButton.addEventListener('click', async () => {
+        try {
+          await request('/auth/logout', { method: 'POST' });
+        } finally {
+          saveSession('');
+          setAuthenticated(false);
+          showCommit('');
+          setMessage('paper.signInRequired');
+        }
+      });
+      userForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        setMessage('paper.editorSaving');
+        showCommit('');
+        const tags = q('[data-user-field="my_tags"]', editor)
+          .value.split(',')
+          .map((tag) => tag.trim())
+          .filter((tag, index, all) => tag && all.indexOf(tag) === index);
+        const patch = {
+          deep_read: q('[data-user-field="deep_read"]', editor).checked,
+          favorite: q('[data-user-field="favorite"]', editor).checked,
+          status: q('[data-user-field="status"]', editor).value,
+          my_tags: tags,
+          my_notes: q('[data-user-field="my_notes"]', editor).value,
+        };
+        try {
+          const result = await updateFile(
+            `data/user/${paperId}.json`,
+            userSha,
+            patch,
+            `data: update reading state for ${paperId}`,
+          );
+          if (result) {
+            userSha = result.sha;
+            showCommit(result.commitUrl);
+            setMessage('paper.editorSaved');
+          }
+        } catch {
+          setMessage('paper.editorSaveFailed');
+        }
+      });
+      paperForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        setMessage('paper.editorSaving');
+        showCommit('');
+        try {
+          const quickRead = { ...paperRecord.quick_read };
+          const detailPatch = { ...paperRecord.detail };
+          editor.querySelectorAll('[data-summary-group="quick_read"]').forEach((field) => {
+            quickRead[field.dataset.summaryField] = field.value;
+          });
+          editor.querySelectorAll('[data-summary-group="detail"]').forEach((field) => {
+            detailPatch[field.dataset.summaryField] = field.value;
+          });
+          const researchQuestions = JSON.parse(q('[data-research-questions]', editor).value);
+          if (!Array.isArray(researchQuestions))
+            throw new Error('Research Questions must be an array');
+          detailPatch.research_questions = researchQuestions;
+          detailPatch.limitations = {
+            author_reported: splitLines(q('[data-limitations="author_reported"]', editor).value),
+            ai_analysis: splitLines(q('[data-limitations="ai_analysis"]', editor).value),
+          };
+          const patch = { quick_read: quickRead, detail: detailPatch };
+          const result = await updateFile(
+            `data/papers/${paperId}.json`,
+            paperSha,
+            patch,
+            `data: correct AI summary for ${paperId}`,
+          );
+          if (result) {
+            paperSha = result.sha;
+            paperRecord = { ...paperRecord, ...patch };
+            showCommit(result.commitUrl);
+            setMessage('paper.editorSaved');
+          }
+        } catch (error) {
+          setMessage(
+            error instanceof SyntaxError ? 'paper.editorInvalidJson' : 'paper.editorSaveFailed',
+          );
+        }
+      });
+      void initializeEditor();
     }
-    updateEditor();
     void status;
   }
 })();

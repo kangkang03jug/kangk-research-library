@@ -3,7 +3,6 @@ main = "src/index.ts"
 compatibility_date = "2026-09-13"
 
 [vars]
-# Set secrets with: wrangler secret put GITHUB_APP_PRIVATE_KEY (never commit values).
-# GITHUB_APP_ID, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, SESSION_SECRET,
-# OWNER_GITHUB_USERNAME, ALLOWED_ORIGIN, and GITHUB_INSTALLATION_ID are required.
+# Repository-specific non-secret values. The Owner is read from config/research-profile.yaml.
 GITHUB_REPOSITORY = "kangkang03jug/kangk-research-library"
+GITHUB_BRANCH = "main"

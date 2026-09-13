@@ -4,7 +4,7 @@ Build your own AI-maintained research knowledge base.
 
 This is a reusable, static-first framework for a personal research library. It turns structured Git data into a fast public website: **Paper Pool** is the searchable collection, **Today’s Paper** is the daily recommendation, **Detail View** is a 5–10 minute reading brief, **Deep Read** is your manually marked reading progress, **Favorites** is your shortlist, and **My Notes** are durable researcher-owned Markdown notes. The template is domain-neutral: research direction, topics, language, and ranking preferences come from `config/research-profile.yaml`.
 
-AI automation is designed for Codex CLI + ChatGPT account authentication. It does not require an OpenAI API key or paid OpenAI API usage. Codex/ChatGPT usage remains subject to the account's plan and limits.
+The recommended automation is a cloud ChatGPT Scheduled Task with repository access. Codex CLI + cron/systemd remains available for an always-on lab server. Neither workflow requires an OpenAI API key; ChatGPT/Codex usage remains subject to the account's plan and limits.
 
 ## Getting Started — recommended: ask Codex
 
@@ -24,7 +24,7 @@ My secondary research interests are <OPTIONAL_INTERESTS>.
 Please create the GitHub repository, configure the research profile, build, test, deploy GitHub Pages, and prepare the daily research automation.
 ```
 
-4. Codex should create an independent repository, configure the profile and topic taxonomy, clear production examples, build/test/deploy Pages, and prepare the daily agent.
+4. Codex should create an independent repository, configure the profile and topic taxonomy, clear production examples, build/test/deploy Pages, generate a research-specific ChatGPT Scheduled Task prompt, and guide you through creating the daily task in ChatGPT.
 5. If GitHub, GitHub App, Cloudflare, or Codex login asks for a one-time authorization, complete that authorization in the official UI and return to Codex.
 
 Create from `research-library-template`; do **not** fork `kangk-research-library`. A reference implementation can contain another researcher's scope and personal data. A template-created repository starts independently.
@@ -34,7 +34,7 @@ Create from `research-library-template`; do **not** fork `kangk-research-library
 ```text
 Research Direction → Codex → Research Profile → GitHub Repository
        → Build + Test → GitHub Pages → Personal Research Library
-       → Daily Research Agent → Continuously Updated Knowledge Base
+       → ChatGPT Scheduled Task → Continuously Updated Knowledge Base
 ```
 
 ## Research Profile
@@ -70,7 +70,7 @@ Secondary: Foundation Models for Time Series
 ## Daily workflow
 
 ```text
-08:00 Beijing Time → Research Agent → Read Profile → Search multiple sources
+Configured Timezone → ChatGPT Scheduled Task → Read Profile → Search multiple sources
 → Check existing Paper Pool → Select one quality/relevant paper
 → Quick Read + Detail → Validate → Commit + Push → GitHub Pages updates
 ```
@@ -79,9 +79,53 @@ Runs process one paper. If no new paper clears the quality bar, the agent recomm
 
 ## Owner editing and data ownership
 
-The public site is read-only. Only the configured GitHub owner may use the optional authenticated editor to mark Deep Read, favorite a paper, change status, edit My Tags/My Notes, or correct generated content. A secure backend must perform OAuth state validation, short-lived sessions, owner checks, origin checks, and GitHub Contents API writes; the browser never receives a GitHub write token. If no backend is configured, the editor stays visibly disabled.
+The public site is read-only until its optional editor backend is configured. After GitHub login, the Worker calls `/api/me`, reads the allowed Owner from `config/research-profile.yaml`, and enables editing only when the two GitHub usernames match. Non-owners remain read-only. Deep Read, Favorite, Status, My Tags, and My Notes update `data/user/<paper-id>.json`; AI summary corrections update only the summary fields in `data/papers/<paper-id>.json`.
+
+The browser never receives a GitHub OAuth token, PAT, App private key, or installation token. It receives only a one-hour signed editor session. The Worker exchanges its GitHub App key for a short-lived installation token, obtains the latest file and SHA, restricts changes to approved fields, and writes through the GitHub Contents API. Concurrent changes return `409`; refresh before retrying. A successful save links to the commit and explains that Pages may take time to rebuild.
 
 AI Summary is generated reading context. **My Notes** are the researcher's long-term Markdown memory, and **My Tags** are the researcher's own taxonomy. They are kept in `data/user/<paper-id>.json`, separate from generated `data/papers/<paper-id>.json`. The repository is also the backup: clone it, inspect history, and recover an earlier commit when needed.
+
+### One-time Owner Editing deployment
+
+These steps are required once per personal library; “configure OAuth” alone is not sufficient.
+
+1. **Create a GitHub App.** In GitHub **Settings → Developer settings → GitHub Apps → New GitHub App**, use the library's Pages URL as the homepage. Disable webhooks unless they are needed elsewhere. Generate and download one private key. The same GitHub App supplies the OAuth Client ID/Client Secret used for Owner login.
+2. **Set the callback URL.** It must be the deployed Worker URL followed by `/auth/callback`, for example `https://<worker>.<account>.workers.dev/auth/callback`. If the Worker URL is not known yet, deploy the skeleton once to reserve it, then return to the App settings and set the exact callback.
+3. **Use minimum permissions.** Under Repository permissions grant **Contents: Read and write**. Keep **Metadata: Read-only** (GitHub includes it automatically). Do not grant Issues, Pull requests, Administration, Actions, organization, or account permissions. Request user identity only for login.
+4. **Install the App only on the personal library repository.** Choose **Only select repositories**, select that repository, and record the numeric Installation ID from the installation URL or GitHub API.
+5. **Prepare repository configuration.** Set `editor.owner_github_username` in `config/research-profile.yaml`. In `worker/wrangler.toml`, set `GITHUB_REPOSITORY = "<owner>/<repository>"` and normally keep `GITHUB_BRANCH = "main"`. The Template contains placeholders and never assumes a particular owner or repository.
+6. **Log in to Cloudflare and deploy the Worker.** From the repository root run:
+
+   ```bash
+   npx wrangler login
+   npx wrangler deploy --config worker/wrangler.toml
+   ```
+
+7. **Configure Worker secrets.** Run each command and paste the value only into Wrangler's protected prompt:
+
+   ```bash
+   npx wrangler secret put GITHUB_APP_ID --config worker/wrangler.toml
+   npx wrangler secret put GITHUB_APP_PRIVATE_KEY --config worker/wrangler.toml
+   npx wrangler secret put GITHUB_CLIENT_ID --config worker/wrangler.toml
+   npx wrangler secret put GITHUB_CLIENT_SECRET --config worker/wrangler.toml
+   npx wrangler secret put GITHUB_INSTALLATION_ID --config worker/wrangler.toml
+   npx wrangler secret put SESSION_SECRET --config worker/wrangler.toml
+   npx wrangler secret put ALLOWED_ORIGIN --config worker/wrangler.toml
+   ```
+
+   `GITHUB_APP_PRIVATE_KEY` is the complete PEM file. `SESSION_SECRET` must be a long random value. `ALLOWED_ORIGIN` is the exact Pages origin, such as `https://<owner>.github.io`, with no repository path. Deploy again after setting secrets.
+
+8. **Expose only the Worker origin to the static build.** Set the repository Actions variable `PUBLIC_EDITOR_API_URL` to the Worker origin (no `/api` suffix):
+
+   ```bash
+   gh variable set PUBLIC_EDITOR_API_URL --body "https://<worker>.<account>.workers.dev" --repo <owner>/<repository>
+   ```
+
+   As a fallback, the same origin may be committed to `editor.api_origin` in the Research Profile; the Actions variable takes precedence.
+
+9. **Redeploy and verify Pages.** Run the Pages workflow again, open a paper detail page, select **Sign in with GitHub**, and verify `/api/me`, personal-state saving, summary correction, the resulting commits, and the subsequent Pages deployment. Also test a different GitHub account and confirm it remains read-only.
+
+Cloudflare and GitHub authorization cannot be fabricated by bootstrap code. Until the App, installation, secrets, and Worker URL exist, the website remains safely read-only.
 
 ## Get Another Paper
 
@@ -97,7 +141,9 @@ Edit `config/research-profile.yaml` and commit it; future agent runs use the new
 
 ## Automation without OpenAI API
 
-The recommended mode is an always-on trusted lab machine: cron/systemd → authenticated `codex exec --search` → validate/build → Git commit/push → Pages. See [`docs/AUTOMATION.md`](docs/AUTOMATION.md). A desktop scheduled task is also possible, but the computer/app must be available. Never create `OPENAI_API_KEY` for this project.
+**Recommended:** create a cloud ChatGPT Scheduled Task using [`prompts/chatgpt-scheduled-task.md`](prompts/chatgpt-scheduled-task.md). It reads the Research Profile and existing Paper Pool, searches the web, processes one paper, validates the result, and writes to GitHub only when its connected GitHub access actually permits repository writes. If access is read-only or approval is required, it must report that limitation and must not claim a commit. This mode does not require the user's computer to remain on.
+
+**Alternative:** Codex CLI + cron/systemd on an always-on trusted lab server remains supported through `scripts/run-research-agent.mjs`. Use it when the laboratory already operates a continuously available machine. See [`docs/AUTOMATION.md`](docs/AUTOMATION.md). Never create `OPENAI_API_KEY` for either mode.
 
 ## Repository structure
 
@@ -111,7 +157,7 @@ scripts/                 Validation, bootstrap, and agent wrapper
 src/                     Astro pages, schema, library helpers, styles
 tests/                   Unit, E2E, and fixture data
 docs/                    Automation and operational notes
-worker/                  Secure editor backend skeleton (secrets stay out of Git)
+worker/                  Secure Owner Editing backend (secrets stay out of Git)
 .github/workflows/       CI and GitHub Pages deployment
 ```
 
@@ -135,20 +181,21 @@ The Pages workflow runs validation and build before deployment, configures the p
 
 ## Troubleshooting
 
-| Symptom                              | Fix                                                                                                                                                                |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| GitHub Pages 404                     | Confirm the URL includes `/<repository>/`, the Pages source is GitHub Actions, and the Pages run is green.                                                         |
-| Pages build failure                  | Open the workflow log; run `npm run verify` locally and fix schema/type/build errors before pushing.                                                               |
-| Missing CSS/JS or broken route       | Do not hard-code `/`; keep `import.meta.env.BASE_URL` links and push a new build.                                                                                  |
-| Codex CLI not logged in/auth expired | Run `codex login` again with the ChatGPT account; do not add an API key.                                                                                           |
-| `git push` permission denied         | Authenticate Git with the repository owner account and confirm repository write permission. Never paste a token into a file.                                       |
-| Dirty repository                     | Stop the agent, review `git status`, preserve user changes, and run again only on a clean intentional checkout.                                                    |
-| Research-agent lock                  | Confirm no process is active, then remove only `.research-agent.lock`.                                                                                             |
-| Duplicate or schema validation error | Run `npm run validate:data`; fix identity fields, dangling references, enum values, URLs, or the record shape.                                                     |
-| GitHub App/OAuth failure             | Check callback URL, allowed origin, owner username, short-lived session validation, and minimum Contents permission. Do not enable writes until owner checks pass. |
-| Cloudflare Worker failure            | Inspect Worker logs and secret names; deploy only after one-time Cloudflare login. The static site still works without the editor.                                 |
-| Website update is not immediate      | Wait for the Pages workflow and CDN propagation; verify the commit is on `main`.                                                                                   |
-| Scheduled task did not run           | Check machine/app availability, timezone (`Asia/Shanghai`), scheduler logs, lock file, and Codex authentication.                                                   |
+| Symptom                              | Fix                                                                                                                                                                 |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GitHub Pages 404                     | Confirm the URL includes `/<repository>/`, the Pages source is GitHub Actions, and the Pages run is green.                                                          |
+| Pages build failure                  | Open the workflow log; run `npm run verify` locally and fix schema/type/build errors before pushing.                                                                |
+| Missing CSS/JS or broken route       | Do not hard-code `/`; keep `import.meta.env.BASE_URL` links and push a new build.                                                                                   |
+| ChatGPT task cannot push             | Confirm the connected GitHub app has write permission for this repository. The task must report read-only access rather than claim success.                         |
+| Codex CLI not logged in/auth expired | For the server alternative, run `codex login` again with the ChatGPT account; do not add an API key.                                                                |
+| `git push` permission denied         | Authenticate Git with the repository owner account and confirm repository write permission. Never paste a token into a file.                                        |
+| Dirty repository                     | Stop the agent, review `git status`, preserve user changes, and run again only on a clean intentional checkout.                                                     |
+| Research-agent lock                  | Confirm no process is active, then remove only `.research-agent.lock`.                                                                                              |
+| Duplicate or schema validation error | Run `npm run validate:data`; fix identity fields, dangling references, enum values, URLs, or the record shape.                                                      |
+| GitHub App/OAuth failure             | Check callback URL, allowed origin, owner username, short-lived session validation, and minimum Contents permission. Do not enable writes until owner checks pass.  |
+| Cloudflare Worker failure            | Inspect Worker logs and secret names; deploy only after one-time Cloudflare login. The static site still works without the editor.                                  |
+| Website update is not immediate      | Wait for the Pages workflow and CDN propagation; verify the commit is on `main`.                                                                                    |
+| Scheduled task did not run           | Check ChatGPT **Scheduled**, task status, configured timezone, account/workspace app access, and recent run output. For the CLI alternative, also check the server. |
 
 ## Security notes
 
@@ -156,11 +203,11 @@ Never commit a GitHub PAT, GitHub App private key, OAuth client secret, Codex au
 
 ## FAQ
 
-**Do I need to buy OpenAI API?** No. The default workflow uses Codex CLI and ChatGPT account authentication, subject to your account limits.
+**Do I need to buy OpenAI API?** No. The recommended workflow uses a ChatGPT Scheduled Task and account-authorized apps, subject to your plan and workspace settings.
 
 **Can I use it without coding?** Yes. Give Codex this template URL, your name, and research direction.
 
-**Must my computer stay on?** Only for a local desktop scheduler. An always-on lab server can run the schedule instead.
+**Must my computer stay on?** Not for the recommended cloud ChatGPT Scheduled Task. It must stay on only when you intentionally choose a local task or the Codex CLI server alternative.
 
 **Can I change direction?** Yes, edit the Research Profile; existing papers remain.
 
@@ -172,4 +219,4 @@ Never commit a GitHub PAT, GitHub App private key, OAuth client secret, Codex au
 
 ## Reproducibility review
 
-Before sharing a new library, run `npm run verify`, follow the Developer setup above, run `npm run paper:next`, and inspect the Pages URL. Every command in this README maps to a checked-in npm script. A clean clone plus the configured GitHub/Codex account is sufficient; external Cloudflare/OAuth deployment is the only optional capability requiring its own one-time provider authorization.
+Before sharing a new library, run `npm run verify`, inspect the Pages URL, and manually test the ChatGPT Scheduled Task prompt against the intended repository permissions. Every command in this README maps to a checked-in script. Owner Editing additionally requires the one-time GitHub App and Cloudflare authorization documented above; without it, the public library remains read-only by design.

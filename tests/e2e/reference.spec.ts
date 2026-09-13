@@ -1,4 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+
+const paper = JSON.parse(
+  readFileSync('data/papers/swe-agent-agent-computer-interfaces.json', 'utf8'),
+);
+const userState = JSON.parse(
+  readFileSync('data/user/swe-agent-agent-computer-interfaces.json', 'utf8'),
+);
 
 test('home hero stays on one desktop line and localizes cleanly', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
@@ -57,19 +65,21 @@ test('reference library reading, locale switching, and paper-pool interactions w
   await page.locator('[data-filter="topic"]').selectOption('Coding Agents');
   await page.getByRole('link', { name: /SWE-agent:/ }).click();
   await expect(page.getByRole('heading', { name: '快速阅读' })).toBeVisible();
-  const chineseSummary = page.getByText(
-    /SWE-agent 研究语言模型与软件仓库之间的交互界面如何影响 Agent 能力/,
-  );
+  const chineseSummary = page
+    .locator('.quick-read')
+    .getByText(/SWE-agent 研究语言模型与软件仓库之间的交互界面如何影响 Agent 能力/);
   await expect(chineseSummary).toBeVisible();
   await page.getByRole('button', { name: '阅读详情 ↓' }).click();
   await expect(page.getByRole('heading', { name: '研究问题' })).toBeVisible();
   await expect(
-    page.getByText(
-      /本文从一个关键观察出发：解决软件任务的语言模型 Agent 需要适合仓库级工作的交互界面/,
-    ),
+    page
+      .locator('#motivation')
+      .getByText(
+        /本文从一个关键观察出发：解决软件任务的语言模型 Agent 需要适合仓库级工作的交互界面/,
+      ),
   ).toBeVisible();
   await expect(
-    page.getByText(/SWE-agent 将语言模型与 Agent-Computer Interface 结合/),
+    page.locator('#method').getByText(/SWE-agent 将语言模型与 Agent-Computer Interface 结合/),
   ).toBeVisible();
   await page.locator('.abstract summary').click();
   await expect(page.locator('.abstract p')).toContainText(
@@ -87,9 +97,113 @@ test('reference library reading, locale switching, and paper-pool interactions w
   await expect(page.locator('html')).toHaveAttribute('lang', 'zh-CN');
   await page.getByRole('button', { name: '切换深色模式' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await expect(
-    page.getByText('配置经过身份验证的写入后端后才能启用所有者编辑。此公开站点保持只读。'),
-  ).toBeVisible();
+  await expect(page.getByText('编辑后端当前不可用。公开页面继续保持只读。')).toBeVisible();
+});
+
+test('owner editor authenticates once and writes user state and summary with SHAs', async ({
+  page,
+}) => {
+  const requests: Array<Record<string, unknown>> = [];
+  await page.addInitScript(() =>
+    sessionStorage.setItem('research-library-editor-session', 'signed-owner-session'),
+  );
+  await page.route('https://editor.test/**', async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    expect(request.headers().authorization).toBe('Bearer signed-owner-session');
+    if (url.pathname === '/api/me')
+      return route.fulfill({ json: { authenticated: true, login: 'kangkang03jug' } });
+    if (url.pathname === '/api/content') {
+      const path = url.searchParams.get('path');
+      return route.fulfill({
+        json: path?.startsWith('data/user/')
+          ? { path, sha: 'user-sha', content: userState }
+          : { path, sha: 'paper-sha', content: paper },
+      });
+    }
+    if (url.pathname === '/api/update') {
+      requests.push(request.postDataJSON());
+      return route.fulfill({
+        json: {
+          ok: true,
+          sha: requests.length === 1 ? 'new-user-sha' : 'new-paper-sha',
+          commitUrl: `https://github.com/example/commit/${requests.length}`,
+        },
+      });
+    }
+    return route.fulfill({ status: 404, json: { error: 'Not found' } });
+  });
+
+  await page.goto('/papers/swe-agent-agent-computer-interfaces/');
+  await expect(page.getByText('@kangkang03jug')).toBeVisible();
+  await expect(page.getByText('已验证 GitHub Owner。可安全编辑并写回仓库。')).toBeVisible();
+  await page.locator('[data-user-field="deep_read"]').check();
+  await page.locator('[data-user-field="favorite"]').uncheck();
+  await page.locator('[data-user-field="status"]').selectOption('Reading');
+  await page.locator('[data-user-field="my_tags"]').fill('AI4SE, Agent, AI4SE');
+  await page.locator('[data-user-field="my_notes"]').fill('精读时核对实验设置。');
+  await page.getByRole('button', { name: '保存阅读状态与笔记' }).click();
+  await expect(page.getByText(/保存成功。GitHub Pages workflow 已触发/)).toBeVisible();
+  expect(requests[0]).toMatchObject({
+    path: 'data/user/swe-agent-agent-computer-interfaces.json',
+    sha: 'user-sha',
+    patch: {
+      deep_read: true,
+      favorite: false,
+      status: 'Reading',
+      my_tags: ['AI4SE', 'Agent'],
+      my_notes: '精读时核对实验设置。',
+    },
+  });
+
+  await page.locator('[data-summary-editor] > summary').click();
+  await page.locator('[data-summary-field="tldr"]').fill('经 Owner 核正的中文总结。');
+  await page.getByRole('button', { name: '保存 AI 总结修正' }).click();
+  await expect(page.getByText(/保存成功。GitHub Pages workflow 已触发/)).toBeVisible();
+  expect(requests[1]).toMatchObject({
+    path: 'data/papers/swe-agent-agent-computer-interfaces.json',
+    sha: 'paper-sha',
+    patch: { quick_read: { tldr: '经 Owner 核正的中文总结。' } },
+  });
+  await expect(page.getByRole('link', { name: '查看 GitHub commit ↗' })).toBeVisible();
+});
+
+test('owner editor keeps visitors read-only and reports optimistic conflicts', async ({ page }) => {
+  let authenticated = false;
+  await page.route('https://editor.test/**', async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    if (url.pathname === '/api/me')
+      return route.fulfill({
+        json: authenticated
+          ? { authenticated: true, login: 'kangkang03jug' }
+          : { authenticated: false },
+      });
+    if (url.pathname === '/api/content') {
+      const path = url.searchParams.get('path');
+      return route.fulfill({
+        json: path?.startsWith('data/user/')
+          ? { path, sha: 'stale-user-sha', content: userState }
+          : { path, sha: 'paper-sha', content: paper },
+      });
+    }
+    if (url.pathname === '/api/update')
+      return route.fulfill({ status: 409, json: { error: 'Conflict' } });
+    return route.fulfill({ status: 404, json: { error: 'Not found' } });
+  });
+
+  await page.goto('/papers/swe-agent-agent-computer-interfaces/');
+  await expect(page.getByRole('button', { name: '使用 GitHub 登录' })).toBeVisible();
+  await expect(page.locator('[data-user-editor]')).toBeHidden();
+
+  authenticated = true;
+  await page.addInitScript(() =>
+    sessionStorage.setItem('research-library-editor-session', 'signed-owner-session'),
+  );
+  await page.reload();
+  await expect(page.locator('[data-user-editor]')).toBeVisible();
+  await page.getByRole('button', { name: '保存阅读状态与笔记' }).click();
+  await expect(page.getByText(/保存冲突：仓库数据已变化/)).toBeVisible();
 });
 
 test('reference library is usable on a narrow viewport', async ({ page }) => {
