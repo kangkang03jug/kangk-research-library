@@ -1,5 +1,43 @@
 import { test, expect } from '@playwright/test';
 
+test('home hero stays on one desktop line and localizes cleanly', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/');
+  const heroTitle = page.locator('.hero h1');
+  await expect(heroTitle).toHaveText('KangK Research Library');
+  await expect(
+    page.getByText(
+      '一个持续更新的个人研究知识库，用于整理论文、记录阅读进展，并沉淀长期研究笔记与思考。',
+      { exact: true },
+    ),
+  ).toBeVisible();
+  const titleMetrics = await heroTitle.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      height: element.getBoundingClientRect().height,
+      lineHeight: Number.parseFloat(style.lineHeight),
+      whiteSpace: style.whiteSpace,
+    };
+  });
+  expect(titleMetrics.whiteSpace).toBe('nowrap');
+  expect(titleMetrics.height).toBeLessThan(titleMetrics.lineHeight * 1.25);
+  await page.getByRole('button', { name: '切换为 English' }).click();
+  await expect(
+    page.getByText(
+      'A continuously evolving personal research knowledge base for organizing papers, tracking reading progress, and accumulating long-term research notes and reflections.',
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Switch to Chinese' }).click();
+  await expect(
+    page.getByText(
+      '一个持续更新的个人研究知识库，用于整理论文、记录阅读进展，并沉淀长期研究笔记与思考。',
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(page.getByRole('link', { name: '论文池', exact: true })).toBeVisible();
+});
+
 test('reference library reading, locale switching, and paper-pool interactions work', async ({
   page,
 }) => {

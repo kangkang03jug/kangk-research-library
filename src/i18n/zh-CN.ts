@@ -12,7 +12,7 @@ export const zhCN = {
   footer: { content: '结构化数据存储在 Git · 内容优先', generated: '由 ChatGPT/Codex 生成' },
   home: {
     eyebrow: 'Research Library ·',
-    lede: '一个安静、可检索的想法记录库：结构化论文、个人笔记和每日研究习惯都在同一个仓库中。',
+    lede: '一个持续更新的个人研究知识库，用于整理论文、记录阅读进展，并沉淀长期研究笔记与思考。',
     today: '今日论文',
     read: '阅读论文 →',
     noPapers: '还没有论文。',

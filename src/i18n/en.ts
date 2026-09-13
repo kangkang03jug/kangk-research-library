@@ -15,7 +15,7 @@ export const en = {
   },
   home: {
     eyebrow: 'Research Library ·',
-    lede: 'A quiet, searchable record of ideas worth returning to. Structured papers, personal notes, and a daily research habit in one repository.',
+    lede: 'A continuously evolving personal research knowledge base for organizing papers, tracking reading progress, and accumulating long-term research notes and reflections.',
     today: 'Today’s Paper',
     read: 'Read paper →',
     noPapers: 'No papers yet.',

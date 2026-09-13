@@ -7,7 +7,7 @@ const profile = getProfile(); const papers = getPapers(); const states = getStat
 const today = summary.today?.recommendations.find((r) => r.primary); const todayPaper = papers.find((p) => p.id === today?.paper_id);
 ---
 <Layout title="Home" profile={profile}>
-  <section class="hero"><p class="eyebrow"><span data-i18n="home.eyebrow">Research Library ·</span> {profile.profile.researcher}</p><h1>{profile.profile.library_name}</h1><p class="lede" data-i18n="home.lede">一个安静、可检索的想法记录库：结构化论文、个人笔记和每日研究习惯都在同一个仓库中。</p></section>
+  <section class="hero"><p class="eyebrow"><span data-i18n="home.eyebrow">Research Library ·</span> {profile.profile.researcher}</p><h1>{profile.profile.library_name}</h1><p class="lede" data-i18n="home.lede">一个持续更新的个人研究知识库，用于整理论文、记录阅读进展，并沉淀长期研究笔记与思考。</p></section>
   <section class="today" aria-labelledby="today-heading">
     <div><div class="section-label"><h2 id="today-heading" data-i18n="home.today">今日论文</h2><span class="count">{profile.daily.scheduled_time} · {profile.daily.timezone}</span></div>
       {todayPaper ? <div class="today-paper"><div class="meta-line"><span>{todayPaper.year}</span><span>{todayPaper.venue_or_source}</span><span>{todayPaper.relevance}</span></div><h2>{todayPaper.title}</h2><p class="authors">{todayPaper.authors.join(' · ')}</p><p>{todayPaper.quick_read.tldr}</p><a class="cta" href={withBase(`/papers/${todayPaper.id}/`, import.meta.env.BASE_URL)} data-i18n="home.read">阅读论文 →</a></div> : <div class="empty"><strong data-i18n="home.noPapers">还没有论文。</strong><span data-i18n="home.agentWillAdd">研究 Agent 将在下一次运行时添加第一篇论文。</span></div>}
