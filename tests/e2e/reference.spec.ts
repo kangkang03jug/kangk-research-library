@@ -100,6 +100,41 @@ test('reference library reading, locale switching, and paper-pool interactions w
   await expect(page.getByText('编辑后端当前不可用。公开页面继续保持只读。')).toBeVisible();
 });
 
+test('research question types and evidence limits are visible', async ({ page }) => {
+  await page.goto('/papers/survey-code-generation-llm-agents/');
+  for (const width of [1440, 1680]) {
+    await page.setViewportSize({ width, height: 900 });
+    const lines = await page.locator('.paper-head h1').evaluate((element) => {
+      const text = element.firstChild;
+      if (!text) return [];
+      const value = text.textContent || '';
+      const groups = new Map<number, number>();
+      for (const word of value.split(/\s+/u).filter(Boolean)) {
+        const start = value.indexOf(word);
+        const range = document.createRange();
+        range.setStart(text, start);
+        range.setEnd(text, start + word.length);
+        const top = Math.round(range.getBoundingClientRect().top);
+        groups.set(top, (groups.get(top) || 0) + 1);
+      }
+      return [...groups.values()];
+    });
+    expect(lines.length).toBeLessThanOrEqual(2);
+    if (lines.length > 1) expect(lines.at(-1)).toBeGreaterThan(1);
+  }
+  await page.getByRole('button', { name: '阅读详情 ↓' }).click();
+  await expect(page.getByText('隐含研究问题 / Inferred Research Question')).toBeVisible();
+  await expect(
+    page.locator('.rq dd').filter({ hasText: 'Sec. 1; Sec. 2.1 Literature Collection' }),
+  ).toBeVisible();
+
+  await page.goto('/papers/swe-agent-agent-computer-interfaces/');
+  await page.getByRole('button', { name: '阅读详情 ↓' }).click();
+  await expect(
+    page.getByText('当前阅读依据未覆盖 Introduction / Motivation，无法可靠推断研究问题。'),
+  ).toBeVisible();
+});
+
 test('owner editor authenticates once and writes user state and summary with SHAs', async ({
   page,
 }) => {

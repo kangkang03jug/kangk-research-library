@@ -74,7 +74,24 @@ describe('owner editor security boundaries', () => {
         },
         detail: {
           motivation: '动机',
-          research_questions: [],
+          research_questions: [
+            {
+              type: 'explicit',
+              question: '问题一',
+              how: '方法一',
+              answer: '答案一',
+              meaning: '含义一',
+              source: 'RQ1; Sec. 3',
+            },
+            {
+              type: 'inferred',
+              question: '问题二',
+              how: '方法二',
+              answer: '答案二',
+              meaning: '含义二',
+              source: 'Introduction, Paragraph 2',
+            },
+          ],
           method: '方法',
           experiments_and_key_findings: '实验',
           limitations: { author_reported: [], ai_analysis: ['分析'] },
@@ -83,6 +100,28 @@ describe('owner editor security boundaries', () => {
         },
       }),
     ).toBe(true);
+    expect(
+      validPaperPatch({
+        detail: {
+          motivation: '动机',
+          research_questions: [
+            {
+              type: 'inferred',
+              question: '问题',
+              how: '方法',
+              answer: '答案',
+              meaning: '含义',
+              source: '',
+            },
+          ],
+          method: '方法',
+          experiments_and_key_findings: '实验',
+          limitations: { author_reported: [], ai_analysis: [] },
+          relation_to_research: '关系',
+          what_can_be_done_next: '下一步',
+        },
+      }),
+    ).toBe(false);
     expect(validPaperPatch({ title: 'Replacement title' })).toBe(false);
   });
 

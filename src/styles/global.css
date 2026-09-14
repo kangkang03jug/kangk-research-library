@@ -389,12 +389,17 @@ label select {
   margin-bottom: 6px;
 }
 .paper-head {
-  max-width: 920px;
+  max-width: min(100%, 1120px);
   padding-bottom: 30px;
   border-bottom: 1px solid var(--line);
 }
 .paper-head h1 {
   font-size: clamp(2rem, 5vw, 4rem);
+  max-width: 1120px;
+  text-wrap: balance;
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
 }
 .reading-basis {
   margin-top: 20px;
@@ -449,6 +454,15 @@ label select {
 }
 .detail-section p {
   max-width: 720px;
+}
+.rq-type {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 .toc {
   position: sticky;

@@ -39,11 +39,12 @@ const paperSchema = z.object({
     motivation: z.string(),
     research_questions: z.array(
       z.object({
+        type: z.enum(['explicit', 'inferred']),
         question: z.string(),
         how: z.string(),
         answer: z.string(),
         meaning: z.string(),
-        source: z.string().nullable(),
+        source: z.string().min(1).nullable(),
       }),
     ),
     method: z.string(),
