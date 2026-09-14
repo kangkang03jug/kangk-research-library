@@ -1,6 +1,7 @@
 {
   "date": "2026-09-14",
   "recommendations": [
-    { "paper_id": "survey-code-generation-llm-agents", "primary": true, "run_type": "scheduled" }
+    { "paper_id": "survey-code-generation-llm-agents", "primary": false, "run_type": "scheduled" },
+    { "paper_id": "demystifying-llm-based-software-engineering-agents", "primary": true, "run_type": "scheduled" }
   ]
 }
