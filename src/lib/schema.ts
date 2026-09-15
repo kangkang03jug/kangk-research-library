@@ -49,14 +49,24 @@ export const PaperSchema = z
     detail: z.object({
       motivation: z.string(),
       research_questions: z.array(
-        z.object({
-          type: z.enum(['explicit', 'inferred']),
-          question: z.string(),
-          how: z.string(),
-          answer: z.string(),
-          meaning: z.string(),
-          source: z.string().min(1).nullable(),
-        }),
+        z
+          .object({
+            type: z.enum(['explicit', 'inferred']),
+            question: z.string(),
+            how: z.string(),
+            answer: z.string(),
+            meaning: z.string(),
+            source: z.string().min(1).nullable(),
+          })
+          .superRefine((question, context) => {
+            if (question.type === 'explicit' && !question.source) {
+              context.addIssue({
+                code: 'custom',
+                path: ['source'],
+                message: 'Explicit Research Questions require a source locator.',
+              });
+            }
+          }),
       ),
       method: z.string(),
       experiments_and_key_findings: z.string(),
@@ -93,7 +103,19 @@ export const PaperSchema = z
     updated_at: z.string(),
     owner_edited: z.boolean().default(false),
   })
-  .strict();
+  .strict()
+  .superRefine((paper, context) => {
+    if (
+      ['abstract_only', 'abstract_and_metadata'].includes(paper.reading_basis) &&
+      paper.detail.research_questions.some((question) => question.type === 'inferred')
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['detail', 'research_questions'],
+        message: 'Inferred Research Questions require Introduction or Motivation reading evidence.',
+      });
+    }
+  });
 export type Paper = z.infer<typeof PaperSchema>;
 export const UserStateSchema = z
   .object({

@@ -7,7 +7,7 @@ import {
   matchesSearch,
   joinState,
 } from '../src/lib/library';
-import type { Paper } from '../src/lib/schema';
+import { PaperSchema, type Paper } from '../src/lib/schema';
 const paper = (overrides: Partial<Paper> = {}) =>
   ({
     id: 'paper-a',
@@ -64,4 +64,42 @@ describe('library helpers', () => {
     expect(matchesSearch(paper(), undefined, 'searchable tldr')).toBe(true));
   it('joins user state without changing paper records', () =>
     expect(joinState([paper()], [])[0].state).toBeUndefined());
+  it('requires a locator for explicit Research Questions', () => {
+    const record = paper({
+      reading_basis: 'official_html',
+      detail: {
+        ...paper().detail,
+        research_questions: [
+          {
+            type: 'explicit',
+            question: 'RQ1?',
+            how: 'Method.',
+            answer: 'Answer.',
+            meaning: 'Meaning.',
+            source: null,
+          },
+        ],
+      },
+    });
+    expect(PaperSchema.safeParse(record).success).toBe(false);
+  });
+  it('does not allow inferred Research Questions without Introduction or Motivation evidence', () => {
+    const record = paper({
+      detail: {
+        ...paper().detail,
+        research_questions: [
+          {
+            type: 'inferred',
+            question: 'Question?',
+            how: 'Method.',
+            answer: 'Answer.',
+            meaning: 'Meaning.',
+            source: null,
+          },
+        ],
+      },
+    });
+    expect(PaperSchema.safeParse(record).success).toBe(false);
+    expect(PaperSchema.safeParse({ ...record, reading_basis: 'official_html' }).success).toBe(true);
+  });
 });

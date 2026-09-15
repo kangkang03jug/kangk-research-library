@@ -123,6 +123,31 @@ describe('owner editor security boundaries', () => {
       }),
     ).toBe(false);
     expect(validPaperPatch({ title: 'Replacement title' })).toBe(false);
+    expect(
+      validPaperPatch(
+        {
+          detail: {
+            motivation: '动机',
+            research_questions: [
+              {
+                type: 'inferred',
+                question: '问题',
+                how: '方法',
+                answer: '答案',
+                meaning: '含义',
+                source: null,
+              },
+            ],
+            method: '方法',
+            experiments_and_key_findings: '实验',
+            limitations: { author_reported: [], ai_analysis: [] },
+            relation_to_research: '关系',
+            what_can_be_done_next: '下一步',
+          },
+        },
+        'abstract_only',
+      ),
+    ).toBe(false);
   });
 
   it('reports an unauthenticated session without contacting GitHub', async () => {

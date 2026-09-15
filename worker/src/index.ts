@@ -314,12 +314,20 @@ function validDetail(value: unknown) {
     stringArray(limitations.ai_analysis)
   );
 }
-export function validPaperPatch(value: unknown) {
+export function validPaperPatch(value: unknown, readingBasis?: unknown) {
   return (
     isObject(value) &&
     hasOnlyKeys(value, ['quick_read', 'detail']) &&
     (value.quick_read === undefined || validQuickRead(value.quick_read)) &&
     (value.detail === undefined || validDetail(value.detail)) &&
+    !(
+      (readingBasis === 'abstract_only' || readingBasis === 'abstract_and_metadata') &&
+      isObject(value.detail) &&
+      Array.isArray(value.detail.research_questions) &&
+      value.detail.research_questions.some(
+        (question) => isObject(question) && question.type === 'inferred',
+      )
+    ) &&
     (value.quick_read !== undefined || value.detail !== undefined)
   );
 }
@@ -493,6 +501,15 @@ export default {
         const id = recordId(body.path);
         if ((isUserState ? record.paper_id : record.id) !== id)
           return jsonResponse({ error: 'Data file identity mismatch' }, 400, allowedOrigin);
+        if (!isUserState && !validPaperPatch(body.patch, record.reading_basis))
+          return jsonResponse(
+            {
+              error:
+                'Inferred Research Questions require Introduction or Motivation reading evidence',
+            },
+            400,
+            allowedOrigin,
+          );
         const updated = {
           ...record,
           ...body.patch,
