@@ -113,15 +113,24 @@ These steps are required once per personal library; “configure OAuth” alone 
    npx wrangler secret put ALLOWED_ORIGIN --config worker/wrangler.toml
    ```
 
-   `GITHUB_APP_PRIVATE_KEY` is the complete PEM file. `SESSION_SECRET` must be a long random value. `ALLOWED_ORIGIN` is the exact Pages origin, such as `https://<owner>.github.io`, with no repository path. Deploy again after setting secrets.
+Public paper Discussions use Cloudflare D1 and never modify paper JSON. Before deploying the Worker, create the database and replace `REPLACE_WITH_D1_DATABASE_ID` in `worker/wrangler.toml`, then apply the checked-in migration:
+
+```bash
+npx wrangler d1 create kangk-research-library-comments
+npx wrangler d1 migrations apply kangk-research-library-comments --remote --config worker/wrangler.toml
+```
+
+````
+
+`GITHUB_APP_PRIVATE_KEY` is the complete PEM file. `SESSION_SECRET` must be a long random value. `ALLOWED_ORIGIN` is the exact Pages origin, such as `https://<owner>.github.io`, with no repository path. Deploy again after setting secrets.
 
 8. **Expose only the Worker origin to the static build.** Set the repository Actions variable `PUBLIC_EDITOR_API_URL` to the Worker origin (no `/api` suffix):
 
-   ```bash
-   gh variable set PUBLIC_EDITOR_API_URL --body "https://<worker>.<account>.workers.dev" --repo <owner>/<repository>
-   ```
+```bash
+gh variable set PUBLIC_EDITOR_API_URL --body "https://<worker>.<account>.workers.dev" --repo <owner>/<repository>
+````
 
-   As a fallback, the same origin may be committed to `editor.api_origin` in the Research Profile; the Actions variable takes precedence.
+As a fallback, the same origin may be committed to `editor.api_origin` in the Research Profile; the Actions variable takes precedence.
 
 9. **Redeploy and verify Pages.** Run the Pages workflow again, open a paper detail page, select **Sign in with GitHub**, and verify `/api/me`, personal-state saving, summary correction, the resulting commits, and the subsequent Pages deployment. Also test a different GitHub account and confirm it remains read-only.
 

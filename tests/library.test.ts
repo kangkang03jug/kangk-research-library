@@ -32,6 +32,10 @@ const paper = (overrides: Partial<Paper> = {}) =>
     },
     detail: {
       motivation: 'motivation',
+      contributions: [
+        { contribution: 'contribution one', source: 'Sec. 1' },
+        { contribution: 'contribution two', source: null },
+      ],
       research_questions: [],
       method: 'method',
       experiments_and_key_findings: 'findings',

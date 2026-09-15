@@ -8,6 +8,17 @@ type Env = {
   GITHUB_INSTALLATION_ID: string;
   GITHUB_REPOSITORY: string;
   GITHUB_BRANCH?: string;
+  COMMENTS_DB?: CommentsDatabase;
+};
+
+type CommentsDatabase = {
+  prepare(query: string): CommentsStatement;
+};
+type CommentsStatement = {
+  bind(...values: unknown[]): CommentsStatement;
+  all<T = JsonRecord>(): Promise<{ results: T[] }>;
+  first<T = JsonRecord>(): Promise<T | null>;
+  run(): Promise<unknown>;
 };
 
 type Session = { login: string; expiresAt: number };
@@ -18,6 +29,31 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 export const SESSION_AGE_SECONDS = 90 * 24 * 60 * 60;
 const STATUSES = new Set(['New', 'Worth Reading', 'Reading', 'Read', 'Important', 'Related Work']);
+const commentRate = new Map<string, number[]>();
+const cleanCommentText = (value: unknown, max: number) =>
+  typeof value === 'string'
+    ? value
+        .normalize('NFKC')
+        .replace(/<[^>]*>/g, '')
+        .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '')
+        .trim()
+        .slice(0, max)
+    : '';
+const validPaperId = (value: unknown): value is string =>
+  typeof value === 'string' && /^[a-z0-9-]{1,120}$/.test(value);
+const commentIp = (request: Request) =>
+  request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || 'unknown';
+const hashCommentIp = async (request: Request) =>
+  base64url(await crypto.subtle.digest('SHA-256', encoder.encode(commentIp(request))));
+const allowCommentRate = (request: Request, paperId: string) => {
+  const key = `${commentIp(request)}:${paperId}`;
+  const now = Date.now();
+  const recent = (commentRate.get(key) || []).filter((time) => now - time < 60 * 60 * 1000);
+  if (recent.length >= 5) return false;
+  recent.push(now);
+  commentRate.set(key, recent);
+  return true;
+};
 
 const binaryString = (bytes: Uint8Array) => {
   let result = '';
@@ -262,6 +298,20 @@ export function validUserPatch(value: unknown) {
     (value.my_notes === undefined || typeof value.my_notes === 'string')
   );
 }
+export function validCommentPayload(value: unknown) {
+  if (!isObject(value)) return false;
+  const paperId = cleanCommentText(value.paper_id, 120);
+  const nickname = cleanCommentText(value.nickname, 40);
+  const body = cleanCommentText(value.body, 2000);
+  return (
+    hasOnlyKeys(value, ['paper_id', 'nickname', 'body', 'website']) &&
+    validPaperId(paperId) &&
+    nickname.length >= 1 &&
+    body.length >= 1 &&
+    cleanCommentText(value.website, 80).length === 0 &&
+    !/(?:https?:\/\/|www\.)[^\s]+.*(?:https?:\/\/|www\.)[^\s]+/i.test(body)
+  );
+}
 
 function validQuickRead(value: unknown) {
   if (!isObject(value)) return false;
@@ -286,10 +336,27 @@ function validResearchQuestions(value: unknown) {
     )
   );
 }
+function validContributions(value: unknown) {
+  return (
+    Array.isArray(value) &&
+    value.length >= 2 &&
+    value.length <= 5 &&
+    value.every(
+      (item) =>
+        isObject(item) &&
+        hasOnlyKeys(item, ['contribution', 'source']) &&
+        typeof item.contribution === 'string' &&
+        item.contribution.trim().length > 0 &&
+        (item.source === null ||
+          (typeof item.source === 'string' && item.source.trim().length > 0)),
+    )
+  );
+}
 function validDetail(value: unknown) {
   if (!isObject(value)) return false;
   const keys = [
     'motivation',
+    'contributions',
     'research_questions',
     'method',
     'experiments_and_key_findings',
@@ -307,6 +374,7 @@ function validDetail(value: unknown) {
       'relation_to_research',
       'what_can_be_done_next',
     ].every((key) => typeof value[key] === 'string') &&
+    validContributions(value.contributions) &&
     validResearchQuestions(value.research_questions) &&
     isObject(limitations) &&
     hasOnlyKeys(limitations, ['author_reported', 'ai_analysis']) &&
@@ -357,7 +425,7 @@ export default {
       return new Response(null, {
         headers: {
           ...corsHeaders(allowedOrigin),
-          'access-control-allow-methods': 'GET,POST,OPTIONS',
+          'access-control-allow-methods': 'GET,POST,DELETE,OPTIONS',
           'access-control-allow-headers': 'authorization,content-type',
           'access-control-max-age': '86400',
         },
@@ -446,6 +514,47 @@ export default {
       if (url.pathname === '/api/me' && !bearerToken(request) && !readCookie(request, 'rl_session'))
         return jsonResponse({ authenticated: false }, 200, allowedOrigin);
 
+      if (
+        url.pathname === '/api/comments' &&
+        (request.method === 'GET' || request.method === 'POST')
+      ) {
+        if (!env.COMMENTS_DB)
+          return jsonResponse({ error: 'Comments storage is not configured' }, 503, allowedOrigin);
+        if (request.method === 'GET') {
+          const paperId = url.searchParams.get('paper_id');
+          if (!validPaperId(paperId))
+            return jsonResponse({ error: 'Invalid paper id' }, 400, allowedOrigin);
+          const result = await env.COMMENTS_DB.prepare(
+            'SELECT id, paper_id, nickname, body, created_at FROM comments WHERE paper_id = ?1 AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 100',
+          )
+            .bind(paperId)
+            .all();
+          return jsonResponse({ comments: result.results }, 200, allowedOrigin);
+        }
+        const body = (await request.json().catch(() => null)) as JsonRecord | null;
+        if (!validCommentPayload(body))
+          return jsonResponse({ error: 'Invalid comment' }, 400, allowedOrigin);
+        const paperId = cleanCommentText(body?.paper_id, 120);
+        const nickname = cleanCommentText(body?.nickname, 40);
+        const commentBody = cleanCommentText(body?.body, 2000);
+        if (!allowCommentRate(request, paperId))
+          return jsonResponse({ error: 'Too many comments; try again later' }, 429, allowedOrigin);
+        const id = crypto.randomUUID();
+        await env.COMMENTS_DB.prepare(
+          'INSERT INTO comments (id, paper_id, nickname, body, created_at, ip_hash) VALUES (?1, ?2, ?3, ?4, ?5, ?6)',
+        )
+          .bind(
+            id,
+            paperId,
+            nickname,
+            commentBody,
+            new Date().toISOString(),
+            await hashCommentIp(request),
+          )
+          .run();
+        return jsonResponse({ ok: true, id }, 201, allowedOrigin);
+      }
+
       const token = await installationToken(env);
       const login = await authenticatedOwner(request, env, token);
 
@@ -460,6 +569,18 @@ export default {
           : jsonResponse({ authenticated: false }, 200, allowedOrigin);
 
       if (!login) return jsonResponse({ error: 'Authentication required' }, 401, allowedOrigin);
+
+      if (url.pathname.startsWith('/api/comments/') && request.method === 'DELETE') {
+        if (!env.COMMENTS_DB)
+          return jsonResponse({ error: 'Comments storage is not configured' }, 503, allowedOrigin);
+        const id = decodeURIComponent(url.pathname.slice('/api/comments/'.length));
+        if (!/^[0-9a-f-]{8,80}$/i.test(id))
+          return jsonResponse({ error: 'Invalid comment id' }, 400, allowedOrigin);
+        await env.COMMENTS_DB.prepare('UPDATE comments SET deleted_at = ?1 WHERE id = ?2')
+          .bind(new Date().toISOString(), id)
+          .run();
+        return renewedSessionResponse({ ok: true }, allowedOrigin, login, env.SESSION_SECRET);
+      }
 
       if (url.pathname === '/api/content' && request.method === 'GET') {
         const path = url.searchParams.get('path');

@@ -4,6 +4,7 @@ import worker, {
   configuredOwner,
   createEditorSession,
   validPaperPatch,
+  validCommentPayload,
   validUserPatch,
   verifyEditorSession,
 } from '../worker/src/index';
@@ -62,6 +63,61 @@ describe('owner editor security boundaries', () => {
     expect(validUserPatch({ status: 'Deleted' })).toBe(false);
   });
 
+  it('validates bounded, plain-text public comments', () => {
+    expect(validCommentPayload({ paper_id: 'paper-a', nickname: '读者', body: '很有启发。' })).toBe(
+      true,
+    );
+    expect(validCommentPayload({ paper_id: 'paper-a', nickname: '', body: 'x' })).toBe(false);
+    expect(
+      validCommentPayload({
+        paper_id: 'paper-a',
+        nickname: 'x',
+        body: '<script>alert(1)</script>',
+      }),
+    ).toBe(true);
+    expect(
+      validCommentPayload({
+        paper_id: 'paper-a',
+        nickname: 'x',
+        body: 'https://a.test https://b.test',
+      }),
+    ).toBe(false);
+  });
+
+  it('stores public comments through the configured D1 binding', async () => {
+    const calls: unknown[][] = [];
+    const commentsDb = {
+      prepare: (query: string) => ({
+        bind: (...values: unknown[]) => ({
+          run: async () => {
+            calls.push([query, ...values]);
+          },
+          all: async () => ({ results: [] }),
+          first: async () => null,
+          bind: (...nested: unknown[]) => ({
+            run: async () => {
+              calls.push([query, ...nested]);
+            },
+          }),
+        }),
+      }),
+    };
+    const response = await worker.fetch(
+      new Request('https://editor.example/api/comments', {
+        method: 'POST',
+        headers: {
+          Origin: env.ALLOWED_ORIGIN,
+          'content-type': 'application/json',
+          'CF-Connecting-IP': '127.0.0.1',
+        },
+        body: JSON.stringify({ paper_id: 'paper-a', nickname: '读者', body: '值得复现实验。' }),
+      }),
+      { ...env, COMMENTS_DB: commentsDb as any },
+    );
+    expect(response.status).toBe(201);
+    expect(calls[0]?.[0]).toContain('INSERT INTO comments');
+  });
+
   it('allows summary corrections but rejects metadata changes', () => {
     expect(
       validPaperPatch({
@@ -74,6 +130,10 @@ describe('owner editor security boundaries', () => {
         },
         detail: {
           motivation: '动机',
+          contributions: [
+            { contribution: '贡献一', source: 'Sec. 1' },
+            { contribution: '贡献二', source: null },
+          ],
           research_questions: [
             {
               type: 'explicit',
@@ -104,6 +164,10 @@ describe('owner editor security boundaries', () => {
       validPaperPatch({
         detail: {
           motivation: '动机',
+          contributions: [
+            { contribution: '贡献一', source: null },
+            { contribution: '贡献二', source: null },
+          ],
           research_questions: [
             {
               type: 'inferred',
@@ -128,6 +192,10 @@ describe('owner editor security boundaries', () => {
         {
           detail: {
             motivation: '动机',
+            contributions: [
+              { contribution: '贡献一', source: null },
+              { contribution: '贡献二', source: null },
+            ],
             research_questions: [
               {
                 type: 'inferred',

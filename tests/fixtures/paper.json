@@ -13,8 +13,15 @@
     "ranking_year": null,
     "ranking_source": null
   },
-  "identifiers": { "doi": null, "arxiv": "9999.99999", "openreview": null },
-  "urls": { "paper": "https://arxiv.org/abs/9999.99999", "code": null },
+  "identifiers": {
+    "doi": null,
+    "arxiv": "9999.99999",
+    "openreview": null
+  },
+  "urls": {
+    "paper": "https://arxiv.org/abs/9999.99999",
+    "code": null
+  },
   "topics": ["Testing"],
   "relevance": "Medium",
   "reading_basis": "abstract_only",
@@ -30,9 +37,22 @@
     "research_questions": [],
     "method": "Fixture.",
     "experiments_and_key_findings": "Fixture.",
-    "limitations": { "author_reported": [], "ai_analysis": [] },
+    "limitations": {
+      "author_reported": [],
+      "ai_analysis": []
+    },
     "relation_to_research": "Fixture.",
-    "what_can_be_done_next": "Fixture."
+    "what_can_be_done_next": "Fixture.",
+    "contributions": [
+      {
+        "source": "Fixture",
+        "contribution": "Fixture contribution one"
+      },
+      {
+        "source": null,
+        "contribution": "Fixture contribution two"
+      }
+    ]
   },
   "original_abstract": "Fixture.",
   "bibtex": null,

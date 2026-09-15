@@ -22,9 +22,22 @@
     "ranking_year": null,
     "ranking_source": null
   },
-  "identifiers": { "doi": null, "arxiv": "2508.00083", "openreview": null },
-  "urls": { "paper": "https://arxiv.org/abs/2508.00083", "code": null },
-  "topics": ["Code Generation", "Coding Agents", "Multi-Agent", "Evaluation", "Reliability"],
+  "identifiers": {
+    "doi": null,
+    "arxiv": "2508.00083",
+    "openreview": null
+  },
+  "urls": {
+    "paper": "https://arxiv.org/abs/2508.00083",
+    "code": null
+  },
+  "topics": [
+    "Code Generation",
+    "Coding Agents",
+    "Multi-Agent",
+    "Evaluation",
+    "Reliability"
+  ],
   "relevance": "High",
   "reading_basis": "official_html",
   "quick_read": {
@@ -59,7 +72,21 @@
       ]
     },
     "relation_to_research": "本文与基于 LLM 的 Code Generation 和 AI4SE 直接相关，为比较 Planning、工具使用、检索、Reflection、多 Agent 协作、Testing、Debugging 与评测提供了统一术语。它对模型能力和工程工作流的区分，尤其适合用于设计能够隔离界面、流程或可靠性影响的实验。",
-    "what_can_be_done_next": "可依据本文分类建立受控的 Agent 机制与评测设置矩阵。例如固定基础模型和仓库任务，仅改变 Planning、检索、测试反馈和 Self-reflection，并报告成功率、修复循环、工具成本与失败模式。还可进一步检验不同 SDLC 阶段间的 Benchmark 结果能否迁移，而不是默认函数级生成的提升会自然延伸到仓库维护。"
+    "what_can_be_done_next": "可依据本文分类建立受控的 Agent 机制与评测设置矩阵。例如固定基础模型和仓库任务，仅改变 Planning、检索、测试反馈和 Self-reflection，并报告成功率、修复循环、工具成本与失败模式。还可进一步检验不同 SDLC 阶段间的 Benchmark 结果能否迁移，而不是默认函数级生成的提升会自然延伸到仓库维护。",
+    "contributions": [
+      {
+        "source": "Introduction; Taxonomy",
+        "contribution": "系统梳理 LLM-based Code Generation Agents 的研究版图，并给出覆盖规划、检索、工具使用、执行反馈与反思机制的统一分类。"
+      },
+      {
+        "source": "Taxonomy and Benchmark sections",
+        "contribution": "将单 Agent 与多 Agent 方法映射到软件开发生命周期阶段，比较不同任务设置、Benchmark 与评测指标的使用方式。"
+      },
+      {
+        "source": "Challenges and Future Directions",
+        "contribution": "总结现有方法在可靠性、上下文管理、工具协作和评测可比性方面的共同挑战，并提出面向后续研究的开放问题。"
+      }
+    ]
   },
   "original_abstract": "Code generation agents powered by large language models (LLMs) are revolutionizing the software development paradigm. Distinct from previous code generation techniques, code generation agents are characterized by three core features. 1) Autonomy: the ability to independently manage the entire workflow, from task decomposition to coding and debugging. 2) Expanded task scope: capabilities that extend beyond generating code snippets to encompass the full software development lifecycle (SDLC). 3) Enhancement of engineering practicality: a shift in research emphasis from algorithmic innovation toward practical engineering challenges, such as system reliability, process management, and tool integration. This domain has recently witnessed rapid development and an explosion in research, demonstrating significant application potential. This paper presents a systematic survey of the field of LLM-based code generation agents. We trace the technology's developmental trajectory from its inception and systematically categorize its core techniques, including both single-agent and multi-agent architectures. Furthermore, this survey details the applications of LLM-based agents across the full SDLC, summarizes mainstream evaluation benchmarks and metrics, and catalogs representative tools. Finally, by analyzing the primary challenges, we identify and propose several foundational, long-term research directions for the future work of the field.",
   "bibtex": null,

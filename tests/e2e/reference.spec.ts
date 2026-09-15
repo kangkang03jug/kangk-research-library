@@ -140,13 +140,42 @@ test('owner editor authenticates once and writes user state and summary with SHA
 }) => {
   const requests: Array<Record<string, unknown>> = [];
   let expectedSession = 'signed-owner-session';
+  const comments = [
+    {
+      id: 'comment-1',
+      paper_id: paper.id,
+      nickname: '审稿人',
+      body: '有价值的实验设计。',
+      created_at: '2026-09-15T08:00:00Z',
+    },
+  ];
   await page.addInitScript(() =>
     sessionStorage.setItem('research-library-editor-session', 'signed-owner-session'),
   );
   await page.route('https://editor.test/**', async (route) => {
     const request = route.request();
     const url = new URL(request.url());
-    expect(request.headers().authorization).toBe(`Bearer ${expectedSession}`);
+    if (!url.pathname.startsWith('/api/comments'))
+      expect(request.headers().authorization).toBe(`Bearer ${expectedSession}`);
+    if (url.pathname === '/api/comments' && request.method() === 'GET')
+      return route.fulfill({ json: { comments } });
+    if (url.pathname === '/api/comments' && request.method() === 'POST') {
+      comments.push({
+        id: 'comment-2',
+        paper_id: paper.id,
+        nickname: '测试者',
+        body: request.postDataJSON().body,
+        created_at: '2026-09-15T09:00:00Z',
+      });
+      return route.fulfill({ status: 201, json: { ok: true, id: 'comment-2' } });
+    }
+    if (url.pathname.startsWith('/api/comments/') && request.method() === 'DELETE') {
+      const index = comments.findIndex(
+        (comment) => comment.id === decodeURIComponent(url.pathname.split('/').pop() || ''),
+      );
+      if (index >= 0) comments.splice(index, 1);
+      return route.fulfill({ json: { ok: true, session: expectedSession } });
+    }
     if (url.pathname === '/api/me') {
       expectedSession = 'renewed-from-me';
       return route.fulfill({
@@ -183,6 +212,9 @@ test('owner editor authenticates once and writes user state and summary with SHA
   await page.goto('/papers/swe-agent-agent-computer-interfaces/');
   await expect(page.getByText('@kangkang03jug')).toBeVisible();
   await expect(page.getByText('已验证 GitHub Owner。可安全编辑并写回仓库。')).toBeVisible();
+  await page.getByRole('button', { name: '阅读详情 ↓' }).click();
+  await expect(page.getByRole('heading', { name: '论文贡献 / Contributions' })).toBeVisible();
+  await expect(page.locator('[data-comment-form]')).toBeVisible();
   await page.locator('[data-user-field="deep_read"]').check();
   await page.locator('[data-user-field="favorite"]').uncheck();
   await page.locator('[data-user-field="status"]').selectOption('Reading');

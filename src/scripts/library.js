@@ -239,6 +239,11 @@ import { message, normalizeLocale } from '../i18n';
       editor.querySelectorAll('[data-summary-group]').forEach((field) => {
         field.value = paperRecord[field.dataset.summaryGroup][field.dataset.summaryField];
       });
+      q('[data-contributions]', editor).value = JSON.stringify(
+        paperRecord.detail.contributions,
+        null,
+        2,
+      );
       q('[data-research-questions]', editor).value = JSON.stringify(
         paperRecord.detail.research_questions,
         null,
@@ -372,6 +377,9 @@ import { message, normalizeLocale } from '../i18n';
           if (!Array.isArray(researchQuestions))
             throw new Error('Research Questions must be an array');
           detailPatch.research_questions = researchQuestions;
+          const contributions = JSON.parse(q('[data-contributions]', editor).value);
+          if (!Array.isArray(contributions)) throw new Error('Contributions must be an array');
+          detailPatch.contributions = contributions;
           detailPatch.limitations = {
             author_reported: splitLines(q('[data-limitations="author_reported"]', editor).value),
             ai_analysis: splitLines(q('[data-limitations="ai_analysis"]', editor).value),
@@ -398,5 +406,135 @@ import { message, normalizeLocale } from '../i18n';
       void initializeEditor();
     }
     void status;
+  }
+
+  const commentsList = q('[data-comments-list]');
+  const commentForm = q('[data-comment-form]');
+  const commentEditor = q('[data-editor]');
+  if (commentsList && commentForm && commentEditor) {
+    const commentsApi = (commentEditor.dataset.api || '').replace(/\/$/, '');
+    const commentsPaperId = commentEditor.dataset.paperId;
+    const commentStatus = q('[data-comment-status]');
+    const commentSession = () => {
+      try {
+        return sessionStorage.getItem('research-library-editor-session') || '';
+      } catch {
+        return '';
+      }
+    };
+    const commentRequest = (path, options = {}) =>
+      fetch(`${commentsApi}${path}`, {
+        ...options,
+        credentials: 'include',
+        headers: {
+          ...(commentSession() ? { Authorization: `Bearer ${commentSession()}` } : {}),
+          ...(options.body ? { 'content-type': 'application/json' } : {}),
+          ...(options.headers || {}),
+        },
+      });
+    const setCommentStatus = (key) => {
+      if (commentStatus) commentStatus.textContent = tr(key);
+    };
+    const renderComments = async (comments, canDelete) => {
+      commentsList.replaceChildren();
+      if (!comments.length) {
+        const empty = document.createElement('p');
+        empty.textContent = tr('paper.commentsEmpty');
+        commentsList.append(empty);
+        return;
+      }
+      comments.forEach((comment) => {
+        const item = document.createElement('article');
+        item.className = 'comment-item';
+        const meta = document.createElement('p');
+        meta.className = 'comment-meta';
+        const author = document.createElement('strong');
+        author.textContent = comment.nickname;
+        const time = document.createElement('time');
+        time.dateTime = comment.created_at;
+        time.textContent = new Date(comment.created_at).toLocaleString(state.locale);
+        meta.append(author, ' · ', time);
+        item.append(meta);
+        const body = document.createElement('p');
+        body.className = 'comment-body';
+        body.textContent = comment.body;
+        item.append(body);
+        if (canDelete) {
+          const button = document.createElement('button');
+          button.className = 'text-button comment-delete';
+          button.type = 'button';
+          button.textContent = tr('paper.commentDelete');
+          button.addEventListener('click', async () => {
+            button.disabled = true;
+            const response = await commentRequest(
+              `/api/comments/${encodeURIComponent(comment.id)}`,
+              { method: 'DELETE' },
+            );
+            if (response.ok) item.remove();
+            else {
+              button.disabled = false;
+              setCommentStatus('paper.commentDeleteFailed');
+            }
+          });
+          item.append(button);
+        }
+        commentsList.append(item);
+      });
+    };
+    const loadComments = async () => {
+      if (!commentsApi) {
+        setCommentStatus('paper.commentsUnavailable');
+        const empty = document.createElement('p');
+        empty.textContent = tr('paper.commentsUnavailable');
+        commentsList.replaceChildren(empty);
+        return;
+      }
+      try {
+        const response = await commentRequest(
+          `/api/comments?paper_id=${encodeURIComponent(commentsPaperId)}`,
+        );
+        if (!response.ok) throw new Error('comments');
+        const payload = await response.json();
+        await renderComments(payload.comments || [], Boolean(commentSession()));
+      } catch {
+        const error = document.createElement('p');
+        error.textContent = tr('paper.commentsLoadFailed');
+        commentsList.replaceChildren(error);
+      }
+    };
+    commentForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const formData = new FormData(commentForm);
+      const button = q('button[type="submit"]', commentForm);
+      button.disabled = true;
+      setCommentStatus('paper.commentSending');
+      try {
+        const response = await commentRequest('/api/comments', {
+          method: 'POST',
+          body: JSON.stringify({
+            paper_id: commentsPaperId,
+            nickname: formData.get('nickname'),
+            body: formData.get('body'),
+            website: formData.get('website'),
+          }),
+        });
+        if (!response.ok) {
+          const payload = await response.json().catch(() => null);
+          throw new Error(payload?.error || 'comment');
+        }
+        commentForm.reset();
+        setCommentStatus('paper.commentPublished');
+        await loadComments();
+      } catch (error) {
+        setCommentStatus(
+          error.message.includes('Too many')
+            ? 'paper.commentRateLimited'
+            : 'paper.commentPublishFailed',
+        );
+      } finally {
+        button.disabled = false;
+      }
+    });
+    void loadComments();
   }
 })();

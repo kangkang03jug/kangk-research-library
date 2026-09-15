@@ -48,6 +48,10 @@ export const PaperSchema = z
     }),
     detail: z.object({
       motivation: z.string(),
+      contributions: z
+        .array(z.object({ contribution: z.string().min(1), source: z.string().min(1).nullable() }))
+        .min(2)
+        .max(5),
       research_questions: z.array(
         z
           .object({

@@ -1,7 +1,12 @@
 {
   "id": "demystifying-llm-based-software-engineering-agents",
   "title": "Demystifying LLM-Based Software Engineering Agents",
-  "authors": ["Chunqiu Steven Xia", "Yinlin Deng", "Soren Dunn", "Lingming Zhang"],
+  "authors": [
+    "Chunqiu Steven Xia",
+    "Yinlin Deng",
+    "Soren Dunn",
+    "Lingming Zhang"
+  ],
   "year": 2025,
   "publication_date": null,
   "venue_or_source": "FSE 2025",
@@ -23,7 +28,14 @@
     "paper": "https://doi.org/10.1145/3715754",
     "code": "https://github.com/OpenAutoCoder/Agentless"
   },
-  "topics": ["Code Generation", "Software Engineering Agents", "Program Repair", "SWE-bench", "Cost Efficiency", "Reliability"],
+  "topics": [
+    "Code Generation",
+    "Software Engineering Agents",
+    "Program Repair",
+    "SWE-bench",
+    "Cost Efficiency",
+    "Reliability"
+  ],
   "relevance": "High",
   "reading_basis": "full_text",
   "quick_read": {
@@ -49,7 +61,25 @@
       ]
     },
     "relation_to_research": "该工作与 Cost-efficient Code Generation、Reliability-aware Escalation 和 Multi-Agent/Agent scaffold 设计直接相关。它说明固定 fast-to-slow 或 verification-first pipeline 可以成为复杂 Agent 系统必须击败的强基线，也提示实验设计应把“模型能力”“验证机制”“候选采样”“自主规划”和“额外工具调用”拆开比较，而不是把所有增益统一归因于 Agent。对于研究成本效率时，Agentless 的核心启示是：优先增加能够被执行反馈验证的结构，再考虑增加开放式推理轨迹。",
-    "what_can_be_done_next": "可进一步做严格的 matched-budget 对比：固定 backbone model、SWE-bench 子集和总 Token/API-call budget，比较 Direct、固定 workflow、动态 Escalation、单 Agent 与 Multi-Agent，并分别报告 accuracy、Prompt/Completion Tokens、wall-clock、工具调用和修复循环。另一个值得验证的方向是把 Agentless 的 deterministic localization/validation 与可靠性 gate 结合，只在简单流程失败或不确定时升级到 Planner–Coder–Debugger，从而测试复杂 Agent 是否只在困难样本上产生净收益。"
+    "what_can_be_done_next": "可进一步做严格的 matched-budget 对比：固定 backbone model、SWE-bench 子集和总 Token/API-call budget，比较 Direct、固定 workflow、动态 Escalation、单 Agent 与 Multi-Agent，并分别报告 accuracy、Prompt/Completion Tokens、wall-clock、工具调用和修复循环。另一个值得验证的方向是把 Agentless 的 deterministic localization/validation 与可靠性 gate 结合，只在简单流程失败或不确定时升级到 Planner–Coder–Debugger，从而测试复杂 Agent 是否只在困难样本上产生净收益。",
+    "contributions": [
+      {
+        "source": "Sec. 3, Fig. 1",
+        "contribution": "提出 Agentless 的确定性三阶段流程，将软件工程任务拆为 Localization、Repair 与 Patch Validation，避免依赖复杂的自主 Agent 控制器。"
+      },
+      {
+        "source": "Sec. 3.1",
+        "contribution": "设计分层代码定位方法，结合搜索、嵌入检索与代码 skeleton 压缩，在仓库级上下文中逐步缩小候选文件、类和行。"
+      },
+      {
+        "source": "Sec. 3.2–3.3",
+        "contribution": "采用多候选 search/replace 补丁生成，并通过测试复现与验证过滤错误补丁，降低一次生成失败对最终结果的影响。"
+      },
+      {
+        "source": "Sec. 4",
+        "contribution": "在 SWE-bench Lite 上进行系统评估，并以成本、工具调用和修复成功率分析 Agentless 与现有 Agent 方法的差异。"
+      }
+    ]
   },
   "original_abstract": null,
   "bibtex": null,

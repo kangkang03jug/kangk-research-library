@@ -6,3 +6,9 @@ compatibility_date = "2026-09-13"
 # Repository-specific non-secret values. The Owner is read from config/research-profile.yaml.
 GITHUB_REPOSITORY = "kangkang03jug/kangk-research-library"
 GITHUB_BRANCH = "main"
+
+# Create with `wrangler d1 create kangk-research-library-comments`, then replace the placeholder.
+[[d1_databases]]
+binding = "COMMENTS_DB"
+database_name = "kangk-research-library-comments"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"

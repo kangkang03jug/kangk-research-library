@@ -606,6 +606,62 @@ pre {
   color: var(--bg);
   background: var(--text);
 }
+.contributions {
+  padding-left: 1.2rem;
+}
+.contributions li {
+  margin: 0 0 14px;
+}
+.contributions small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+}
+.discussion form {
+  max-width: 680px;
+  margin-top: 22px;
+}
+.discussion label {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+}
+.discussion input,
+.discussion textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+.discussion textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+.comment-item {
+  border-top: 1px solid var(--line);
+  padding: 14px 0;
+}
+.comment-meta {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.comment-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.comment-delete {
+  margin-top: 4px;
+}
+.comment-honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px !important;
+  height: 1px;
+  opacity: 0;
+}
 .summary-editor {
   margin-top: 22px;
   border: 1px solid var(--line);
