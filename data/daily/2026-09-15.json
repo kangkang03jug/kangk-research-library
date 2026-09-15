@@ -1,0 +1,10 @@
+{
+  "date": "2026-09-15",
+  "recommendations": [
+    {
+      "paper_id": "adacoder-adaptive-planning-multi-agent",
+      "primary": true,
+      "run_type": "scheduled"
+    }
+  ]
+}
