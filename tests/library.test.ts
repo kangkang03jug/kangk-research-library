@@ -101,12 +101,31 @@ describe('library helpers', () => {
             how: 'Method.',
             answer: 'Answer.',
             meaning: 'Meaning.',
-            source: null,
+            source: 'Introduction, Sec. 1',
           },
         ],
       },
     });
     expect(PaperSchema.safeParse(record).success).toBe(false);
     expect(PaperSchema.safeParse({ ...record, reading_basis: 'official_html' }).success).toBe(true);
+  });
+  it('accepts an inferred Research Question after full-text Introduction review', () => {
+    const record = paper({
+      reading_basis: 'full_text',
+      detail: {
+        ...paper().detail,
+        research_questions: [
+          {
+            type: 'inferred',
+            question: 'Can the proposed representation improve robust recognition?',
+            how: "The method is evaluated across the paper's benchmark settings.",
+            answer: 'The reported results support the objective.',
+            meaning: 'This summarizes the author objective and is not an original RQ label.',
+            source: 'Introduction, Sec. 1, PDF p. 2',
+          },
+        ],
+      },
+    });
+    expect(PaperSchema.safeParse(record).success).toBe(true);
   });
 });

@@ -329,10 +329,8 @@ function validResearchQuestions(value: unknown) {
         ['question', 'how', 'answer', 'meaning'].every(
           (key) => typeof question[key] === 'string',
         ) &&
-        (question.type === 'inferred' ||
-          (typeof question.source === 'string' && question.source.trim().length > 0)) &&
-        (question.source === null ||
-          (typeof question.source === 'string' && question.source.trim().length > 0)),
+        typeof question.source === 'string' &&
+        question.source.trim().length > 0,
     )
   );
 }

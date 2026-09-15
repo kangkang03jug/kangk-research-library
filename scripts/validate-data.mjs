@@ -53,11 +53,11 @@ const paperSchema = z
             source: z.string().min(1).nullable(),
           })
           .superRefine((question, context) => {
-            if (question.type === 'explicit' && !question.source) {
+            if (!question.source) {
               context.addIssue({
                 code: 'custom',
                 path: ['source'],
-                message: 'Explicit Research Questions require a source locator.',
+                message: 'Research Questions require a source locator.',
               });
             }
           }),
