@@ -38,7 +38,7 @@
     "Evaluation"
   ],
   "relevance": "High",
-  "reading_basis": "abstract_and_metadata",
+  "reading_basis": "abstract_only",
   "quick_read": {
     "tldr": "SWE-agent 研究语言模型与软件仓库之间的交互界面如何影响 Agent 能力。其定制的 Agent-Computer Interface 将仓库导航、文件编辑和测试执行组织为连贯工作流；论文报告在 SWE-bench 上达到 12.5% pass@1，在 HumanEvalFix 上达到 87.7%。",
     "problem_and_motivation": "Software Engineering Agent 需要在完整仓库中持续工作，而不只是输出一次性的 patch。作者认为，面向 Agent 专门设计的交互界面可以降低操作摩擦，使可用动作更贴近真实软件工程流程。",

@@ -98,6 +98,26 @@ const paperSchema = z
     owner_edited: z.boolean().default(false),
   })
   .superRefine((paper, context) => {
+    if (paper.reading_basis === 'abstract_and_metadata') {
+      context.addIssue({
+        code: 'custom',
+        path: ['reading_basis'],
+        message:
+          'Abstract + Metadata may inform Quick Read but cannot be the Detail reading basis.',
+      });
+    }
+    if (
+      paper.reading_basis === 'abstract_only' &&
+      !paper.detail.limitations.author_reported.some((item) =>
+        /摘要|全文|abstract|full text/i.test(item),
+      )
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['detail', 'limitations', 'author_reported'],
+        message: 'Abstract-only Detail records must document the full-text retrieval fallback.',
+      });
+    }
     if (
       ['abstract_only', 'abstract_and_metadata'].includes(paper.reading_basis) &&
       paper.detail.research_questions.some((question) => question.type === 'inferred')

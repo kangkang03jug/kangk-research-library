@@ -77,6 +77,10 @@ Configured Timezone → ChatGPT Scheduled Task → Read Profile → Search multi
 
 Runs process one paper. If no new paper clears the quality bar, the agent recommends an existing high-quality paper that is not deep-read. Use **Get Another Paper** with `npm run paper:next` to run again; it checks duplicates and papers already recommended today.
 
+### Reading Basis
+
+`reading_basis` describes the evidence used for the paper's Detail, not merely the first page discovered. Abstract + Metadata is enough to draft Quick Read, but Detail must be based on publicly available Full Text, Official HTML, or PDF whenever reasonably obtainable. The agent should read Introduction/Motivation, Method, Experiments/Results, and Limitations/Discussion before writing Detail. `abstract_only` is a documented fallback only after reasonable retrieval attempts fail; it must be marked in the record and must not support invented body-level claims. Contributions, Research Questions, and key results should retain Section, Page, Table, or Figure locators where available.
+
 ## Owner editing and data ownership
 
 The public site is read-only until its optional editor backend is configured. After GitHub login, the Worker calls `/api/me`, reads the allowed Owner from `config/research-profile.yaml`, and enables editing only when the two GitHub usernames match. Non-owners remain read-only. Deep Read, Favorite, Status, My Tags, and My Notes update `data/user/<paper-id>.json`; AI summary corrections update only the summary fields in `data/papers/<paper-id>.json`.

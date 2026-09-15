@@ -39,7 +39,10 @@ const paper = (overrides: Partial<Paper> = {}) =>
       research_questions: [],
       method: 'method',
       experiments_and_key_findings: 'findings',
-      limitations: { author_reported: [], ai_analysis: [] },
+      limitations: {
+        author_reported: ['Abstract-only fixture; full text unavailable.'],
+        ai_analysis: [],
+      },
       relation_to_research: 'relation',
       what_can_be_done_next: 'next',
     },
