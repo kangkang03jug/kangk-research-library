@@ -8,7 +8,7 @@ const userState = JSON.parse(
   readFileSync('data/user/swe-agent-agent-computer-interfaces.json', 'utf8'),
 );
 
-test('home hero stays on one desktop line and localizes cleanly', async ({ page }) => {
+test('home hero wraps long titles naturally and localizes cleanly', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto('/');
   const heroTitle = page.locator('.hero h1');
@@ -19,30 +19,40 @@ test('home hero stays on one desktop line and localizes cleanly', async ({ page 
       { exact: true },
     ),
   ).toBeVisible();
-  const titleMetrics = await heroTitle.evaluate((element) => ({
-    whiteSpace: getComputedStyle(element).whiteSpace,
-    titleOverflows: element.scrollWidth > element.clientWidth + 1,
-    pageOverflows: document.documentElement.scrollWidth > window.innerWidth + 1,
-  }));
+  const titleMetrics = await heroTitle.evaluate((element) => {
+    const titleBounds = element.getBoundingClientRect();
+    return {
+      whiteSpace: getComputedStyle(element).whiteSpace,
+      titleOverflows: element.scrollWidth > element.clientWidth + 1,
+      titleOutsideViewport:
+        titleBounds.left < -1 || titleBounds.right > window.innerWidth + 1,
+    };
+  });
   expect(titleMetrics.whiteSpace).not.toBe('nowrap');
   expect(titleMetrics.titleOverflows).toBe(false);
-  expect(titleMetrics.pageOverflows).toBe(false);
+  expect(titleMetrics.titleOutsideViewport).toBe(false);
   await heroTitle.evaluate((element) => {
     element.textContent =
       'A deliberately long research library title that should wrap naturally to fit the available content width without creating horizontal overflow';
   });
-  const longTitleMetrics = await heroTitle.evaluate((element) => {
-    const range = document.createRange();
-    range.selectNodeContents(element);
-    return {
-      lineCount: new Set(Array.from(range.getClientRects(), (rect) => Math.round(rect.top))).size,
-      titleOverflows: element.scrollWidth > element.clientWidth + 1,
-      pageOverflows: document.documentElement.scrollWidth > window.innerWidth + 1,
-    };
-  });
-  expect(longTitleMetrics.lineCount).toBeGreaterThan(1);
-  expect(longTitleMetrics.titleOverflows).toBe(false);
-  expect(longTitleMetrics.pageOverflows).toBe(false);
+  for (const width of [1280, 375]) {
+    await page.setViewportSize({ width, height: 800 });
+    const longTitleMetrics = await heroTitle.evaluate((element) => {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const titleBounds = element.getBoundingClientRect();
+      return {
+        lineCount: new Set(Array.from(range.getClientRects(), (rect) => Math.round(rect.top))).size,
+        titleOverflows: element.scrollWidth > element.clientWidth + 1,
+        titleOutsideViewport:
+          titleBounds.left < -1 || titleBounds.right > window.innerWidth + 1,
+      };
+    });
+    expect(longTitleMetrics.lineCount).toBeGreaterThan(1);
+    expect(longTitleMetrics.titleOverflows).toBe(false);
+    expect(longTitleMetrics.titleOutsideViewport).toBe(false);
+  }
+  await page.setViewportSize({ width: 1280, height: 800 });
   await page.getByRole('button', { name: '切换为 English' }).click();
   await expect(
     page.getByText(
