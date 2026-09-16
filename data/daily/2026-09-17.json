@@ -1,0 +1,10 @@
+{
+  "date": "2026-09-17",
+  "recommendations": [
+    {
+      "paper_id": "revisit-self-debugging-self-generated-tests",
+      "primary": true,
+      "run_type": "scheduled"
+    }
+  ]
+}
