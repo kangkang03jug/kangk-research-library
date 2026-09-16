@@ -37,6 +37,8 @@ const paper = (overrides: Partial<Paper> = {}) =>
         { contribution: 'contribution two', source: null },
       ],
       research_questions: [],
+      research_questions_empty_reason: null,
+      research_questions_empty_source: null,
       method: 'method',
       experiments_and_key_findings: 'findings',
       limitations: {
@@ -127,5 +129,55 @@ describe('library helpers', () => {
       },
     });
     expect(PaperSchema.safeParse(record).success).toBe(true);
+  });
+  it('requires a reason and Introduction/Motivation locator for empty body-backed questions', () => {
+    const base = paper({ reading_basis: 'full_text' });
+    expect(PaperSchema.safeParse(base).success).toBe(false);
+    const explained = {
+      ...base,
+      detail: {
+        ...base.detail,
+        research_questions_empty_reason:
+          'The Introduction states the survey scope but does not identify a single author-framed research question to extract reliably.',
+        research_questions_empty_source: 'Introduction, PDF p. 1, paragraphs 1–3',
+      },
+    };
+    expect(PaperSchema.safeParse(explained).success).toBe(true);
+    expect(
+      PaperSchema.safeParse({
+        ...explained,
+        detail: { ...explained.detail, research_questions_empty_source: 'Sec. 1' },
+      }).success,
+    ).toBe(false);
+    expect(
+      PaperSchema.safeParse({
+        ...explained,
+        detail: {
+          ...explained.detail,
+          research_questions_empty_reason:
+            'The paper has no research question in its introduction.',
+        },
+      }).success,
+    ).toBe(false);
+  });
+  it('does not accept stale empty-question metadata when questions are present', () => {
+    const record = paper({
+      reading_basis: 'official_html',
+      detail: {
+        ...paper().detail,
+        research_questions: [
+          {
+            type: 'inferred',
+            question: 'What is the author objective?',
+            how: 'By reviewing the Introduction.',
+            answer: 'The method addresses the objective.',
+            meaning: 'An inferred question, not an original RQ label.',
+            source: 'Introduction, Sec. 1',
+          },
+        ],
+        research_questions_empty_reason: 'This stale reason should not coexist with questions.',
+      },
+    });
+    expect(PaperSchema.safeParse(record).success).toBe(false);
   });
 });

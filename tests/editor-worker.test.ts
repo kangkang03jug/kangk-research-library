@@ -152,6 +152,8 @@ describe('owner editor security boundaries', () => {
               source: 'Introduction, Paragraph 2',
             },
           ],
+          research_questions_empty_reason: null,
+          research_questions_empty_source: null,
           method: '方法',
           experiments_and_key_findings: '实验',
           limitations: { author_reported: [], ai_analysis: ['分析'] },
@@ -178,6 +180,8 @@ describe('owner editor security boundaries', () => {
               source: '',
             },
           ],
+          research_questions_empty_reason: null,
+          research_questions_empty_source: null,
           method: '方法',
           experiments_and_key_findings: '实验',
           limitations: { author_reported: [], ai_analysis: [] },
@@ -206,6 +210,8 @@ describe('owner editor security boundaries', () => {
                 source: null,
               },
             ],
+            research_questions_empty_reason: null,
+            research_questions_empty_source: null,
             method: '方法',
             experiments_and_key_findings: '实验',
             limitations: { author_reported: [], ai_analysis: [] },
@@ -214,6 +220,56 @@ describe('owner editor security boundaries', () => {
           },
         },
         'abstract_only',
+      ),
+    ).toBe(false);
+  });
+
+  it('requires an explained Introduction/Motivation locator before saving empty body-backed questions', () => {
+    const detail = {
+      motivation: '动机',
+      contributions: [
+        { contribution: '贡献一', source: null },
+        { contribution: '贡献二', source: null },
+      ],
+      research_questions: [],
+      research_questions_empty_reason:
+        'Introduction discusses the paper scope but does not state a distinct research question that can be reliably extracted.',
+      research_questions_empty_source: 'Introduction, PDF p. 1, paragraphs 1–3',
+      method: '方法',
+      experiments_and_key_findings: '实验',
+      limitations: { author_reported: [], ai_analysis: [] },
+      relation_to_research: '关系',
+      what_can_be_done_next: '下一步',
+    };
+    expect(validPaperPatch({ detail }, 'full_text')).toBe(true);
+    expect(
+      validPaperPatch(
+        {
+          detail: {
+            ...detail,
+            research_questions_empty_reason: null,
+            research_questions_empty_source: null,
+          },
+        },
+        'full_text',
+      ),
+    ).toBe(false);
+    expect(
+      validPaperPatch(
+        { detail: { ...detail, research_questions_empty_source: 'Sec. 1' } },
+        'official_html',
+      ),
+    ).toBe(false);
+    expect(
+      validPaperPatch(
+        {
+          detail: {
+            ...detail,
+            research_questions_empty_reason:
+              'The paper has no research question in its introduction.',
+          },
+        },
+        'full_text',
       ),
     ).toBe(false);
   });

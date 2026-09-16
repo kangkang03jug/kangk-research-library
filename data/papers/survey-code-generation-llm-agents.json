@@ -56,9 +56,11 @@
         "how": "通过系统检索相关文献，并从单 Agent 与多 Agent 方法、软件开发生命周期应用、评测基准和工具等维度归纳研究脉络。",
         "answer": "论文将该领域概括为围绕 Agent 自主性、任务范围扩展和工程实用性展开，并覆盖上述方法、应用、评测与工具维度。",
         "meaning": "这表明本文试图建立 Code Generation Agent 研究领域的范围与结构化全景，而不是只评估某一个代码生成模型。",
-        "source": "Sec. 1; Sec. 2.1 Literature Collection"
+        "source": "Introduction, Sec. 1; Sec. 2.1 Literature Collection"
       }
     ],
+    "research_questions_empty_reason": null,
+    "research_questions_empty_source": null,
     "method": "论文在 ACM Digital Library、IEEE Xplore、SpringerLink、Google Scholar、DBLP 和 CNKI 中进行系统检索，将 Code Generation/Software Development 与 LLM、Agent/Multi-agent 等关键词组合，使用中英文查询，覆盖 2022 年至 2025 年 6 月的文献。最终按单 Agent 与多 Agent 方法、SDLC 应用、评测、工具、挑战和未来方向组织综述。",
     "experiments_and_key_findings": "本文是综述，并未提出新的 Benchmark 实验。其主要结论体现在分类体系上：Code Generation Agent 以自主性、扩展的任务范围和工程实用性区别于早期代码生成技术；评测正从孤立的函数生成转向交互式仓库级任务；可靠性、工作流管理、外部工具、Testing 和人机协作仍是关键挑战。",
     "limitations": {

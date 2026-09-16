@@ -35,7 +35,18 @@
   },
   "detail": {
     "motivation": "CodeSim 针对两个相连问题：第一，外部 debugger 的上限受初始代码质量制约；第二，已有多 Agent code generation 往往增加步骤却缺少对 plan 假设的显式验证。作者认为程序员在实现前会用具体输入 mentally simulate algorithm，在调试时也会沿执行轨迹寻找偏差，因此将同一 simulation primitive 放入 planning 与 debugging 两个阶段，希望在错误进入后续阶段前更早发现并修正。",
-    "research_questions": [],
+    "research_questions": [
+      {
+        "type": "inferred",
+        "question": "如何将逐步输入/输出模拟用于编码前的计划验证和代码内部调试，并检验这种机制能否提升多 Agent 方法在程序合成与竞赛编程基准上的代码生成正确率？",
+        "how": "Planning Agent 用 sample I/O 对候选计划逐步模拟并在不一致时修订；Coding Agent 实现通过验证的计划；Debugging Agent 再对失败输入逐步模拟代码执行轨迹并修复逻辑错误。",
+        "answer": "作者在七个程序合成与竞赛编程基准上报告了相较强基线的提升；例如 GPT-4o 下 HumanEval 和 MBPP 分别达到 95.1% 和 90.7%。Ablation 也显示，去除规划模拟或调试模拟都会降低 HumanEval 表现。",
+        "meaning": "这是根据作者在 Introduction 中提出的初始生成质量、计划假设验证和外部调试依赖问题概括的核心目标，不是论文原文编号的 RQ。",
+        "source": "Introduction, PDF pp. 1–2 (Findings of NAACL 2025, pp. 5128–5129)"
+      }
+    ],
+    "research_questions_empty_reason": null,
+    "research_questions_empty_source": null,
     "method": "Planning Agent 首先生成解题 plan，再选取 sample I/O 对 plan 进行 step-by-step simulation；如果模拟无法得到期望输出，则返回 Plan Modification Needed 并继续修订，直到验证通过或达到 planning budget p。Coding Agent 根据 plan 生成代码并运行题目 sample I/O；若全部通过则直接返回。否则 Debugging Agent 聚焦失败输入，对当前代码逐步模拟执行以定位逻辑偏差，再修改代码并重新测试，最多进行 d 次。该 adaptive iteration 允许在候选已通过 visible samples 时提前结束，而不是固定执行全部 debugging rounds。",
     "experiments_and_key_findings": "作者在 7 个 program synthesis / competitive programming benchmarks 上评估，并覆盖 ChatGPT、GPT-4、GPT-4o、LLaMA、Gemma、Mixtral 等模型。GPT-4o 下 CodeSim 在 HumanEval 达 95.1%、MBPP 90.7%，均高于对应 MapCoder 的 90.2% 与 88.7%；在 HumanEval-ET、EvalPlus 上分别为 86.0% 与 87.2%。开源模型实验中，LLaMA3.1-70B 在 HumanEval 达 90.2%。外接 LDB 后，GPT-4o 的 HumanEval 从 95.1% 提升到 97.6%。Ablation 显示 simulation-driven planning 与 simulation debugging 各自都有贡献：完整版本 95.1%，去掉任一组件 93.3%，两者都去掉 92.1%。增加高质量 sample I/O 可将 ChatGPT HumanEval 从 86% 提升到 89%，但由 LLM 自生成额外 I/O 反而降至 78%，说明测试信号质量非常关键。",
     "limitations": {

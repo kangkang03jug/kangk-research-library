@@ -84,6 +84,8 @@
         "source": "Sec. V-A; Sec. V-D; Table XI"
       }
     ],
+    "research_questions_empty_reason": null,
+    "research_questions_empty_source": null,
     "method": "AdaCoder 包含 Programming Assistant、Code Evaluator、Debug Specialist 和 Prompt Engineer。首次循环中 Plan=None，Programming Assistant 直接根据任务生成代码；Code Evaluator 编译并运行 benchmark 提供的 sample tests，成功即返回。失败后 Debug Specialist 用规则处理缩进、冗余代码、截断和缺失模块等表层错误并再次测试；若仍失败，Prompt Engineer 根据错误反馈生成 plan，下一轮 Programming Assistant 同时接收任务与 plan。该设计把 LLM Planning 放到直接生成和规则修复之后，并允许通过最大迭代数 t 控制性能/成本权衡。",
     "experiments_and_key_findings": "经验研究首先在 HumanEval 上评估 4 个多 Agent framework × 6 个开源 LLM，显示 MapCoder 平均提升 38.86%，INTERVENOR 提升 18.59%，而 AgentCoder 与 Self-Collaboration 平均下降。AdaCoder 随后在 HumanEval 与 MBPP 上覆盖 10 个 LLM；相对 Direct，HumanEval 平均提升 54.58%，MBPP 平均提升 45.41%。对强闭源模型，增加迭代的边际收益很小，例如 GPT-4o 从 t=1 的 94.51% 到 t=5 的 98.17%；对较弱开源模型增加迭代仍更有效，但后续迭代边际收益递减。Ablation 表明 Prompt Engineer 与 Debug Specialist 都有贡献。",
     "limitations": {

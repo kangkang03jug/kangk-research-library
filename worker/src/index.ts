@@ -330,7 +330,8 @@ function validResearchQuestions(value: unknown) {
           (key) => typeof question[key] === 'string',
         ) &&
         typeof question.source === 'string' &&
-        question.source.trim().length > 0,
+        question.source.trim().length > 0 &&
+        (question.type !== 'inferred' || /introduction|motivation/i.test(question.source)),
     )
   );
 }
@@ -350,12 +351,23 @@ function validContributions(value: unknown) {
     )
   );
 }
-function validDetail(value: unknown) {
+function validResearchQuestionsEmptyReason(value: unknown) {
+  return (
+    typeof value === 'string' &&
+    value.trim().length >= 20 &&
+    /(?:cannot|could not|unable|does not (?:state|identify|present)|doesn't (?:state|identify|present)|no (?:clear|distinct|reliable) (?:research )?(?:question|objective)|not (?:clear|stated|identified)|unclear|ambiguous|insufficient|lack(?:s|ing)?|无法|不能|未能|未明确|没有明确|未提出|未指出|未说明|缺乏|不足以|不清晰|难以判断)/i.test(
+      value,
+    )
+  );
+}
+function validDetail(value: unknown, readingBasis?: unknown) {
   if (!isObject(value)) return false;
   const keys = [
     'motivation',
     'contributions',
     'research_questions',
+    'research_questions_empty_reason',
+    'research_questions_empty_source',
     'method',
     'experiments_and_key_findings',
     'limitations',
@@ -363,6 +375,21 @@ function validDetail(value: unknown) {
     'what_can_be_done_next',
   ];
   const limitations = value.limitations;
+  const hasNoEmptyMetadata =
+    value.research_questions_empty_reason === null &&
+    value.research_questions_empty_source === null;
+  const hasValidEmptyMetadata =
+    validResearchQuestionsEmptyReason(value.research_questions_empty_reason) &&
+    typeof value.research_questions_empty_source === 'string' &&
+    value.research_questions_empty_source.trim().length > 0 &&
+    /introduction|motivation/i.test(value.research_questions_empty_source);
+  const hasValidResearchQuestionMetadata =
+    Array.isArray(value.research_questions) &&
+    (value.research_questions.length > 0
+      ? hasNoEmptyMetadata
+      : readingBasis === 'full_text' || readingBasis === 'official_html'
+        ? hasValidEmptyMetadata
+        : hasNoEmptyMetadata || hasValidEmptyMetadata);
   return (
     hasOnlyKeys(value, keys) &&
     [
@@ -374,6 +401,7 @@ function validDetail(value: unknown) {
     ].every((key) => typeof value[key] === 'string') &&
     validContributions(value.contributions) &&
     validResearchQuestions(value.research_questions) &&
+    hasValidResearchQuestionMetadata &&
     isObject(limitations) &&
     hasOnlyKeys(limitations, ['author_reported', 'ai_analysis']) &&
     stringArray(limitations.author_reported) &&
@@ -385,7 +413,7 @@ export function validPaperPatch(value: unknown, readingBasis?: unknown) {
     isObject(value) &&
     hasOnlyKeys(value, ['quick_read', 'detail']) &&
     (value.quick_read === undefined || validQuickRead(value.quick_read)) &&
-    (value.detail === undefined || validDetail(value.detail)) &&
+    (value.detail === undefined || validDetail(value.detail, readingBasis)) &&
     !(
       (readingBasis === 'abstract_only' || readingBasis === 'abstract_and_metadata') &&
       isObject(value.detail) &&
@@ -624,7 +652,7 @@ export default {
           return jsonResponse(
             {
               error:
-                'Inferred Research Questions require Introduction or Motivation reading evidence',
+                'Research Questions need a reliable question or, when empty on full text, a reason and Introduction/Motivation locator',
             },
             400,
             allowedOrigin,

@@ -49,6 +49,8 @@
   "detail": {
     "motivation": "本文从一个关键观察出发：解决软件任务的语言模型 Agent 需要适合仓库级工作的交互界面。只能生成单次文本回答或 patch 的模型，难以充分检查上下文、针对失败迭代并执行验证。因此，论文把 Agent-Computer Interface 作为系统核心组成进行研究，而非无关紧要的工程管道。",
     "research_questions": [],
+    "research_questions_empty_reason": null,
+    "research_questions_empty_source": null,
     "method": "SWE-agent 将语言模型与 Agent-Computer Interface 结合，支持仓库导航、代码文件创建与编辑，以及测试和其他程序的执行。论文还分析了不同界面决策如何塑造 Agent 行为。由于当前记录依据官方摘要和 metadata，不对内部模块或摘要未报告的 ablation 作额外推断。",
     "experiments_and_key_findings": "论文使用 SWE-bench 和 HumanEvalFix 进行评测。摘要分别报告 12.5% 和 87.7% 的 pass@1，并指出这些结果超过此前非交互式语言模型的最佳水平。具体 baseline、模型版本和完整结果表仍需通过全文核验。",
     "limitations": {

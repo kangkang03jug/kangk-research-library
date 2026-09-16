@@ -35,6 +35,8 @@
   "detail": {
     "motivation": "Fixture.",
     "research_questions": [],
+    "research_questions_empty_reason": null,
+    "research_questions_empty_source": null,
     "method": "Fixture.",
     "experiments_and_key_findings": "Fixture.",
     "limitations": {

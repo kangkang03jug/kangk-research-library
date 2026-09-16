@@ -60,8 +60,32 @@ const paperSchema = z
                 message: 'Research Questions require a source locator.',
               });
             }
+            if (
+              question.type === 'inferred' &&
+              !/introduction|motivation/i.test(question.source ?? '')
+            ) {
+              context.addIssue({
+                code: 'custom',
+                path: ['source'],
+                message:
+                  'Inferred Research Questions require an Introduction or Motivation locator.',
+              });
+            }
           }),
       ),
+      research_questions_empty_reason: z
+        .string()
+        .trim()
+        .min(20)
+        .refine(
+          (reason) =>
+            /(?:cannot|could not|unable|does not (?:state|identify|present)|doesn't (?:state|identify|present)|no (?:clear|distinct|reliable) (?:research )?(?:question|objective)|not (?:clear|stated|identified)|unclear|ambiguous|insufficient|lack(?:s|ing)?|无法|不能|未能|未明确|没有明确|未提出|未指出|未说明|缺乏|不足以|不清晰|难以判断)/i.test(
+              reason,
+            ),
+          'Research Question empty reasons must explain why no reliable question can be extracted.',
+        )
+        .nullable(),
+      research_questions_empty_source: z.string().trim().min(1).nullable(),
       method: z.string(),
       experiments_and_key_findings: z.string(),
       limitations: z.object({
@@ -126,6 +150,31 @@ const paperSchema = z
         code: 'custom',
         path: ['detail', 'research_questions'],
         message: 'Inferred Research Questions require Introduction or Motivation reading evidence.',
+      });
+    }
+    const { research_questions, research_questions_empty_reason, research_questions_empty_source } =
+      paper.detail;
+    const hasEmptyExplanation =
+      Boolean(research_questions_empty_reason?.trim()) &&
+      Boolean(research_questions_empty_source?.trim()) &&
+      /introduction|motivation/i.test(research_questions_empty_source ?? '');
+    if (research_questions.length === 0) {
+      if (['full_text', 'official_html'].includes(paper.reading_basis) && !hasEmptyExplanation) {
+        context.addIssue({
+          code: 'custom',
+          path: ['detail', 'research_questions_empty_reason'],
+          message:
+            'Body-backed papers with no Research Questions require an empty reason and an Introduction/Motivation locator.',
+        });
+      }
+    } else if (
+      research_questions_empty_reason !== null ||
+      research_questions_empty_source !== null
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['detail', 'research_questions_empty_reason'],
+        message: 'Empty Research Question metadata must be null when questions are present.',
       });
     }
   });
