@@ -315,4 +315,3 @@ test('reference library is usable on a narrow viewport', async ({ page }) => {
   await expect(page.getByRole('heading', { name: '快速阅读' })).toBeVisible();
   await expect(page.locator('body')).toHaveCSS('overflow-x', 'visible');
 });
-
