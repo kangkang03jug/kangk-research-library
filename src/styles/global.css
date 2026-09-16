@@ -700,6 +700,11 @@ pre {
     flex-wrap: wrap;
     padding: 20px 18px 14px;
   }
+  .brand {
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+  }
   nav {
     order: 3;
     width: 100%;
