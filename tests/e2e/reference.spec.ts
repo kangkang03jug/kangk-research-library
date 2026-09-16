@@ -19,16 +19,30 @@ test('home hero stays on one desktop line and localizes cleanly', async ({ page 
       { exact: true },
     ),
   ).toBeVisible();
-  const titleMetrics = await heroTitle.evaluate((element) => {
-    const style = getComputedStyle(element);
+  const titleMetrics = await heroTitle.evaluate((element) => ({
+    whiteSpace: getComputedStyle(element).whiteSpace,
+    titleOverflows: element.scrollWidth > element.clientWidth + 1,
+    pageOverflows: document.documentElement.scrollWidth > window.innerWidth + 1,
+  }));
+  expect(titleMetrics.whiteSpace).not.toBe('nowrap');
+  expect(titleMetrics.titleOverflows).toBe(false);
+  expect(titleMetrics.pageOverflows).toBe(false);
+  await heroTitle.evaluate((element) => {
+    element.textContent =
+      'A deliberately long research library title that should wrap naturally to fit the available content width without creating horizontal overflow';
+  });
+  const longTitleMetrics = await heroTitle.evaluate((element) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
     return {
-      height: element.getBoundingClientRect().height,
-      lineHeight: Number.parseFloat(style.lineHeight),
-      whiteSpace: style.whiteSpace,
+      lineCount: new Set(Array.from(range.getClientRects(), (rect) => Math.round(rect.top))).size,
+      titleOverflows: element.scrollWidth > element.clientWidth + 1,
+      pageOverflows: document.documentElement.scrollWidth > window.innerWidth + 1,
     };
   });
-  expect(titleMetrics.whiteSpace).toBe('nowrap');
-  expect(titleMetrics.height).toBeLessThan(titleMetrics.lineHeight * 1.25);
+  expect(longTitleMetrics.lineCount).toBeGreaterThan(1);
+  expect(longTitleMetrics.titleOverflows).toBe(false);
+  expect(longTitleMetrics.pageOverflows).toBe(false);
   await page.getByRole('button', { name: '切换为 English' }).click();
   await expect(
     page.getByText(
