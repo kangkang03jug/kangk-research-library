@@ -24,8 +24,7 @@ test('home hero wraps long titles naturally and localizes cleanly', async ({ pag
     return {
       whiteSpace: getComputedStyle(element).whiteSpace,
       titleOverflows: element.scrollWidth > element.clientWidth + 1,
-      titleOutsideViewport:
-        titleBounds.left < -1 || titleBounds.right > window.innerWidth + 1,
+      titleOutsideViewport: titleBounds.left < -1 || titleBounds.right > window.innerWidth + 1,
     };
   });
   expect(titleMetrics.whiteSpace).not.toBe('nowrap');
@@ -44,8 +43,7 @@ test('home hero wraps long titles naturally and localizes cleanly', async ({ pag
       return {
         lineCount: new Set(Array.from(range.getClientRects(), (rect) => Math.round(rect.top))).size,
         titleOverflows: element.scrollWidth > element.clientWidth + 1,
-        titleOutsideViewport:
-          titleBounds.left < -1 || titleBounds.right > window.innerWidth + 1,
+        titleOutsideViewport: titleBounds.left < -1 || titleBounds.right > window.innerWidth + 1,
       };
     });
     expect(longTitleMetrics.lineCount).toBeGreaterThan(1);
@@ -317,3 +315,4 @@ test('reference library is usable on a narrow viewport', async ({ page }) => {
   await expect(page.getByRole('heading', { name: '快速阅读' })).toBeVisible();
   await expect(page.locator('body')).toHaveCSS('overflow-x', 'visible');
 });
+
