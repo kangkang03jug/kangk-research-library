@@ -19,7 +19,9 @@ async function expectNoRows(page: Page) {
   await expect(page.locator('[data-local-empty]')).toBeVisible();
 }
 
-test('local Deep Read and Favorite state persists, filters, and is namespaced', async ({ page }) => {
+test('local Deep Read and Favorite state persists, filters, and is namespaced', async ({
+  page,
+}) => {
   await page.goto('/paper-pool/');
   const rows = page.locator('[data-paper-row]');
   if ((await rows.count()) === 0) test.skip();
@@ -60,5 +62,7 @@ test('local Deep Read and Favorite state persists, filters, and is namespaced', 
   expect(await page.evaluate((storageKey) => localStorage.getItem(storageKey), key)).toContain(
     'deep_read',
   );
-  expect(await page.evaluate(() => localStorage.getItem('research-library-local-state:/other/'))).toBeNull();
+  expect(
+    await page.evaluate(() => localStorage.getItem('research-library-local-state:/other/')),
+  ).toBeNull();
 });

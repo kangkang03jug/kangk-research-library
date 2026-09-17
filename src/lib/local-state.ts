@@ -18,5 +18,3 @@ export function parseLocalState(raw: string | null): Record<string, LocalPaperSt
 export function serializeLocalState(value: Record<string, LocalPaperState>) {
   return JSON.stringify(value);
 }
-
-

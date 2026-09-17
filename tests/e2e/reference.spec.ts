@@ -94,11 +94,7 @@ test('reference library reading, locale switching, and paper-pool interactions w
   await page.getByRole('button', { name: '阅读详情 ↓' }).click();
   await expect(page.getByRole('heading', { name: '研究问题' })).toBeVisible();
   await expect(
-    page
-      .locator('#motivation')
-      .getByText(
-        /单次文本回答或补丁难以完成仓库级软件任务/,
-      ),
+    page.locator('#motivation').getByText(/单次文本回答或补丁难以完成仓库级软件任务/),
   ).toBeVisible();
   await expect(
     page.locator('#method').getByText(/SWE-agent 通过定制的智能体—计算机交互界面/),

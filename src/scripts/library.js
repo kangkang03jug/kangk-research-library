@@ -28,7 +28,12 @@ import { localStateStorageKey, parseLocalState, serializeLocalState } from '../l
   });
   const updateLocalIndicators = () => {
     rows.forEach((row) => {
-      const id = row.querySelector('a[href*="/papers/"]')?.getAttribute('href')?.split('/').filter(Boolean).pop();
+      const id = row
+        .querySelector('a[href*="/papers/"]')
+        ?.getAttribute('href')
+        ?.split('/')
+        .filter(Boolean)
+        .pop();
       if (!id) return;
       const value = paperLocalState(id);
       row.dataset.deepRead = String(value.deep_read);
@@ -181,10 +186,17 @@ import { localStateStorageKey, parseLocalState, serializeLocalState } from '../l
     updateLocalIndicators();
     const filter = localFilter?.dataset.localStateFilter;
     if (filter) {
-      const visible = rows.filter((row) => row.dataset[filter === 'deep_read' ? 'deepRead' : 'favorite'] === 'true');
-      rows.forEach((row) => { row.hidden = !visible.includes(row); });
+      const visible = rows.filter(
+        (row) => row.dataset[filter === 'deep_read' ? 'deepRead' : 'favorite'] === 'true',
+      );
+      rows.forEach((row) => {
+        row.hidden = !visible.includes(row);
+      });
       const count = q('[data-local-count]');
-      if (count) { count.dataset.countValue = visible.length; count.textContent = formatCount(visible.length, 'paper'); }
+      if (count) {
+        count.dataset.countValue = visible.length;
+        count.textContent = formatCount(visible.length, 'paper');
+      }
       if (localEmpty) localEmpty.hidden = visible.length > 0;
     }
     const paperIds = [...document.querySelectorAll('[data-local-paper-ids] [data-paper-id]')].map(
