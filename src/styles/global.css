@@ -150,7 +150,7 @@ h3 {
   margin: 0 0 14px;
 }
 h1 {
-  font-size: clamp(2.2rem, 6vw, 4.9rem);
+  font-size: clamp(2.2rem, 6vw, 4.1rem);
   max-width: 850px;
 }
 h2 {
@@ -163,21 +163,49 @@ p {
   margin: 0 0 1em;
 }
 .lede {
-  font-size: 1.16rem;
+  font-size: 1.05rem;
   color: var(--muted);
-  max-width: 650px;
+  max-width: 820px;
 }
 .hero {
-  padding-bottom: 70px;
+  max-width: 1120px;
+  padding-bottom: 56px;
   border-bottom: 1px solid var(--line);
+}
+.hero-title-group {
+  max-width: 920px;
+  text-wrap: balance;
+}
+.hero h1 {
+  max-width: 100%;
+  margin-bottom: 8px;
+  font-size: clamp(2.35rem, 6vw, 4.1rem);
+  line-height: 1.08;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+.hero-subtitle {
+  margin: 0 0 24px;
+  color: var(--muted);
+  font-size: clamp(1.15rem, 2.2vw, 1.55rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 @media (min-width: 801px) {
   .hero h1 {
-    max-width: 1100px;
-    font-size: clamp(2.5rem, 5.2vw, 4.8rem);
+    max-width: 920px;
+    font-size: clamp(2.8rem, 5vw, 4.1rem);
     white-space: normal;
     text-wrap: balance;
     overflow-wrap: break-word;
+  }
+}
+@media (max-width: 800px) {
+  .hero {
+    padding-bottom: 44px;
+  }
+  .hero h1 {
+    font-size: clamp(2.25rem, 10vw, 3.3rem);
   }
 }
 .today {

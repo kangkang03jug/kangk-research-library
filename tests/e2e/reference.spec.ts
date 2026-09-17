@@ -12,10 +12,11 @@ test('home hero wraps long titles naturally and localizes cleanly', async ({ pag
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto('/');
   const heroTitle = page.locator('.hero h1');
-  await expect(heroTitle).toHaveText('KangK Research Library');
+  await expect(heroTitle).toHaveText('LLM-based Code Generation');
+  await expect(page.locator('.hero-subtitle')).toHaveText('Research Library');
   await expect(
     page.getByText(
-      '一个持续更新的个人研究知识库，用于整理论文、记录阅读进展，并沉淀长期研究笔记与思考。',
+      'A focused research library for LLM-based code generation and AI4SE.',
       { exact: true },
     ),
   ).toBeVisible();
@@ -34,7 +35,7 @@ test('home hero wraps long titles naturally and localizes cleanly', async ({ pag
     element.textContent =
       'A deliberately long research library title that should wrap naturally to fit the available content width without creating horizontal overflow';
   });
-  for (const width of [1280, 375]) {
+  for (const width of [1440, 1024, 390]) {
     await page.setViewportSize({ width, height: 800 });
     const longTitleMetrics = await heroTitle.evaluate((element) => {
       const range = document.createRange();
@@ -54,14 +55,14 @@ test('home hero wraps long titles naturally and localizes cleanly', async ({ pag
   await page.getByRole('button', { name: '切换为 English' }).click();
   await expect(
     page.getByText(
-      'A continuously evolving personal research knowledge base for organizing papers, tracking reading progress, and accumulating long-term research notes and reflections.',
+      'A focused research library for LLM-based code generation and AI4SE.',
       { exact: true },
     ),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Switch to Chinese' }).click();
   await expect(
     page.getByText(
-      '一个持续更新的个人研究知识库，用于整理论文、记录阅读进展，并沉淀长期研究笔记与思考。',
+      'A focused research library for LLM-based code generation and AI4SE.',
       { exact: true },
     ),
   ).toBeVisible();
@@ -72,7 +73,7 @@ test('reference library reading, locale switching, and paper-pool interactions w
   page,
 }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'KangK Research Library' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'LLM-based Code Generation' })).toBeVisible();
   await page.getByRole('link', { name: '论文池' }).click();
   await expect(page.getByRole('heading', { name: '论文池' })).toBeVisible();
   await expect(

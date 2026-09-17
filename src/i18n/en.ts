@@ -15,6 +15,7 @@ export const en = {
   },
   home: {
     eyebrow: 'Research Library ·',
+    libraryLabel: 'Research Library',
     lede: 'A continuously evolving personal research knowledge base for organizing papers, tracking reading progress, and accumulating long-term research notes and reflections.',
     today: 'Today’s Paper',
     read: 'Read paper →',
