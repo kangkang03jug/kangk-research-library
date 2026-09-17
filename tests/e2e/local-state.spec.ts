@@ -7,6 +7,8 @@ test('local Deep Read and Favorite state persists, filters, and is namespaced', 
   const paperHref = await rows.first().locator('a[href*="/papers/"]').first().getAttribute('href');
   expect(paperHref).toBeTruthy();
   await page.goto(paperHref!);
+  await page.locator('[data-read-detail]').click();
+  await expect(page.locator('[data-local-paper-state]')).toBeVisible();
   await page.locator('[data-local-field="deep_read"]').check();
   await page.locator('[data-local-field="favorite"]').check();
   await page.reload();
@@ -15,8 +17,19 @@ test('local Deep Read and Favorite state persists, filters, and is namespaced', 
 
   await page.goto('/deep-read/');
   await expect(page.locator('[data-paper-row]').filter({ has: page.locator('a[href="' + paperHref + '"]') })).toBeVisible();
+  await expect(page.locator('[data-paper-row]:not([hidden])')).toHaveCount(1);
   await page.goto('/favorites/');
   await expect(page.locator('[data-paper-row]').filter({ has: page.locator('a[href="' + paperHref + '"]') })).toBeVisible();
+  await expect(page.locator('[data-paper-row]:not([hidden])')).toHaveCount(1);
+
+  await page.goto(paperHref!);
+  await page.locator('[data-read-detail]').click();
+  await page.locator('[data-local-field="deep_read"]').uncheck();
+  await page.locator('[data-local-field="favorite"]').uncheck();
+  await page.goto('/deep-read/');
+  await expect(page.locator('[data-local-empty]')).toBeVisible();
+  await page.goto('/favorites/');
+  await expect(page.locator('[data-local-empty]')).toBeVisible();
 
   const namespace = await page.locator('html').getAttribute('data-state-namespace');
   expect(namespace).toBeTruthy();
@@ -26,4 +39,3 @@ test('local Deep Read and Favorite state persists, filters, and is namespaced', 
   );
   expect(await page.evaluate(() => localStorage.getItem('research-library-local-state:/other/'))).toBeNull();
 });
-

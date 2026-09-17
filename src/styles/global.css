@@ -308,6 +308,9 @@ label select {
 .paper-list {
   border-top: 1px solid var(--line);
 }
+html:not([data-local-state-ready]) [data-local-state-filter] [data-paper-row] {
+  display: none;
+}
 .paper-row {
   position: relative;
   display: grid;
@@ -428,8 +431,11 @@ label select {
 }
 .reading-content {
   max-width: 760px;
+  display: flex;
+  flex-direction: column;
 }
 .quick-read {
+  order: 1;
   background: var(--surface);
   border: 1px solid var(--line);
   padding: 28px;
@@ -447,7 +453,33 @@ label select {
   border: 1px solid var(--text);
 }
 .detail-wrap {
+  order: 2;
   margin-top: 45px;
+}
+.local-reading-state {
+  order: 3;
+  display: grid;
+  gap: 12px;
+  margin-top: 32px;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.local-reading-state strong {
+  font-size: 1rem;
+}
+.local-reading-state label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+}
+.local-reading-state input {
+  width: 1rem;
+  height: 1rem;
+}
+.reading-content:has([data-detail][hidden]) .local-reading-state {
+  display: none;
 }
 .detail-section {
   padding: 30px 0;

@@ -196,6 +196,7 @@ import { localStateStorageKey, parseLocalState, serializeLocalState } from '../l
     document.querySelectorAll('[data-local-stat="deep_read"]').forEach((element) => {
       element.textContent = String(deepReadCount);
     });
+    document.documentElement.dataset.localStateReady = 'true';
   };
   updateLocalViews();
   document.querySelectorAll('[data-local-paper-state] input[data-local-field]').forEach((input) => {
