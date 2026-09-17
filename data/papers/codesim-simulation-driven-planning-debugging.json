@@ -27,14 +27,14 @@
   "relevance": "High",
   "reading_basis": "full_text",
   "quick_read": {
-    "tldr": "CodeSim 用 step-by-step input/output simulation 同时验证 plan 和定位代码错误，把 Planning、Coding、Debugging 串成自适应多 Agent 流程；它尤其值得关注，因为其核心不是单纯增加 Agent，而是用内部模拟提高初始方案质量并减少无效外部调试。",
-    "problem_and_motivation": "现有 execution-feedback debugger 往往在粗糙代码生成后才开始修复，最终效果高度依赖初始代码质量；而多 Agent 方法虽然扩展了 planning、coding、testing/debugging 步骤，却未必验证规划本身是否正确，并可能需要更多迭代和 API calls。作者因此引入类似人工 dry-run 的 simulation，在真正编码前检查 plan，并在代码失败时逐步模拟执行定位 bug。",
-    "core_method": "CodeSim 由 Planning Agent、Coding Agent、Debugging Agent 组成。Planning Agent 生成候选 plan，并用 sample I/O 做逐步 simulation；若模拟输出与期望不一致则修改 plan。Coding Agent 将验证后的 plan 转成代码并执行 sample tests；失败代码进入 Debugging Agent，后者针对失败输入逐步模拟程序执行、定位错误并修复。流程通过最大 planning 次数 p 和 debugging 次数 d 控制迭代与成本。",
-    "key_results": "在 GPT-4o 上，CodeSim 达到 HumanEval 95.1%、HumanEval-ET 86.0%、EvalPlus 87.2%、MBPP 90.7%、MBPP-ET 61.2%；论文还报告 APPS 22% 和 CodeContests 29.1%。HumanEval ablation 中，完整 simulation-driven planning + simulation debugging 为 95.1%；去掉任一 simulation 组件均降至 93.3%，两者都去掉降至 92.1%。与 MapCoder 相比，作者报告平均少用约 4.13K tokens，同时 accuracy 高 7.1%。",
-    "why_it_matters": "这篇工作与你关注的 Planner–Coder–Debugger、执行反馈、成本效率和 fast/slow reasoning 非常接近。尤其值得对照的是：CodeSim 把 simulation 作为 plan verification 与 internal debugging 的可靠性机制，但完整流程仍比 Direct 昂贵很多，因此自然引出“哪些样本值得进入复杂流程、何时早停、如何以可靠性信号升级”的进一步问题。"
+    "tldr": "CodeSim 在写代码前先用样例输入检查解题计划，代码失败后再模拟执行过程定位错误。它要解决的是：计划可能本身有错，调试也可能太晚。",
+    "problem_and_motivation": "已有调试器通常等代码生成后才开始工作，如果初始代码或解题计划已经偏离问题，后续修复会很困难。多智能体流程还可能增加迭代次数和调用成本。",
+    "core_method": "规划智能体用样例输入输出逐步检查计划；编码智能体把通过检查的计划写成代码；调试智能体对失败输入模拟代码执行，定位逻辑错误后再修复。",
+    "key_results": "在 GPT-4o 上，CodeSim 在 HumanEval 达到 95.1%，在 MBPP 达到 90.7%。去掉规划模拟或调试模拟后，HumanEval 都降到 93.3%，同时去掉则降到 92.1%。",
+    "why_it_matters": "这项工作把“先检查计划、再写代码、最后调试”变成一个可验证的流程，但它也显示完整流程比直接生成昂贵，因此值得研究哪些样本真的需要进入复杂流程。"
   },
   "detail": {
-    "motivation": "CodeSim 针对两个相连问题：第一，外部 debugger 的上限受初始代码质量制约；第二，已有多 Agent code generation 往往增加步骤却缺少对 plan 假设的显式验证。作者认为程序员在实现前会用具体输入 mentally simulate algorithm，在调试时也会沿执行轨迹寻找偏差，因此将同一 simulation primitive 放入 planning 与 debugging 两个阶段，希望在错误进入后续阶段前更早发现并修正。",
+    "motivation": "作者关注两个问题：外部调试器受初始代码质量限制，已有多智能体方法又很少检查解题计划本身。论文借鉴程序员在写代码前做手算和调试时追踪执行的做法，把逐步模拟放到规划和调试两个阶段。",
     "research_questions": [
       {
         "type": "inferred",
@@ -48,8 +48,8 @@
     ],
     "research_questions_empty_reason": null,
     "research_questions_empty_source": null,
-    "method": "Planning Agent 首先生成解题 plan，再选取 sample I/O 对 plan 进行 step-by-step simulation；如果模拟无法得到期望输出，则返回 Plan Modification Needed 并继续修订，直到验证通过或达到 planning budget p。Coding Agent 根据 plan 生成代码并运行题目 sample I/O；若全部通过则直接返回。否则 Debugging Agent 聚焦失败输入，对当前代码逐步模拟执行以定位逻辑偏差，再修改代码并重新测试，最多进行 d 次。该 adaptive iteration 允许在候选已通过 visible samples 时提前结束，而不是固定执行全部 debugging rounds。",
-    "experiments_and_key_findings": "作者在 7 个 program synthesis / competitive programming benchmarks 上评估，并覆盖 ChatGPT、GPT-4、GPT-4o、LLaMA、Gemma、Mixtral 等模型。GPT-4o 下 CodeSim 在 HumanEval 达 95.1%、MBPP 90.7%，均高于对应 MapCoder 的 90.2% 与 88.7%；在 HumanEval-ET、EvalPlus 上分别为 86.0% 与 87.2%。开源模型实验中，LLaMA3.1-70B 在 HumanEval 达 90.2%。外接 LDB 后，GPT-4o 的 HumanEval 从 95.1% 提升到 97.6%。Ablation 显示 simulation-driven planning 与 simulation debugging 各自都有贡献：完整版本 95.1%，去掉任一组件 93.3%，两者都去掉 92.1%。增加高质量 sample I/O 可将 ChatGPT HumanEval 从 86% 提升到 89%，但由 LLM 自生成额外 I/O 反而降至 78%，说明测试信号质量非常关键。",
+    "method": "规划智能体先生成计划，再用样例输入输出逐步模拟；模拟结果不对就修改计划。编码智能体根据通过检查的计划生成代码并运行样例。代码失败后，调试智能体针对失败输入模拟执行轨迹，找到逻辑偏差并重新测试。规划和调试次数分别由预算控制。",
+    "experiments_and_key_findings": "作者在多个程序合成和竞赛编程数据集上评估多种模型。GPT-4o 在 HumanEval 和 MBPP 上分别达到 95.1% 和 90.7%；加入外部调试器后 HumanEval 可升至 97.6%。消融实验显示，规划模拟和调试模拟各自有效。高质量样例输入输出能提升效果，但由模型自行生成的额外测试反而会使结果下降。",
     "limitations": {
       "author_reported": [
         "尽管 CodeSim 比 MapCoder 更省 Token，但仍显著高于 Direct prompting：作者报告 Direct 平均约 560 tokens，而 CodeSim 约 13,640 tokens。",
@@ -63,13 +63,13 @@
         "LLM 自生成额外测试导致明显性能下降，说明把 generated tests 直接当可靠性证据存在 confirmation bias 或错误 oracle 风险。"
       ]
     },
-    "relation_to_research": "CodeSim 是 cost-efficient multi-agent Code Generation 的关键强基线：它同样包含 Planner、Coder、Debugger，并通过 visible I/O 和 simulation 形成验证/修复闭环。与 reliability-aware fast-to-slow escalation 的主要区别是，CodeSim 默认先进入 Planning，而不是先尝试 Direct candidate 再根据可靠性 gate 决定是否升级；同时其 slow workflow 会沿自身 plan/code/debug 状态持续迭代。论文报告 Direct 约 560 tokens、CodeSim 约 13.64K tokens，使“只把困难样本送入复杂推理”的成本动机非常直接。",
-    "what_can_be_done_next": "可以在相同 backbone、temperature、sample I/O 和总预算下，将 CodeSim 的 always-plan 流程与 Direct-first reliability-aware escalation 做 matched-budget 比较；进一步分析 CodeSim simulation signal 是否能作为候选可靠性特征，而不是对所有样本固定调用 Planner。另一个值得验证的方向是把 simulation-derived failure pattern 压缩成可检索经验，但严格区分 public visible evidence 与 hidden-test information，测试 memory 是否能降低 planning/debugging API calls。",
+    "relation_to_research": "CodeSim 是规划—编码—调试流程的强基线。它默认所有任务都先进入规划阶段，而不是先生成一个简单候选再按可靠性决定是否升级，这正好适合与成本受控的动态升级策略比较。",
+    "what_can_be_done_next": "可以在相同模型、样例和总预算下，将 CodeSim 与“先直接生成、失败后再升级”的流程比较；还可以检验模拟过程中的失败信号能否用于挑选真正困难的样本。",
     "contributions": [
-      {"source": "Sec. 3.1–3.4; Figure 1", "contribution": "提出 Planning、Coding、Debugging 三 Agent 的 CodeSim pipeline，并用 adaptive iteration 串联 plan verification、代码执行与错误修复。"},
-      {"source": "Sec. 3.2; Figures 1–2", "contribution": "在 Planning Agent 中引入基于 sample I/O 的逐步 simulation，对生成 plan 在编码前进行验证和修改。"},
-      {"source": "Sec. 3.3; Figure 2", "contribution": "在 Debugging Agent 中对失败输入模拟代码执行轨迹，以定位并修复逻辑错误，而不额外依赖生成测试用例。"},
-      {"source": "Sec. 5–6; Tables 1–9", "contribution": "跨多个 benchmark 和多种 proprietary/open-source LLM 验证性能，并通过 agent ablation、外部 debugger、sample I/O、p/d 与 Token/API 分析解释收益和成本。"}
+      {"source": "Sec. 3.1–3.4; Figure 1", "contribution": "提出由规划、编码和调试三个智能体组成的 CodeSim 流程，用自适应迭代连接计划检查、执行和修复。"},
+      {"source": "Sec. 3.2; Figures 1–2", "contribution": "在编码前使用样例输入输出逐步检查计划，发现不一致时先修改计划。"},
+      {"source": "Sec. 3.3; Figure 2", "contribution": "在调试阶段模拟失败输入的执行轨迹，帮助定位逻辑错误。"},
+      {"source": "Sec. 5–6; Tables 1–9", "contribution": "在多个数据集和不同模型上进行评估，并分析各组件的收益与成本。"}
     ]
   },
   "original_abstract": "Large Language Models (LLMs) have made significant strides in code generation and problem solving. Current approaches employ external tool-based iterative debuggers that use compiler or other tool-based runtime feedback to refine coarse programs generated by various methods. However, the effectiveness of these approaches heavily relies on the quality of the initial code generation, which remains an open challenge. In this paper, we introduce CODESIM, a novel multi-agent code generation framework that comprehensively addresses the stages of program synthesis—planning, coding, and debugging—through a human-like perception approach. As human verifies their understanding of any algorithms through visual simulation, CODESIM uniquely features a method of plan verification and internal debugging through the step-by-step simulation of input/output. Extensive experiments across seven challenging competitive problem-solving and program synthesis benchmarks demonstrate CODESIM's remarkable code generation capabilities. Our framework achieves new state-of-the-art (pass@1) results—(HumanEval 95.1%, MBPP 90.7%, APPS 22%, and CodeContests 29.1%). Furthermore, our method shows potential for even greater enhancement when cascaded with external debuggers. To facilitate further research and development in this area, we have open-sourced our framework in this link (https://kagnlp.github.io/codesim.github.io/).",

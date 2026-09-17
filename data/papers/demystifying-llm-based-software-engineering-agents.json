@@ -39,14 +39,14 @@
   "relevance": "High",
   "reading_basis": "full_text",
   "quick_read": {
-    "tldr": "Agentless 用固定的 Localization → Repair → Patch Validation 三阶段流程挑战“软件工程任务必须依赖复杂自主 Agent”的默认假设。它不让 LLM 自主规划下一步或操作复杂工具，而是把仓库级修复拆成可控、可验证的步骤，并在 SWE-bench Lite 上以较低成本取得很强的开源基线结果。",
-    "problem_and_motivation": "复杂 Software Engineering Agent 往往引入工具接口设计、长轨迹决策和错误累积问题：一次不合理动作可能影响后续多轮，同时增加 Token、API 调用和调试成本。论文关注的核心不是继续堆叠 Agent scaffold，而是检验更简单、可解释的工作流是否已经足以完成真实仓库级修复。",
-    "core_method": "Agentless 先进行分层 Localization：从文件级筛选，到 class/function 级压缩表示，再到细粒度 edit location；随后针对多个定位结果独立采样 Search/Replace 风格候选 Patch。最后结合 regression tests、LLM 生成的 reproduction tests 与 majority voting 进行 Patch Validation 和选择。整个流程由预定义阶段驱动，而不是让 LLM 自主决定工具调用与下一步动作。",
-    "key_results": "在 SWE-bench Lite 的 300 个问题上，Agentless + GPT-4o 修复 96 个问题，solve rate 为 32.00%，平均成本约 $0.70/issue；论文报告其在提交时超过所有开源对比方法。Ablation 显示，多位置独立采样和 reproduction-test-based validation 都带来明显增益，而候选 Patch 数量在约 40 个后趋于饱和。",
-    "why_it_matters": "这篇工作对 Cost-efficient Code Generation / Agent 研究尤其重要：它提供了一个强而简单的非自主基线，说明增加 Planner、Debugger、Memory 或多 Agent 协作前，应先证明额外复杂度带来的准确率提升能够覆盖额外成本。它也强化了“验证与选择机制可能比开放式自主探索更重要”的研究方向。"
+    "tldr": "Agentless 把仓库修复拆成定位、补丁生成和补丁验证三个固定步骤，不让模型自由决定下一步。它说明简单、可复现的流程也能完成相当一部分真实软件修复。",
+    "problem_and_motivation": "复杂软件工程智能体需要长轨迹决策和大量工具调用，错误会在多轮操作中累积。论文要检验：固定而透明的流程是否已经足以解决仓库级问题。",
+    "core_method": "先逐层定位相关文件、类和代码行，再为多个位置生成独立的搜索替换补丁，最后用回归测试、复现测试和多数投票筛选补丁。",
+    "key_results": "在 SWE-bench Lite 的 300 个问题中，Agentless 使用 GPT-4o 修复 96 个，成功率 32.00%，平均成本约 0.70 美元。多位置采样和复现测试都带来明显收益。",
+    "why_it_matters": "在增加规划器、调试器或多智能体协作前，应该先证明额外复杂度带来的准确率提升值得它的成本。验证和候选选择本身可能比开放式探索更重要。"
   },
   "detail": {
-    "motivation": "论文从现有 Agent-based Software Engineering 系统的三个结构性问题出发：复杂工具抽象可能造成错误或低效调用；开放式决策空间使长轨迹难以调试和控制；有限的 self-reflection 又容易放大早期错误。作者因此提出一个反向问题：与其默认需要更复杂的自主 Agent，是否可以先用固定、透明、可复现的工作流完成仓库级问题修复。",
+    "motivation": "作者认为复杂工具接口、开放式决策和有限的自我反思会让软件工程智能体变得难以控制。论文因此提出一个反向问题：固定、透明、可复现的工作流是否已经足以完成仓库级修复。",
     "research_questions": [
       {
         "type": "inferred",
@@ -60,8 +60,8 @@
     ],
     "research_questions_empty_reason": null,
     "research_questions_empty_source": null,
-    "method": "Agentless 的第一阶段是 hierarchical localization。文件级同时使用 prompting-based 和 embedding-based retrieval，并过滤明显无关目录；随后把候选文件压缩为 skeleton 表示定位相关 class/function，避免把完整大文件塞入上下文；最后进一步定位精确 edit locations，并保留多个独立 location samples。第二阶段 Repair 针对不同 location set 分别生成多个 Search/Replace Patch，而不是合并成超大上下文。第三阶段 Patch Validation 先利用现有 regression tests 过滤明显退化的 Patch，再生成 reproduction tests 检验原始 Issue 是否被复现和修复，最后结合规范化后的 majority voting 选择最终提交。该设计仍大量使用 LLM，但控制流是固定的，不把下一步规划权交给自主 Agent。",
-    "experiments_and_key_findings": "主实验使用 SWE-bench Lite。Agentless + GPT-4o 在 300 个 Issue 中修复 96 个，solve rate 32.00%，平均成本约 $0.70，论文将其定位为当时最强的开源结果之一。Localization ablation 中，prompting 与 embedding 结合后，文件级候选集合包含 ground-truth file 的比例达到 81.3%；层次化压缩还能显著缩短后续上下文。Repair ablation 中，使用 4 组 location、每组 10 个 Patch 的 multi-sample 设置达到 96 个修复，高于 greedy-location 40 samples 的 88 个和 merged-location 40 samples 的 85 个。Patch Validation 中，仅 majority voting 修复 77 个，加入 regression test 后为 81 个，再加入 reproduction test 后达到 96 个。随着候选 Patch 增加，性能在约 40 samples 后趋于饱和；若按 oracle 观察所有候选，最多有 126/300（42.0%）Issue 存在正确 Patch，说明 Patch ranking/selection 仍有明显提升空间。论文还人工检查 SWE-bench Lite，指出部分 Issue 含 exact ground-truth patch、误导信息或缺失关键信息，并据此构建更严格的 SWE-bench Lite-S。",
+    "method": "第一阶段从文件级、代码结构级到具体修改位置逐层定位，并用代码骨架压缩上下文。第二阶段针对不同位置生成多个搜索替换补丁。第三阶段先运行已有回归测试，再生成复现测试，最后用多数投票选择补丁。整个控制流预先确定，不交给模型自由规划。",
+    "experiments_and_key_findings": "在 SWE-bench Lite 上，Agentless 使用 GPT-4o 修复 96/300 个问题，成功率 32.00%，平均成本约 0.70 美元。结合提示检索和向量检索后，文件定位更准确；多位置、多补丁采样优于把所有位置合并处理；加入回归测试和复现测试后，修复数进一步增加，约 40 个候选补丁后收益趋于饱和。",
     "limitations": {
       "author_reported": [
         "Threats to Validity 指出，GPT-4o 是闭源模型，无法完全排除 SWE-bench ground-truth Patch 出现在训练数据中的潜在 data leakage；彻底验证需要重新训练模型，在学术项目中不可行。",
@@ -72,24 +72,24 @@
         "论文中的美元成本受当时模型价格、采样数量和 SWE-bench 环境影响，跨模型或跨年份比较时应同时报告 Prompt/Completion Tokens、调用次数和运行时间，而不能只复用 $0.70 这一绝对数值。"
       ]
     },
-    "relation_to_research": "该工作与 Cost-efficient Code Generation、Reliability-aware Escalation 和 Multi-Agent/Agent scaffold 设计直接相关。它说明固定 fast-to-slow 或 verification-first pipeline 可以成为复杂 Agent 系统必须击败的强基线，也提示实验设计应把“模型能力”“验证机制”“候选采样”“自主规划”和“额外工具调用”拆开比较，而不是把所有增益统一归因于 Agent。对于研究成本效率时，Agentless 的核心启示是：优先增加能够被执行反馈验证的结构，再考虑增加开放式推理轨迹。",
-    "what_can_be_done_next": "可进一步做严格的 matched-budget 对比：固定 backbone model、SWE-bench 子集和总 Token/API-call budget，比较 Direct、固定 workflow、动态 Escalation、单 Agent 与 Multi-Agent，并分别报告 accuracy、Prompt/Completion Tokens、wall-clock、工具调用和修复循环。另一个值得验证的方向是把 Agentless 的 deterministic localization/validation 与可靠性 gate 结合，只在简单流程失败或不确定时升级到 Planner–Coder–Debugger，从而测试复杂 Agent 是否只在困难样本上产生净收益。",
+    "relation_to_research": "Agentless 是成本受控代码生成和可靠性研究的重要基线。它把定位、修复和验证拆开，适合与自主轨迹、动态升级和多智能体流程做受控比较。",
+    "what_can_be_done_next": "可以固定模型、任务集和总 Token 预算，比较直接生成、固定流程和动态升级三种方案，并同时报告成功率、Token、调用次数和运行时间。还可以只在固定流程失败或不确定时升级到更复杂的规划调试流程。",
     "contributions": [
       {
         "source": "Sec. 3, Fig. 1",
-        "contribution": "提出 Agentless 的确定性三阶段流程，将软件工程任务拆为 Localization、Repair 与 Patch Validation，避免依赖复杂的自主 Agent 控制器。"
+        "contribution": "提出固定的三阶段流程，把软件修复拆成定位、补丁生成和补丁验证。"
       },
       {
         "source": "Sec. 3.1",
-        "contribution": "设计分层代码定位方法，结合搜索、嵌入检索与代码 skeleton 压缩，在仓库级上下文中逐步缩小候选文件、类和行。"
+        "contribution": "设计分层代码定位方法，逐步缩小候选文件、类和代码行。"
       },
       {
         "source": "Sec. 3.2–3.3",
-        "contribution": "采用多候选 search/replace 补丁生成，并通过测试复现与验证过滤错误补丁，降低一次生成失败对最终结果的影响。"
+        "contribution": "为多个位置独立生成搜索替换补丁，并用测试筛除错误补丁。"
       },
       {
         "source": "Sec. 4",
-        "contribution": "在 SWE-bench Lite 上进行系统评估，并以成本、工具调用和修复成功率分析 Agentless 与现有 Agent 方法的差异。"
+        "contribution": "在 SWE-bench Lite 上同时分析修复成功率、成本和工具调用。"
       }
     ]
   },

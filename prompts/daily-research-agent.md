@@ -17,3 +17,14 @@ Language is mandatory: generate every AI-authored paper summary and analysis fie
 Research Questions 规则：`explicit` 只用于论文明确写出的 RQ / Research Question，保留实际数量、原文表述和 source locator。对 `full_text` / `official_html`，必须阅读 Introduction / Motivation；若能可靠概括作者实际研究目标或核心问题，必须至少生成一条 `type: inferred`，不能因没有 `RQ1/RQ2` 而留空。Inferred 必须标记为推断，不伪装成作者编号，并提供 Introduction / Motivation locator。只有阅读相关正文后仍无法可靠提取时才允许空数组；此时必须填写 `detail.research_questions_empty_reason`（具体解释，至少 20 个字符）和 `detail.research_questions_empty_source`（Introduction / Motivation 定位）。RQ 非空时这两个字段都必须为 `null`。Abstract + Metadata 不得作为推断依据，推断必须忠实于作者目标。
 
 Run `npm run validate:data`, relevant tests, and `npm run build`. Commit and push only if every check succeeds. Report the selected paper, whether it was new or existing, venue/source, relevance, and modified files.
++## 中文总结表达规范
+
+当 `language.explanation = zh-CN` 时，所有 AI 生成的 Quick Read、Detail、Research Questions、Contributions、Limitations、Relation 和后续研究建议都必须以自然、简单、直观的中文为主：
+
+- 普通技术概念优先翻成中文；只有方法名、模型名、数据集、指标、缩写和其他确实需要保留的专有名词使用英文。
+- 英文术语第一次出现时可写成“中文（英文）”，后文尽量只用中文；不要在一句话中连续堆叠多个英文术语。
+- 先说明“这是什么意思”，再补充必要的专业名词；多用短句，避免一口气塞入多个因果关系。
+- TL;DR 只保留论文要解决的问题、核心方法、最重要结论和研究启发，不堆模型清单或实验数字。
+- “关键结果”只保留最重要的 1–3 个结论或代表性数字，并说明它们意味着什么。
+- “为什么重要 / AI 分析”要写成读者容易理解的研究启发，不能写成英文术语拼接或泛泛的 AI 建议。
+- 生成后逐字段检查：删除不必要的中英文混写、重复术语、过长句子和没有解释的缩写；不要改变原始标题、作者、摘要、BibTeX、标识符、链接或 `original_question`。

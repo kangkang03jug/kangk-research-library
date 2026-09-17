@@ -42,14 +42,14 @@
   "relevance": "High",
   "reading_basis": "official_html",
   "quick_read": {
-    "tldr": "AdaCoder 针对多 Agent Code Generation 在不同 foundation LLM 上泛化不稳定、推理成本高的问题，采用先 Direct Generation、失败后再引入规则 Debugging 与 LLM Planning 的两阶段自适应流程。它与“先快后慢、只对困难样本升级”的成本效率思路高度相关。",
-    "problem_and_motivation": "现有 AgentCoder、MapCoder、INTERVENOR、Self-Collaboration 等多 Agent 框架主要在 ChatGPT 系列模型上验证；换到参数规模、架构和能力不同的开源 LLM 后，性能可能下降，而且多计划与反复 refinement 带来大量 Token 和推理时间。作者先系统评估这种 generalizability，再据此设计更轻量的 adaptive planning。",
-    "core_method": "Phase-1 不做 Planning：Programming Assistant 直接生成代码，Code Evaluator 用题目给出的 sample tests 执行验证。若失败，Phase-2 先由规则式 Debug Specialist 修复表层编译/运行错误；仍失败时，Prompt Engineer 根据执行错误生成 step-by-step plan，再指导 Programming Assistant 重写。流程最多迭代 t 次，因此 Planning 只在直接生成与轻量修复不足时介入。",
-    "key_results": "论文在 HumanEval 与 MBPP 上评估 AdaCoder，并覆盖 6 个开源 LLM 与 4 个 ChatGPT 系列模型。相对 Direct，AdaCoder 在 HumanEval 和 MBPP 上平均分别提升 54.58% 和 45.41%；相对最佳多 Agent baseline MapCoder，作者汇总报告 Pass@1 平均高 27.69%，Token 消耗约低 12.13 倍、推理时间约短 15.88 倍。Ablation 中移除 Prompt Engineer、Debug Specialist、二者同时移除，平均 Pass@1 分别下降 16.87%、9.60%、23.98%。",
-    "why_it_matters": "该工作直接说明复杂 Multi-Agent scaffold 不应无条件运行：Direct 与 Planning 存在互补性，强模型在少量迭代后已接近饱和，而错误反馈可以作为升级依据。它为 Reliability-aware Escalation、成本受控的 Planner/Coder/Debugger pipeline，以及跨 backbone generalizability 提供了非常接近的实证参照。"
+    "tldr": "AdaCoder 先直接生成代码；只有代码失败时，才启用规则调试和语言模型规划。论文要解决的是：多智能体代码生成在不同模型上效果不稳定，而且复杂流程成本很高。",
+    "problem_and_motivation": "已有多智能体代码生成方法主要在少数闭源模型上验证，换到不同规模和架构的模型后，效果可能下降。复杂的多轮规划也会增加调用次数、时间和 Token 消耗。",
+    "core_method": "流程分两步。先让编程助手直接写代码并运行样例测试；失败后先用规则修复常见错误，仍失败时才让语言模型制定计划并再次生成。简单样本不必经过完整流程。",
+    "key_results": "在 HumanEval 和 MBPP 上，AdaCoder 相比直接生成平均分别提升 54.58% 和 45.41%。相比 MapCoder，平均 Pass@1 提高 27.69%，Token 消耗约降低 12.13 倍，推理时间约缩短 15.88 倍。",
+    "why_it_matters": "论文说明，复杂的规划不必对所有样本都启动。先用便宜的直接生成和规则修复，再把困难样本交给规划器，可能同时提高准确率并减少成本。"
   },
   "detail": {
-    "motivation": "作者观察到，多 Agent Code Generation 的收益并不稳定迁移到不同 foundation LLM；同时 MapCoder 式 multi-plan coding 虽有效，却伴随很高的 Token 与 inference-time 开销。经验研究进一步发现 Planning 与 non-planning 具有互补性，而重复 iterative refinement 往往低效。因此 AdaCoder 的设计目标不是增加更多 Agent，而是把直接生成、轻量规则修复和昂贵 Planning 按失败状态逐级组合。",
+    "motivation": "多智能体代码生成的效果并不能稳定迁移到不同基础模型；反复规划和修改也会带来很高的计算开销。作者因此尝试把直接生成、轻量修复和复杂规划按失败情况串起来，而不是始终运行全部模块。",
     "research_questions": [
       {
         "type": "explicit",
@@ -90,8 +90,8 @@
     ],
     "research_questions_empty_reason": null,
     "research_questions_empty_source": null,
-    "method": "AdaCoder 包含 Programming Assistant、Code Evaluator、Debug Specialist 和 Prompt Engineer。首次循环中 Plan=None，Programming Assistant 直接根据任务生成代码；Code Evaluator 编译并运行 benchmark 提供的 sample tests，成功即返回。失败后 Debug Specialist 用规则处理缩进、冗余代码、截断和缺失模块等表层错误并再次测试；若仍失败，Prompt Engineer 根据错误反馈生成 plan，下一轮 Programming Assistant 同时接收任务与 plan。该设计把 LLM Planning 放到直接生成和规则修复之后，并允许通过最大迭代数 t 控制性能/成本权衡。",
-    "experiments_and_key_findings": "经验研究首先在 HumanEval 上评估 4 个多 Agent framework × 6 个开源 LLM，显示 MapCoder 平均提升 38.86%，INTERVENOR 提升 18.59%，而 AgentCoder 与 Self-Collaboration 平均下降。AdaCoder 随后在 HumanEval 与 MBPP 上覆盖 10 个 LLM；相对 Direct，HumanEval 平均提升 54.58%，MBPP 平均提升 45.41%。对强闭源模型，增加迭代的边际收益很小，例如 GPT-4o 从 t=1 的 94.51% 到 t=5 的 98.17%；对较弱开源模型增加迭代仍更有效，但后续迭代边际收益递减。Ablation 表明 Prompt Engineer 与 Debug Specialist 都有贡献。",
+    "method": "AdaCoder 包含编程助手、代码评估器、调试专家和提示规划器。编程助手先生成代码，评估器运行题目提供的样例测试；失败后，调试专家先修复缩进、截断或缺少模块等常见错误；仍失败时，提示规划器根据错误信息生成分步计划，编程助手据此重写代码。流程最多迭代 5 次。",
+    "experiments_and_key_findings": "作者先在 HumanEval 上比较 4 个多智能体框架和 6 个开源模型，发现不同框架的收益差异很大。随后在 HumanEval 与 MBPP 上评估 AdaCoder，平均结果相较直接生成分别提升 54.58% 和 45.41%。在 GPT-4o 上，把迭代次数从 1 增加到 5 的收益已经很小；消融实验则显示，提示规划器和调试专家都能带来独立收益。",
     "limitations": {
       "author_reported": [
         "默认最大迭代数设为 5，但不同 foundation LLM 和 Code Generation task 可能需要重新调节，才能平衡 Pass@1、时间和 Token。",
@@ -102,24 +102,24 @@
         "论文主要是 function-level HumanEval/MBPP，不能直接证明同样的 adaptive escalation 在 repository-level 软件工程任务上仍保持相同收益。"
       ]
     },
-    "relation_to_research": "AdaCoder 与 cost-efficient Code Generation 的 fast-to-slow escalation 极其接近：先发挥 backbone 的 Direct 能力，失败后利用执行反馈做廉价规则修复，再升级到 LLM Planning。它还系统展示了 Multi-Agent framework 跨 backbone 的不稳定泛化，以及 Planning 的收益/成本权衡。对于可靠性门控与动态升级研究，关键区别在于 AdaCoder 主要依据 sample-test execution failure 触发后续阶段，并在同一迭代状态中继续修复；这为比较不同 gate、restart 策略和 memory-assisted slow path 提供了清晰 baseline。",
-    "what_can_be_done_next": "可以在统一 backbone、temperature、visible-test 和总 Token budget 下，把 AdaCoder 式 execution-triggered escalation 与 reliability gate、always-slow、direct-only 做 matched-budget 比较；进一步扩展到 APPS、LiveCodeBench 或 repository-level benchmark，检验 function-level 的成本优势能否迁移。还可以把跨模型 generalizability 作为主指标之一，比较同一 escalation policy 在 Qwen、Llama、DeepSeek 等 backbone 上是否稳定。",
+    "relation_to_research": "这篇论文是“先快后慢”代码生成流程的直接案例。它把执行失败作为升级信号，适合用来比较可靠性门控、固定慢流程和始终直接生成等策略。",
+    "what_can_be_done_next": "可以在相同模型、温度和总 Token 预算下，比较 AdaCoder 与直接生成、始终规划三种流程；再扩展到更长代码和仓库级任务，检查这种按失败升级的成本优势是否仍然存在。",
     "contributions": [
       {
         "source": "Sec. IV, Algorithm 1–3",
-        "contribution": "提出 AdaCoder 两阶段自适应框架：先直接生成代码，失败后触发规则调试，再在需要时调用 LLM 规划器，形成按执行结果升级的流程。"
+        "contribution": "提出按执行结果逐步升级的 AdaCoder 流程：先直接生成，再进行规则调试，最后才调用语言模型规划。"
       },
       {
         "source": "Sec. III-A, III-E",
-        "contribution": "在 4 个多 Agent 框架与 6 个开源 LLM 上进行跨模型、跨框架评估，系统分析 backbone 与框架设计对代码生成效果的影响。"
+        "contribution": "在 4 个多智能体框架和 6 个开源模型上进行跨模型评估，展示框架收益并不稳定。"
       },
       {
         "source": "Sec. V-A, V-C",
-        "contribution": "在 HumanEval 与 MBPP 上报告与基线相比的 Pass@1、Token 消耗和时间收益，显示自适应升级可以在保持质量的同时减少不必要的规划调用。"
+        "contribution": "在 HumanEval 和 MBPP 上同时报告准确率、Token 消耗和推理时间，验证自适应升级的质量与成本收益。"
       },
       {
         "source": "Sec. V-D, Table XI",
-        "contribution": "通过消融实验分离 Prompt Engineer 与 Debug Specialist 的作用，验证两个专门组件分别对生成质量和失败修复的贡献。"
+        "contribution": "用消融实验分别检验提示规划器和调试专家的作用。"
       }
     ]
   },

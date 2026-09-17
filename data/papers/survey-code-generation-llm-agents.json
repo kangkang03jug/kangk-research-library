@@ -41,29 +41,29 @@
   "relevance": "High",
   "reading_basis": "official_html",
   "quick_read": {
-    "tldr": "本文围绕自主性、更广的软件开发任务覆盖和工程实用性，系统梳理基于 LLM 的 Code Generation Agent，并将单 Agent、多 Agent 方法与 SDLC 应用、Benchmark、工具及开放挑战联系起来。",
-    "problem_and_motivation": "面向仓库级软件任务，单次生成代码远远不够：Agent 还需要分解任务、与开发环境交互、验证代码并从错误中恢复。本文试图为这一快速扩展的研究领域建立一张以方法为核心的全景图。",
-    "core_method": "作者在 ACM Digital Library、IEEE Xplore、SpringerLink、Google Scholar、DBLP 和 CNKI 等来源中开展系统文献检索，使用中英文检索词，覆盖 2022 年至 2025 年 6 月，并据此归纳 Agent 技术、应用场景、评测方法和代表性工具。",
-    "key_results": "综述指出，研究重点正从孤立的代码正确性转向系统设计、流程管理、工具集成、可靠性与人机协作；内容覆盖 Planning/Reasoning、检索与工具使用、Reflection、单 Agent 与多 Agent 架构、SDLC 应用及相关 Benchmark。",
-    "why_it_matters": "对于 Code Generation 研究，这篇综述可用于在设计新的 Agent scaffold 前定位关键机制和评测空白。其对工程实用性的强调，直接对应可靠性、Debugging、Testing 与 Benchmark 设计等核心问题。"
+    "tldr": "本文系统整理基于语言模型的代码生成智能体，重点说明它们如何规划、使用工具、验证代码并覆盖软件开发流程。",
+    "problem_and_motivation": "仓库级软件任务不能只靠一次代码生成，还需要分解任务、读取上下文、运行测试和处理错误。这个领域发展很快，研究者需要一张清晰的路线图。",
+    "core_method": "作者检索 2022 年至 2025 年 6 月的相关文献，并按单智能体、多智能体、软件开发阶段、工具和评测方法归类。",
+    "key_results": "综述显示，研究重点已从函数级正确性扩展到流程管理、工具协作、可靠性、测试和人机协作。",
+    "why_it_matters": "它适合用来确定研究范围和评测空白，但综述中的分类不能替代对原始论文实验结果的核验。"
   },
   "detail": {
-    "motivation": "传统 Code Generation 系统通常采用单次响应模式，难以处理模糊需求、跨文件上下文、动态 Debugging 和迭代验证。本文将 Code Generation Agent 视为能够自主组织工作流的系统：它不仅生成代码片段，还覆盖软件开发生命周期，并处理流程管理、工具集成等实际工程问题。",
+    "motivation": "单次代码生成难以处理跨文件上下文、动态调试和反复验证。本文把代码生成智能体看作能组织软件开发流程的系统，梳理它们在不同开发阶段中的作用。",
     "research_questions": [
       {
         "type": "inferred",
         "original_question": null,
-        "question": "基于 LLM 的 Code Generation Agents 如何被界定和系统梳理，其主要方法、软件开发生命周期应用、评测基准与工具版图是什么？",
-        "how": "通过系统检索相关文献，并从单 Agent 与多 Agent 方法、软件开发生命周期应用、评测基准和工具等维度归纳研究脉络。",
-        "answer": "论文将该领域概括为围绕 Agent 自主性、任务范围扩展和工程实用性展开，并覆盖上述方法、应用、评测与工具维度。",
-        "meaning": "这表明本文试图建立 Code Generation Agent 研究领域的范围与结构化全景，而不是只评估某一个代码生成模型。",
+        "question": "基于语言模型的代码生成智能体有哪些主要方法、应用阶段、评测基准和工具？",
+        "how": "通过系统检索文献，并按单智能体、多智能体、软件开发阶段、评测和工具归纳研究脉络。",
+        "answer": "综述将该领域概括为围绕自主性、任务范围扩展和工程实用性展开，并覆盖上述方法、应用、评测与工具。",
+        "meaning": "这说明本文的目标是建立研究领域的结构化全景，而不是评估某一个具体模型。",
         "source": "Introduction, Sec. 1; Sec. 2.1 Literature Collection"
       }
     ],
     "research_questions_empty_reason": null,
     "research_questions_empty_source": null,
-    "method": "论文在 ACM Digital Library、IEEE Xplore、SpringerLink、Google Scholar、DBLP 和 CNKI 中进行系统检索，将 Code Generation/Software Development 与 LLM、Agent/Multi-agent 等关键词组合，使用中英文查询，覆盖 2022 年至 2025 年 6 月的文献。最终按单 Agent 与多 Agent 方法、SDLC 应用、评测、工具、挑战和未来方向组织综述。",
-    "experiments_and_key_findings": "本文是综述，并未提出新的 Benchmark 实验。其主要结论体现在分类体系上：Code Generation Agent 以自主性、扩展的任务范围和工程实用性区别于早期代码生成技术；评测正从孤立的函数生成转向交互式仓库级任务；可靠性、工作流管理、外部工具、Testing 和人机协作仍是关键挑战。",
+    "method": "作者从多个学术数据库检索 2022 年至 2025 年 6 月的论文，再按单智能体、多智能体、软件开发生命周期、评测、工具、挑战和未来方向组织综述。",
+    "experiments_and_key_findings": "本文没有新的基准实验，主要贡献是分类和比较。综述认为，代码生成智能体正在从孤立函数生成转向仓库级交互任务；规划、工具调用、测试、反思和可靠性仍是主要难点。",
     "limitations": {
       "author_reported": [
         "综述的文献检索范围为 2022 年至 2025 年 6 月，因此未覆盖此后的研究。",
@@ -74,8 +74,8 @@
         "该综述适合用于勾勒研究空间，但不能直接证明某种 Agent 机制能够提升 Benchmark 表现；相关结论仍需回到其引用的原始研究核验。"
       ]
     },
-    "relation_to_research": "本文与基于 LLM 的 Code Generation 和 AI4SE 直接相关，为比较 Planning、工具使用、检索、Reflection、多 Agent 协作、Testing、Debugging 与评测提供了统一术语。它对模型能力和工程工作流的区分，尤其适合用于设计能够隔离界面、流程或可靠性影响的实验。",
-    "what_can_be_done_next": "可依据本文分类建立受控的 Agent 机制与评测设置矩阵。例如固定基础模型和仓库任务，仅改变 Planning、检索、测试反馈和 Self-reflection，并报告成功率、修复循环、工具成本与失败模式。还可进一步检验不同 SDLC 阶段间的 Benchmark 结果能否迁移，而不是默认函数级生成的提升会自然延伸到仓库维护。",
+    "relation_to_research": "这篇综述为比较规划、检索、工具使用、测试、调试和多智能体协作提供了共同术语，适合帮助设计能区分模型能力、流程设计和反馈质量的实验。",
+    "what_can_be_done_next": "依据综述建立受控实验矩阵：固定基础模型和仓库任务，只改变规划、检索、测试反馈或自我反思，并同时报告成功率、失败模式和工具成本。",
     "contributions": [
       {
         "source": "Introduction; Taxonomy",
