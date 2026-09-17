@@ -1,7 +1,7 @@
 {
   "id": "revisit-self-debugging-self-generated-tests",
   "title": "Revisit Self-Debugging with Self-Generated Tests for Code Generation",
-  "authors": ["Xiancai Chen", "Zhengwei Tao", "Kechi Zhang", "Changzhi Zhou", "Xinyu Zhang", "Wanli Gu", "Yuanpeng He", "Mengdi Zhang", "Xunliang Cai", "Haiyan Zhao", "Zhi Jin"],
+  "authors": ["Xiancai Chen", "Zhengwei Tao", "Kechi Zhang", "Changzhi Zhou", "Xinyu Zhang", "Wanli Gu", "Yuanpeng He", "Zhang, Mengdi", "Cai, Xunliang", "Zhao, Haiyan", "Jin, Zhi"],
   "year": 2025,
   "publication_date": "2025-07-27",
   "venue_or_source": "ACL 2025 (Long Papers)",
@@ -29,9 +29,9 @@
       {"contribution": "在四个 LLM 与 HumanEval+、MBPP+、LiveCodeBench 上进行跨模型、跨难度实验，展示 runtime-state reasoning 相比 post-execution feedback 更稳定的改进趋势。", "source": "Sec. 3.1–3.4, PDF pp. 18005–18009; Tables 1–2"}
     ],
     "research_questions": [
-      {"type": "explicit", "question": "RQ1: Are model-generated tests reliable enough? How does self-debugging perform leveraging post-execution information from these tests?", "how": "在 HumanEval+ 与 MBPP+ 上验证模型生成的 test input、expected output 和完整 test suite，并比较无 self-debug 与使用 label/detail 的 post-execution self-debugging。", "answer": "不够可靠。虽然 test input accuracy 较高，但 expected output 更易出错，完整 suite 的正确率明显下降；这种错误反馈使 post-execution self-debugging 在基础任务上经常不升反降。", "meaning": "Self-generated tests 不能被默认视为 oracle；Debugger 接收到的执行反馈也需要进行可靠性建模。", "source": "Sec. 3, RQ1; Sec. 3.2, PDF pp. 18005–18007"},
-      {"type": "explicit", "question": "RQ2: Is the performance of post-execution self-debugging consistent on more complex tasks? If not, what factors contribute to the discrepancy?", "how": "在 LiveCodeBench easy/medium/hard 上比较 post-execution label/detail feedback，并用 TP/TN/FP/FN 分析 self-testing bias 随任务难度的变化。", "answer": "不一致。Medium/hard 上 negative labels 更可能对应真实错误，因此 label feedback 有时带来收益；easy/basic tasks 中 false negative 更突出，而加入错误 detail 又会进一步误导修复。", "meaning": "是否值得升级到 debugging 与任务难度、初始代码正确率和反馈可靠性相关，统一的固定修复策略可能浪费成本甚至损伤正确答案。", "source": "Sec. 3, RQ2; Sec. 3.3, PDF pp. 18005, 18007–18008"},
-      {"type": "explicit", "question": "RQ3: How does in-execution self-debugging perform compared with the post-execution method?", "how": "基于 control-flow basic blocks 收集 intermediate variable states，屏蔽 post-execution labels/details，并在四个模型和三个 benchmark 上与初始生成及 post-execution 方法比较。", "answer": "总体更稳定。In-execution 方法在平均结果上持续优于 post-execution，并在 GPT-4o、Qwen2.5-Coder-7B 等设置中对 HumanEval+、MBPP+ 和 LiveCodeBench 带来正增益。", "meaning": "细粒度 runtime state 是比模型自生成 expected output 更稳健的 repair evidence，可减少错误 verdict 对迭代修复的污染。", "source": "Sec. 3, RQ3; Sec. 3.4, PDF pp. 18005, 18008–18009; Table 2, Fig. 4"}
+      {"type": "explicit", "question": "RQ1：模型生成的测试是否足够可靠？利用这些测试的 post-execution 信息时，self-debugging 的表现如何？（原文：RQ1: Are model-generated tests reliable enough? How does self-debugging perform leveraging post-execution information from these tests?）", "how": "在 HumanEval+ 与 MBPP+ 上验证模型生成的 test input、expected output 和完整 test suite，并比较无 self-debug 与使用 label/detail 的 post-execution self-debugging。", "answer": "不够可靠。虽然 test input accuracy 较高，但 expected output 更易出错，完整 suite 的正确率明显下降；这种错误反馈使 post-execution self-debugging 在基础任务上经常不升反降。", "meaning": "Self-generated tests 不能被默认视为 oracle；Debugger 接收到的执行反馈也需要进行可靠性建模。", "source": "Sec. 3, RQ1; Sec. 3.2, PDF pp. 18005–18007"},
+      {"type": "explicit", "question": "RQ2：Post-execution self-debugging 在更复杂任务上的表现是否一致？若不一致，哪些因素造成差异？（原文：RQ2: Is the performance of post-execution self-debugging consistent on more complex tasks? If not, what factors contribute to the discrepancy?）", "how": "在 LiveCodeBench easy/medium/hard 上比较 post-execution label/detail feedback，并用 TP/TN/FP/FN 分析 self-testing bias 随任务难度的变化。", "answer": "不一致。Medium/hard 上 negative labels 更可能对应真实错误，因此 label feedback 有时带来收益；easy/basic tasks 中 false negative 更突出，而加入错误 detail 又会进一步误导修复。", "meaning": "是否值得升级到 debugging 与任务难度、初始代码正确率和反馈可靠性相关，统一的固定修复策略可能浪费成本甚至损伤正确答案。", "source": "Sec. 3, RQ2; Sec. 3.3, PDF pp. 18005, 18007–18008"},
+      {"type": "explicit", "question": "RQ3：与 post-execution 方法相比，in-execution self-debugging 的表现如何？（原文：RQ3: How does in-execution self-debugging perform compared with the post-execution method?）", "how": "基于 control-flow basic blocks 收集 intermediate variable states，屏蔽 post-execution labels/details，并在四个模型和三个 benchmark 上与初始生成及 post-execution 方法比较。", "answer": "总体更稳定。In-execution 方法在平均结果上持续优于 post-execution，并在 GPT-4o、Qwen2.5-Coder-7B 等设置中对 HumanEval+、MBPP+ 和 LiveCodeBench 带来正增益。", "meaning": "细粒度 runtime state 是比模型自生成 expected output 更稳健的 repair evidence，可减少错误 verdict 对迭代修复的污染。", "source": "Sec. 3, RQ3; Sec. 3.4, PDF pp. 18005, 18008–18009; Table 2, Fig. 4"}
     ],
     "research_questions_empty_reason": null,
     "research_questions_empty_source": null,
@@ -62,6 +62,6 @@
   ],
   "generated_by": "ChatGPT",
   "generated_at": "2026-09-17T08:00:00+08:00",
-  "updated_at": "2026-09-17T08:00:00+08:00",
+  "updated_at": "2026-09-17T10:57:00+08:00",
   "owner_edited": false
 }
