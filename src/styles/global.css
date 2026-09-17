@@ -461,12 +461,18 @@ html:not([data-local-state-ready]) [data-local-state-filter] [data-paper-row] {
 }
 .local-reading-state {
   order: 3;
-  display: grid;
-  gap: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
   margin-top: 32px;
   padding: 20px 22px;
   border: 1px solid var(--line);
   background: var(--surface);
+}
+.local-reading-state strong,
+.local-reading-state .editor-hint {
+  flex-basis: 100%;
 }
 .local-reading-state strong {
   font-size: 1rem;
@@ -480,6 +486,9 @@ html:not([data-local-state-ready]) [data-local-state-filter] [data-paper-row] {
 .local-reading-state input {
   width: 1rem;
   height: 1rem;
+}
+.local-reading-state .editor-hint {
+  margin: 0;
 }
 .reading-content:has([data-detail][hidden]) .local-reading-state {
   display: none;
