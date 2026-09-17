@@ -89,7 +89,7 @@ test('reference library reading, locale switching, and paper-pool interactions w
   await expect(page.getByRole('heading', { name: '快速阅读' })).toBeVisible();
   const chineseSummary = page
     .locator('.quick-read')
-    .getByText(/SWE-agent 研究语言模型与软件仓库之间的交互界面如何影响 Agent 能力/);
+    .getByText(/SWE-agent 研究语言模型如何通过专门设计的交互界面/);
   await expect(chineseSummary).toBeVisible();
   await page.getByRole('button', { name: '阅读详情 ↓' }).click();
   await expect(page.getByRole('heading', { name: '研究问题' })).toBeVisible();
@@ -97,11 +97,11 @@ test('reference library reading, locale switching, and paper-pool interactions w
     page
       .locator('#motivation')
       .getByText(
-        /本文从一个关键观察出发：解决软件任务的语言模型 Agent 需要适合仓库级工作的交互界面/,
+        /单次文本回答或补丁难以完成仓库级软件任务/,
       ),
   ).toBeVisible();
   await expect(
-    page.locator('#method').getByText(/SWE-agent 将语言模型与 Agent-Computer Interface 结合/),
+    page.locator('#method').getByText(/SWE-agent 通过定制的智能体—计算机交互界面/),
   ).toBeVisible();
   await page.locator('.abstract summary').click();
   await expect(page.locator('.abstract p')).toContainText(
