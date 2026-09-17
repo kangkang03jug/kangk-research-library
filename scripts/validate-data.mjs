@@ -47,12 +47,20 @@ const paperSchema = z
           .object({
             type: z.enum(['explicit', 'inferred']),
             question: z.string(),
+            original_question: z.string().min(1).nullable(),
             how: z.string(),
             answer: z.string(),
             meaning: z.string(),
             source: z.string().min(1).nullable(),
           })
           .superRefine((question, context) => {
+            if (question.type === 'inferred' && question.original_question !== null) {
+              context.addIssue({
+                code: 'custom',
+                path: ['original_question'],
+                message: 'Inferred Research Questions must not include original wording.',
+              });
+            }
             if (!question.source) {
               context.addIssue({
                 code: 'custom',

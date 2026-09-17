@@ -38,6 +38,7 @@
     "research_questions": [
       {
         "type": "inferred",
+        "original_question": null,
         "question": "如何将逐步输入/输出模拟用于编码前的计划验证和代码内部调试，并检验这种机制能否提升多 Agent 方法在程序合成与竞赛编程基准上的代码生成正确率？",
         "how": "Planning Agent 用 sample I/O 对候选计划逐步模拟并在不一致时修订；Coding Agent 实现通过验证的计划；Debugging Agent 再对失败输入逐步模拟代码执行轨迹并修复逻辑错误。",
         "answer": "作者在七个程序合成与竞赛编程基准上报告了相较强基线的提升；例如 GPT-4o 下 HumanEval 和 MBPP 分别达到 95.1% 和 90.7%。Ablation 也显示，去除规划模拟或调试模拟都会降低 HumanEval 表现。",

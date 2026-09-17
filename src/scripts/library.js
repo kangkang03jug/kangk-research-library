@@ -376,7 +376,11 @@ import { message, normalizeLocale } from '../i18n';
           const researchQuestions = JSON.parse(q('[data-research-questions]', editor).value);
           if (!Array.isArray(researchQuestions))
             throw new Error('Research Questions must be an array');
-          detailPatch.research_questions = researchQuestions;
+          detailPatch.research_questions = researchQuestions.map((question) => ({
+            ...question,
+            original_question:
+              question.type === 'inferred' ? null : (question.original_question ?? null),
+          }));
           const contributions = JSON.parse(q('[data-contributions]', editor).value);
           if (!Array.isArray(contributions)) throw new Error('Contributions must be an array');
           detailPatch.contributions = contributions;

@@ -53,6 +53,7 @@
     "research_questions": [
       {
         "type": "explicit",
+        "original_question": "RQ1: How is the generalizability of the state-of-the-art multi-agent frameworks on diverse LLMs?",
         "question": "RQ1：现有多 Agent 框架在不同 LLM 上的泛化能力如何？",
         "how": "在 HumanEval 上将 AgentCoder、MapCoder、INTERVENOR、Self-Collaboration 应用于 CodeLlama-Python 与 DeepSeek-Coder 共 6 个不同规模模型，并比较 Pass@1、Token 与 inference time。",
         "answer": "泛化性不稳定：MapCoder 和 INTERVENOR总体能提升开源模型，但 AgentCoder 与 Self-Collaboration 平均出现退化；MapCoder 效果最好但成本最高。",
@@ -61,6 +62,7 @@
       },
       {
         "type": "explicit",
+        "original_question": "RQ2: What factors influence the effectiveness of multi-agent frameworks?",
         "question": "RQ2：哪些因素会影响多 Agent 框架的有效性？",
         "how": "结合不同 LLM 的实验，分析 iterative refinement、MapCoder 的 multi-plan coding、Planning 与 non-planning 的作用和成本。",
         "answer": "Planning 是 MapCoder 强性能的重要来源，但成本很高；non-planning 与 planning 解题集合具有互补性，而重复 iterative refinement 整体收益有限且昂贵。",
@@ -69,6 +71,7 @@
       },
       {
         "type": "explicit",
+        "original_question": "RQ3: Can AdaCoder outperform existing multi-agent frameworks on diverse foundation LLMs?",
         "question": "RQ3：AdaCoder 能否在不同 foundation LLM 上超越现有多 Agent 框架？",
         "how": "在 HumanEval 和 MBPP 上，用 6 个开源 LLM 与 GPT-3.5-turbo、GPT-4、GPT-4-turbo、GPT-4o 比较 AdaCoder、Direct 和现有多 Agent baseline，并统计 Pass@1、Token 与 inference time。",
         "answer": "作者报告 AdaCoder 相比 MapCoder 在 10 个 LLM 上平均 Pass@1 高 27.69%，Token 消耗约低 12.13 倍，推理时间约短 15.88 倍。",
@@ -77,6 +80,7 @@
       },
       {
         "type": "explicit",
+        "original_question": "RQ4: Are all agents of AdaCoder necessary?",
         "question": "RQ4：AdaCoder 的所有 Agent 都是必要的吗？",
         "how": "在 HumanEval 上分别移除 Prompt Engineer、Debug Specialist，以及同时移除二者，对 10 个 LLM 做 ablation。",
         "answer": "三种删减均使所有模型性能下降；平均降幅分别为 16.87%、9.60% 和 23.98%。",

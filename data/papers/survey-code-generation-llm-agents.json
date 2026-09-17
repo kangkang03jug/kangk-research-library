@@ -52,6 +52,7 @@
     "research_questions": [
       {
         "type": "inferred",
+        "original_question": null,
         "question": "基于 LLM 的 Code Generation Agents 如何被界定和系统梳理，其主要方法、软件开发生命周期应用、评测基准与工具版图是什么？",
         "how": "通过系统检索相关文献，并从单 Agent 与多 Agent 方法、软件开发生命周期应用、评测基准和工具等维度归纳研究脉络。",
         "answer": "论文将该领域概括为围绕 Agent 自主性、任务范围扩展和工程实用性展开，并覆盖上述方法、应用、评测与工具维度。",

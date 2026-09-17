@@ -50,6 +50,7 @@
     "research_questions": [
       {
         "type": "inferred",
+        "original_question": null,
         "question": "在仓库级软件工程问题修复中，取消开放式自主 Agent 控制流、改用固定且透明的 Localization–Repair–Patch Validation 工作流，能否以更低成本实现可靠的 Issue 修复？",
         "how": "通过分层文件/代码定位、多候选 Search/Replace Patch 生成，以及 regression/reproduction tests 与 majority voting 进行候选验证和选择。",
         "answer": "可以。Agentless 在 SWE-bench Lite 的 300 个 Issue 中修复 96 个（32.00%），平均成本约 $0.70；结果同时显示 Patch ranking/selection 仍有提升空间。",

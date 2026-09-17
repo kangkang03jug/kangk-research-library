@@ -82,6 +82,7 @@ describe('library helpers', () => {
           {
             type: 'explicit',
             question: 'RQ1?',
+            original_question: null,
             how: 'Method.',
             answer: 'Answer.',
             meaning: 'Meaning.',
@@ -100,6 +101,7 @@ describe('library helpers', () => {
           {
             type: 'inferred',
             question: 'Question?',
+            original_question: null,
             how: 'Method.',
             answer: 'Answer.',
             meaning: 'Meaning.',
@@ -120,6 +122,7 @@ describe('library helpers', () => {
           {
             type: 'inferred',
             question: 'Can the proposed representation improve robust recognition?',
+            original_question: null,
             how: "The method is evaluated across the paper's benchmark settings.",
             answer: 'The reported results support the objective.',
             meaning: 'This summarizes the author objective and is not an original RQ label.',
@@ -169,6 +172,7 @@ describe('library helpers', () => {
           {
             type: 'inferred',
             question: 'What is the author objective?',
+            original_question: null,
             how: 'By reviewing the Introduction.',
             answer: 'The method addresses the objective.',
             meaning: 'An inferred question, not an original RQ label.',
@@ -176,6 +180,46 @@ describe('library helpers', () => {
           },
         ],
         research_questions_empty_reason: 'This stale reason should not coexist with questions.',
+      },
+    });
+    expect(PaperSchema.safeParse(record).success).toBe(false);
+  });
+  it('allows Chinese explanation with optional explicit original wording', () => {
+    const record = paper({
+      reading_basis: 'official_html',
+      detail: {
+        ...paper().detail,
+        research_questions: [
+          {
+            type: 'explicit',
+            question: '作者是否在不同模型上验证该方法？',
+            original_question: 'Does the method generalize across different models?',
+            how: '依据论文实验进行比较。',
+            answer: '是。',
+            meaning: '这是论文明确提出的问题。',
+            source: 'Introduction, Sec. 1',
+          },
+        ],
+      },
+    });
+    expect(PaperSchema.safeParse(record).success).toBe(true);
+  });
+  it('rejects original wording on inferred questions', () => {
+    const record = paper({
+      reading_basis: 'full_text',
+      detail: {
+        ...paper().detail,
+        research_questions: [
+          {
+            type: 'inferred',
+            question: '作者希望解决什么问题？',
+            original_question: 'What problem does the paper solve?',
+            how: '阅读 Introduction。',
+            answer: '见正文。',
+            meaning: '这是推断问题。',
+            source: 'Introduction, Sec. 1',
+          },
+        ],
       },
     });
     expect(PaperSchema.safeParse(record).success).toBe(false);

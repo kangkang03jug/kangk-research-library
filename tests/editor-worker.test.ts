@@ -138,6 +138,7 @@ describe('owner editor security boundaries', () => {
             {
               type: 'explicit',
               question: '问题一',
+              original_question: null,
               how: '方法一',
               answer: '答案一',
               meaning: '含义一',
@@ -146,6 +147,7 @@ describe('owner editor security boundaries', () => {
             {
               type: 'inferred',
               question: '问题二',
+              original_question: null,
               how: '方法二',
               answer: '答案二',
               meaning: '含义二',
@@ -174,6 +176,7 @@ describe('owner editor security boundaries', () => {
             {
               type: 'inferred',
               question: '问题',
+              original_question: null,
               how: '方法',
               answer: '答案',
               meaning: '含义',
@@ -204,6 +207,7 @@ describe('owner editor security boundaries', () => {
               {
                 type: 'inferred',
                 question: '问题',
+                original_question: null,
                 how: '方法',
                 answer: '答案',
                 meaning: '含义',
