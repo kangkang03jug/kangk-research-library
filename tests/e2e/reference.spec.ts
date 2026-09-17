@@ -237,19 +237,17 @@ test('owner editor authenticates once and writes user state and summary with SHA
   await page.getByRole('button', { name: '阅读详情 ↓' }).click();
   await expect(page.getByRole('heading', { name: '论文贡献 / Contributions' })).toBeVisible();
   await expect(page.locator('[data-comment-form]')).toBeVisible();
-  await page.locator('[data-user-field="deep_read"]').check();
-  await page.locator('[data-user-field="favorite"]').uncheck();
+  await page.locator('[data-local-field="deep_read"]').check();
+  await page.locator('[data-local-field="favorite"]').uncheck();
   await page.locator('[data-user-field="status"]').selectOption('Reading');
   await page.locator('[data-user-field="my_tags"]').fill('AI4SE, Agent, AI4SE');
   await page.locator('[data-user-field="my_notes"]').fill('精读时核对实验设置。');
-  await page.getByRole('button', { name: '保存阅读状态与笔记' }).click();
+  await page.getByRole('button', { name: '保存个人状态与笔记' }).click();
   await expect(page.getByText(/保存成功。GitHub Pages workflow 已触发/)).toBeVisible();
   expect(requests[0]).toMatchObject({
     path: 'data/user/swe-agent-agent-computer-interfaces.json',
     sha: 'user-sha',
     patch: {
-      deep_read: true,
-      favorite: false,
       status: 'Reading',
       my_tags: ['AI4SE', 'Agent'],
       my_notes: '精读时核对实验设置。',
@@ -305,7 +303,7 @@ test('owner editor keeps visitors read-only and reports optimistic conflicts', a
   );
   await page.reload();
   await expect(page.locator('[data-user-editor]')).toBeVisible();
-  await page.getByRole('button', { name: '保存阅读状态与笔记' }).click();
+  await page.getByRole('button', { name: '保存个人状态与笔记' }).click();
   await expect(page.getByText(/保存冲突：仓库数据已变化/)).toBeVisible();
 });
 

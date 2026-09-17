@@ -12,6 +12,6 @@ const rank = paper.ranking.ccf || paper.ranking.cas || paper.ranking.jcr || 'Unr
     <p class="authors">{paper.authors.join(' · ')}</p>
     <div class="topic-list">{paper.topics.map((topic) => <span>{topic}</span>)}</div>
   </div>
-  <div class="paper-row-actions"><span title="Deep Read">{state?.deep_read ? '◉' : '○'}</span><span title="Favorite">{state?.favorite ? '★' : '☆'}</span><button type="button" class="text-button" data-toggle-summary data-i18n="paper.quickRead">快速阅读</button></div>
+  <div class="paper-row-actions"><span title="Deep Read" data-local-indicator="deep_read">{state?.deep_read ? '◉' : '○'}</span><span title="Favorite" data-local-indicator="favorite">{state?.favorite ? '★' : '☆'}</span><button type="button" class="text-button" data-toggle-summary data-i18n="paper.quickRead">快速阅读</button></div>
   <div class="inline-summary" hidden><p>{paper.quick_read.tldr}</p><a href={withBase(`/papers/${paper.id}/`, base)} data-i18n="paper.openPaper">打开论文 →</a></div>
 </article>

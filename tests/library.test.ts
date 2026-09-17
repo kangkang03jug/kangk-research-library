@@ -8,6 +8,7 @@ import {
   joinState,
 } from '../src/lib/library';
 import { PaperSchema, type Paper } from '../src/lib/schema';
+import { localStateStorageKey, parseLocalState, serializeLocalState } from '../src/lib/local-state';
 const paper = (overrides: Partial<Paper> = {}) =>
   ({
     id: 'paper-a',
@@ -223,5 +224,20 @@ describe('library helpers', () => {
       },
     });
     expect(PaperSchema.safeParse(record).success).toBe(false);
+  });
+});
+
+describe('browser-local reading state', () => {
+  it('uses an isolated namespace and round-trips local state', () => {
+    const a = localStateStorageKey('/library-a/');
+    const b = localStateStorageKey('/library-b/');
+    expect(a).not.toBe(b);
+    const value = { paper1: { deep_read: true, favorite: false } };
+    expect(parseLocalState(serializeLocalState(value))).toEqual(value);
+  });
+  it('falls back to empty state for missing or invalid storage', () => {
+    expect(parseLocalState(null)).toEqual({});
+    expect(parseLocalState('{invalid')).toEqual({});
+    expect(parseLocalState('[]')).toEqual({});
   });
 });

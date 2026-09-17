@@ -4,6 +4,6 @@ import PaperCard from '../components/PaperCard.astro';
 import { getProfile, getPapers, getStates } from '../lib/data';
 import { joinState } from '../lib/library';
 const profile = getProfile();
-const joined = joinState(getPapers(), getStates()).filter(({ state }) => state?.favorite);
+const joined = joinState(getPapers(), getStates());
 ---
-<Layout title="Favorites" profile={profile}><section class="page-head"><div><p class="eyebrow" data-i18n="pages.shortlist">你的短名单</p><h1 data-i18n="pages.favorites">收藏</h1><p class="lede" data-i18n="pages.favoritesLede">你希望随手可查的一小组论文。</p></div><span class="count" data-count-value={joined.length} data-count-kind="paper">{joined.length} 篇论文</span></section>{joined.length ? <div class="paper-list">{joined.map(({ paper, state }) => <PaperCard paper={paper} state={state} />)}</div> : <div class="empty"><strong data-i18n="pages.noFavorites">还没有收藏。</strong><span data-i18n="pages.starFavorite">当论文值得进入短名单时，为它加星。</span></div>}</Layout>
+<Layout title="Favorites" profile={profile}><section class="page-head"><div><p class="eyebrow" data-i18n="pages.shortlist">你的短名单</p><h1 data-i18n="pages.favorites">收藏</h1><p class="lede" data-i18n="pages.favoritesLede">你希望随手可查的一小组论文。</p></div><span class="count" data-local-count data-count-value="0" data-count-kind="paper">0 篇论文</span></section><div class="paper-list" data-local-state-filter="favorite">{joined.map(({ paper, state }) => <PaperCard paper={paper} state={state} />)}</div><div class="empty" data-local-empty hidden><strong data-i18n="pages.noFavorites">还没有收藏。</strong><span data-i18n="pages.starFavorite">当论文值得进入短名单时，为它加星。</span></div></Layout>

@@ -1,10 +1,51 @@
 import { message, normalizeLocale } from '../i18n';
+import { localStateStorageKey, parseLocalState, serializeLocalState } from '../lib/local-state';
 
 (() => {
   const q = (selector, root = document) => root.querySelector(selector);
   const rows = [...document.querySelectorAll('[data-paper-row]')];
   const state = { locale: normalizeLocale(document.documentElement.dataset.locale) };
   const tr = (key) => message(state.locale, key);
+  const localStateKey = localStateStorageKey(
+    document.documentElement.dataset.stateNamespace || location.pathname,
+  );
+  const readLocalState = () => {
+    try {
+      return parseLocalState(localStorage.getItem(localStateKey));
+    } catch {
+      return {};
+    }
+  };
+  const writeLocalState = (value) => {
+    try {
+      localStorage.setItem(localStateKey, serializeLocalState(value));
+    } catch {}
+  };
+  const localState = readLocalState();
+  const paperLocalState = (paperId) => ({
+    deep_read: localState[paperId]?.deep_read === true,
+    favorite: localState[paperId]?.favorite === true,
+  });
+  const updateLocalIndicators = () => {
+    rows.forEach((row) => {
+      const id = row.querySelector('a[href*="/papers/"]')?.getAttribute('href')?.split('/').filter(Boolean).pop();
+      if (!id) return;
+      const value = paperLocalState(id);
+      row.dataset.deepRead = String(value.deep_read);
+      row.dataset.favorite = String(value.favorite);
+      const deep = q('[data-local-indicator="deep_read"]', row);
+      const favorite = q('[data-local-indicator="favorite"]', row);
+      if (deep) deep.textContent = value.deep_read ? '◉' : '○';
+      if (favorite) favorite.textContent = value.favorite ? '★' : '☆';
+    });
+    document.querySelectorAll('[data-local-paper-state]').forEach((panel) => {
+      const value = paperLocalState(panel.dataset.paperId);
+      ['deep_read', 'favorite'].forEach((field) => {
+        const input = q(`[data-local-field="${field}"]`, panel);
+        if (input) input.checked = value[field];
+      });
+    });
+  };
 
   function formatCount(value, kind) {
     const key =
@@ -105,7 +146,7 @@ import { message, normalizeLocale } from '../i18n';
             value === 'all' ||
             (key === 'topic'
               ? row.dataset.topic.split('|').includes(value)
-              : row.dataset[key] === value),
+              : row.dataset[key === 'deep-read' ? 'deepRead' : key] === value),
         )
       );
     });
@@ -134,7 +175,41 @@ import { message, normalizeLocale } from '../i18n';
     }
   }
   [search, sort, ...filterEls].filter(Boolean).forEach((el) => el.addEventListener('input', apply));
-  apply();
+  const localFilter = q('[data-local-state-filter]');
+  const localEmpty = q('[data-local-empty]');
+  const updateLocalViews = () => {
+    updateLocalIndicators();
+    const filter = localFilter?.dataset.localStateFilter;
+    if (filter) {
+      const visible = rows.filter((row) => row.dataset[filter === 'deep_read' ? 'deepRead' : 'favorite'] === 'true');
+      rows.forEach((row) => { row.hidden = !visible.includes(row); });
+      const count = q('[data-local-count]');
+      if (count) { count.dataset.countValue = visible.length; count.textContent = formatCount(visible.length, 'paper'); }
+      if (localEmpty) localEmpty.hidden = visible.length > 0;
+    }
+    const paperIds = [...document.querySelectorAll('[data-local-paper-ids] [data-paper-id]')].map(
+      (element) => element.dataset.paperId,
+    );
+    const deepReadCount = paperIds.length
+      ? paperIds.filter((id) => paperLocalState(id).deep_read).length
+      : rows.filter((row) => row.dataset.deepRead === 'true').length;
+    document.querySelectorAll('[data-local-stat="deep_read"]').forEach((element) => {
+      element.textContent = String(deepReadCount);
+    });
+  };
+  updateLocalViews();
+  document.querySelectorAll('[data-local-paper-state] input[data-local-field]').forEach((input) => {
+    input.addEventListener('change', () => {
+      const panel = input.closest('[data-local-paper-state]');
+      const id = panel?.dataset.paperId;
+      if (!id) return;
+      localState[id] = { ...paperLocalState(id), [input.dataset.localField]: input.checked };
+      writeLocalState(localState);
+      updateLocalViews();
+      if (!localFilter) apply();
+    });
+  });
+  if (!localFilter) apply();
 
   const detail = q('[data-detail]');
   const readButton = q('[data-read-detail]');
@@ -231,8 +306,6 @@ import { message, normalizeLocale } from '../i18n';
       userSha = userData.sha;
       paperSha = paperData.sha;
       paperRecord = paperData.content;
-      q('[data-user-field="deep_read"]', editor).checked = userData.content.deep_read;
-      q('[data-user-field="favorite"]', editor).checked = userData.content.favorite;
       q('[data-user-field="status"]', editor).value = userData.content.status;
       q('[data-user-field="my_tags"]', editor).value = userData.content.my_tags.join(', ');
       q('[data-user-field="my_notes"]', editor).value = userData.content.my_notes;
@@ -338,8 +411,6 @@ import { message, normalizeLocale } from '../i18n';
           .map((tag) => tag.trim())
           .filter((tag, index, all) => tag && all.indexOf(tag) === index);
         const patch = {
-          deep_read: q('[data-user-field="deep_read"]', editor).checked,
-          favorite: q('[data-user-field="favorite"]', editor).checked,
           status: q('[data-user-field="status"]', editor).value,
           my_tags: tags,
           my_notes: q('[data-user-field="my_notes"]', editor).value,
