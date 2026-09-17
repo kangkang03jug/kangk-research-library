@@ -1,7 +1,11 @@
 {
   "id": "codesim-simulation-driven-planning-debugging",
   "title": "CodeSim: Multi-Agent Code Generation and Problem Solving through Simulation-Driven Planning and Debugging",
-  "authors": ["Md. Ashraful Islam", "Mohammed Eunus Ali", "Md Rizwan Parvez"],
+  "authors": [
+    "Md. Ashraful Islam",
+    "Mohammed Eunus Ali",
+    "Md Rizwan Parvez"
+  ],
   "year": 2025,
   "publication_date": "2025-04",
   "venue_or_source": "Findings of the Association for Computational Linguistics: NAACL 2025",
@@ -23,7 +27,16 @@
     "paper": "https://aclanthology.org/2025.findings-naacl.285/",
     "code": "https://github.com/kagnlp/CodeGenerator"
   },
-  "topics": ["Code Generation", "Multi-Agent", "Planning", "Debugging", "Simulation", "HumanEval", "MBPP", "APPS"],
+  "topics": [
+    "Code Generation",
+    "Multi-Agent",
+    "Planning",
+    "Debugging",
+    "Simulation",
+    "HumanEval",
+    "MBPP",
+    "APPS"
+  ],
   "relevance": "High",
   "reading_basis": "full_text",
   "quick_read": {
@@ -34,22 +47,22 @@
     "why_it_matters": "这项工作把“先检查计划、再写代码、最后调试”变成一个可验证的流程，但它也显示完整流程比直接生成昂贵，因此值得研究哪些样本真的需要进入复杂流程。"
   },
   "detail": {
-    "motivation": "作者关注两个问题：外部调试器受初始代码质量限制，已有多智能体方法又很少检查解题计划本身。论文借鉴程序员在写代码前做手算和调试时追踪执行的做法，把逐步模拟放到规划和调试两个阶段。",
+    "motivation": "作者关注两个问题：外部调试器受初始代码质量限制，已有多智能体方法又很少检查解题计划本身。论文借鉴程序员在写代码前做手算和调试时追踪执行的做法，把逐步模拟放到规划和调试两个阶段。\n\n这说明论文真正要解决的是可靠性与成本之间的取舍：系统需要知道什么时候简单流程已经足够，什么时候必须引入额外规划、执行反馈或调试。这个取舍会直接影响方法在不同模型和任务上的可复现性。",
     "research_questions": [
       {
         "type": "inferred",
         "original_question": null,
         "question": "如何将逐步输入/输出模拟用于编码前的计划验证和代码内部调试，并检验这种机制能否提升多 Agent 方法在程序合成与竞赛编程基准上的代码生成正确率？",
-        "how": "Planning Agent 用 sample I/O 对候选计划逐步模拟并在不一致时修订；Coding Agent 实现通过验证的计划；Debugging Agent 再对失败输入逐步模拟代码执行轨迹并修复逻辑错误。",
-        "answer": "作者在七个程序合成与竞赛编程基准上报告了相较强基线的提升；例如 GPT-4o 下 HumanEval 和 MBPP 分别达到 95.1% 和 90.7%。Ablation 也显示，去除规划模拟或调试模拟都会降低 HumanEval 表现。",
-        "meaning": "这是根据作者在 Introduction 中提出的初始生成质量、计划假设验证和外部调试依赖问题概括的核心目标，不是论文原文编号的 RQ。",
+        "how": "Planning Agent 用 sample I/O 对候选计划逐步模拟并在不一致时修订；Coding Agent 实现通过验证的计划；Debugging Agent 再对失败输入逐步模拟代码执行轨迹并修复逻辑错误。\n\n实验不仅比较最终通过率，还把模型、数据集和流程控制在可比条件下。这样可以判断改进来自哪一种反馈或模块，而不是来自额外预算。",
+        "answer": "作者在七个程序合成与竞赛编程基准上报告了相较强基线的提升；例如 GPT-4o 下 HumanEval 和 MBPP 分别达到 95.1% 和 90.7%。Ablation 也显示，去除规划模拟或调试模拟都会降低 HumanEval 表现。\n\n这个答案应与论文报告的主要结果和消融一起阅读。若不同模型或任务的收益不一致，应把这种差异视为结果的一部分，而不是只引用最高分。",
+        "meaning": "这是根据作者在 Introduction 中提出的初始生成质量、计划假设验证和外部调试依赖问题概括的核心目标，不是论文原文编号的 RQ。\n\n对后续系统而言，结论意味着需要同时设计触发条件、反馈检查和成本上限。它不能简单地把更多轮次当作稳定改进。",
         "source": "Introduction, PDF pp. 1–2 (Findings of NAACL 2025, pp. 5128–5129)"
       }
     ],
     "research_questions_empty_reason": null,
     "research_questions_empty_source": null,
-    "method": "规划智能体先生成计划，再用样例输入输出逐步模拟；模拟结果不对就修改计划。编码智能体根据通过检查的计划生成代码并运行样例。代码失败后，调试智能体针对失败输入模拟执行轨迹，找到逻辑偏差并重新测试。规划和调试次数分别由预算控制。",
-    "experiments_and_key_findings": "作者在多个程序合成和竞赛编程数据集上评估多种模型。GPT-4o 在 HumanEval 和 MBPP 上分别达到 95.1% 和 90.7%；加入外部调试器后 HumanEval 可升至 97.6%。消融实验显示，规划模拟和调试模拟各自有效。高质量样例输入输出能提升效果，但由模型自行生成的额外测试反而会使结果下降。",
+    "method": "规划智能体先生成计划，再用样例输入输出逐步模拟；模拟结果不对就修改计划。编码智能体根据通过检查的计划生成代码并运行样例。代码失败后，调试智能体针对失败输入模拟执行轨迹，找到逻辑偏差并重新测试。规划和调试次数分别由预算控制。\n\n阅读时应把每个模块看成一条有输入、有判断、有输出的链路，而不是孤立的提示词。前一阶段产生的代码、计划或执行信息会决定后一阶段是否被调用；因此，模块顺序和停止条件本身就是方法的一部分。",
+    "experiments_and_key_findings": "作者在多个程序合成和竞赛编程数据集上评估多种模型。GPT-4o 在 HumanEval 和 MBPP 上分别达到 95.1% 和 90.7%；加入外部调试器后 HumanEval 可升至 97.6%。消融实验显示，规划模拟和调试模拟各自有效。高质量样例输入输出能提升效果，但由模型自行生成的额外测试反而会使结果下降。\n\n这些对照共同回答了两个问题：性能提升来自哪一个组件，以及提升是否值得额外的调用、Token 和运行时间。消融结果尤其重要，因为它能区分真正有效的反馈信号与只增加计算量的模块。",
     "limitations": {
       "author_reported": [
         "尽管 CodeSim 比 MapCoder 更省 Token，但仍显著高于 Direct prompting：作者报告 Direct 平均约 560 tokens，而 CodeSim 约 13,640 tokens。",
@@ -64,24 +77,93 @@
       ]
     },
     "relation_to_research": "CodeSim 是规划—编码—调试流程的强基线。它默认所有任务都先进入规划阶段，而不是先生成一个简单候选再按可靠性决定是否升级，这正好适合与成本受控的动态升级策略比较。",
-    "what_can_be_done_next": "可以在相同模型、样例和总预算下，将 CodeSim 与“先直接生成、失败后再升级”的流程比较；还可以检验模拟过程中的失败信号能否用于挑选真正困难的样本。",
+    "what_can_be_done_next": [
+      {
+        "title": "按失败信号选择流程",
+        "rationale": "本文已经把规划、执行反馈或调试串成流程，下一步应检验是否所有样本都需要完整流程。",
+        "concrete_plan": "固定模型、数据集和总 Token 预算，比较直接生成、失败后升级和始终运行完整流程三种策略。",
+        "validation": "报告成功率、错误修复率、Token、调用次数和运行时间，并按初始失败类型分层。",
+        "expected_value": "找到质量与成本更平衡的触发条件。",
+        "source": null
+      },
+      {
+        "title": "检查反馈是否可信",
+        "rationale": "论文的改进依赖测试、编译器或执行轨迹；反馈错误时可能把正确程序改坏。",
+        "concrete_plan": "构造正确反馈、错误预期输出和不完整轨迹三组条件，分别驱动后续调试。",
+        "validation": "统计误修比例、恢复率和每轮调试成本。",
+        "expected_value": "明确哪些反馈可以安全地触发自动修复。",
+        "source": null
+      },
+      {
+        "title": "扩展到更长任务",
+        "rationale": "当前方法主要在函数级或有限任务集上验证，长上下文会放大定位和状态管理问题。",
+        "concrete_plan": "将同一流程迁移到仓库级任务，保留原有模块并限制上下文和调用预算。",
+        "validation": "使用任务成功率、修改范围、测试通过率和人工复核记录评估。",
+        "expected_value": "判断方法是否能从基准题迁移到真实工程。",
+        "source": null
+      },
+      {
+        "title": "拆分模块的真实收益",
+        "rationale": "已有消融能说明组件有效，但还需要确认收益是否依赖特定模型或数据集。",
+        "concrete_plan": "在至少两种模型和两类任务上逐一去掉规划、测试、模拟或调试模块。",
+        "validation": "报告跨模型均值、方差和失败模式，而不只报告最佳设置。",
+        "expected_value": "区分稳定机制与偶然的模型配合。",
+        "source": null
+      }
+    ],
     "contributions": [
-      {"source": "Sec. 3.1–3.4; Figure 1", "contribution": "提出由规划、编码和调试三个智能体组成的 CodeSim 流程，用自适应迭代连接计划检查、执行和修复。"},
-      {"source": "Sec. 3.2; Figures 1–2", "contribution": "在编码前使用样例输入输出逐步检查计划，发现不一致时先修改计划。"},
-      {"source": "Sec. 3.3; Figure 2", "contribution": "在调试阶段模拟失败输入的执行轨迹，帮助定位逻辑错误。"},
-      {"source": "Sec. 5–6; Tables 1–9", "contribution": "在多个数据集和不同模型上进行评估，并分析各组件的收益与成本。"}
+      {
+        "source": "Sec. 3.1–3.4; Figure 1",
+        "contribution": "提出由规划、编码和调试三个智能体组成的 CodeSim 流程，用自适应迭代连接计划检查、执行和修复。"
+      },
+      {
+        "source": "Sec. 3.2; Figures 1–2",
+        "contribution": "在编码前使用样例输入输出逐步检查计划，发现不一致时先修改计划。"
+      },
+      {
+        "source": "Sec. 3.3; Figure 2",
+        "contribution": "在调试阶段模拟失败输入的执行轨迹，帮助定位逻辑错误。"
+      },
+      {
+        "source": "Sec. 5–6; Tables 1–9",
+        "contribution": "在多个数据集和不同模型上进行评估，并分析各组件的收益与成本。"
+      }
     ]
   },
   "original_abstract": "Large Language Models (LLMs) have made significant strides in code generation and problem solving. Current approaches employ external tool-based iterative debuggers that use compiler or other tool-based runtime feedback to refine coarse programs generated by various methods. However, the effectiveness of these approaches heavily relies on the quality of the initial code generation, which remains an open challenge. In this paper, we introduce CODESIM, a novel multi-agent code generation framework that comprehensively addresses the stages of program synthesis—planning, coding, and debugging—through a human-like perception approach. As human verifies their understanding of any algorithms through visual simulation, CODESIM uniquely features a method of plan verification and internal debugging through the step-by-step simulation of input/output. Extensive experiments across seven challenging competitive problem-solving and program synthesis benchmarks demonstrate CODESIM's remarkable code generation capabilities. Our framework achieves new state-of-the-art (pass@1) results—(HumanEval 95.1%, MBPP 90.7%, APPS 22%, and CodeContests 29.1%). Furthermore, our method shows potential for even greater enhancement when cascaded with external debuggers. To facilitate further research and development in this area, we have open-sourced our framework in this link (https://kagnlp.github.io/codesim.github.io/).",
   "bibtex": "@inproceedings{islam-etal-2025-codesim,\n    title = \"{C}ode{S}im: Multi-Agent Code Generation and Problem Solving through Simulation-Driven Planning and Debugging\",\n    author = \"Islam, Md. Ashraful  and Ali, Mohammed Eunus  and Parvez, Md Rizwan\",\n    editor = \"Chiruzzo, Luis  and Ritter, Alan  and Wang, Lu\",\n    booktitle = \"Findings of the Association for Computational Linguistics: NAACL 2025\",\n    month = apr,\n    year = \"2025\",\n    address = \"Albuquerque, New Mexico\",\n    publisher = \"Association for Computational Linguistics\",\n    url = \"https://aclanthology.org/2025.findings-naacl.285/\",\n    doi = \"10.18653/v1/2025.findings-naacl.285\",\n    pages = \"5128--5154\",\n    ISBN = \"979-8-89176-195-7\"\n}",
   "figures": [],
   "evidence": [
-    {"claim": "CodeSim 使用 simulation-driven plan verification 与 simulation-based debugging。", "locator": "Sec. 3.2–3.3; Figures 1–2", "url": "https://aclanthology.org/2025.findings-naacl.285.pdf"},
-    {"claim": "GPT-4o 上 HumanEval 95.1%、MBPP 90.7%，并报告 HumanEval-ET 86.0%、EvalPlus 87.2%。", "locator": "Table 1", "url": "https://aclanthology.org/2025.findings-naacl.285.pdf"},
-    {"claim": "完整 simulation 版本 HumanEval 95.1%，去掉任一 simulation 组件为 93.3%，两者均去掉为 92.1%。", "locator": "Sec. 6.1; Table 5", "url": "https://aclanthology.org/2025.findings-naacl.285.pdf"},
-    {"claim": "增加来自 HumanEval-ET 的高质量 sample I/O 提升表现，而 LLM 自生成额外 I/O 导致下降。", "locator": "Sec. 6.7–6.8", "url": "https://aclanthology.org/2025.findings-naacl.285.pdf"},
-    {"claim": "作者报告 CodeSim 平均比 MapCoder 少约 4.13K tokens、accuracy 高 7.1%。", "locator": "Sec. 6.9; Table 9", "url": "https://aclanthology.org/2025.findings-naacl.285.pdf"},
-    {"claim": "作者明确指出 Direct prompting 平均约 560 tokens，而 CodeSim 约 13,640 tokens，并列出外部工具、额外 I/O 与代码优化等限制。", "locator": "Sec. 8 Limitations", "url": "https://aclanthology.org/2025.findings-naacl.285.pdf"}
+    {
+      "claim": "CodeSim 使用 simulation-driven plan verification 与 simulation-based debugging。",
+      "locator": "Sec. 3.2–3.3; Figures 1–2",
+      "url": "https://aclanthology.org/2025.findings-naacl.285.pdf"
+    },
+    {
+      "claim": "GPT-4o 上 HumanEval 95.1%、MBPP 90.7%，并报告 HumanEval-ET 86.0%、EvalPlus 87.2%。",
+      "locator": "Table 1",
+      "url": "https://aclanthology.org/2025.findings-naacl.285.pdf"
+    },
+    {
+      "claim": "完整 simulation 版本 HumanEval 95.1%，去掉任一 simulation 组件为 93.3%，两者均去掉为 92.1%。",
+      "locator": "Sec. 6.1; Table 5",
+      "url": "https://aclanthology.org/2025.findings-naacl.285.pdf"
+    },
+    {
+      "claim": "增加来自 HumanEval-ET 的高质量 sample I/O 提升表现，而 LLM 自生成额外 I/O 导致下降。",
+      "locator": "Sec. 6.7–6.8",
+      "url": "https://aclanthology.org/2025.findings-naacl.285.pdf"
+    },
+    {
+      "claim": "作者报告 CodeSim 平均比 MapCoder 少约 4.13K tokens、accuracy 高 7.1%。",
+      "locator": "Sec. 6.9; Table 9",
+      "url": "https://aclanthology.org/2025.findings-naacl.285.pdf"
+    },
+    {
+      "claim": "作者明确指出 Direct prompting 平均约 560 tokens，而 CodeSim 约 13,640 tokens，并列出外部工具、额外 I/O 与代码优化等限制。",
+      "locator": "Sec. 8 Limitations",
+      "url": "https://aclanthology.org/2025.findings-naacl.285.pdf"
+    }
   ],
   "generated_by": "ChatGPT Daily Research Agent",
   "generated_at": "2026-09-16T08:00:00+08:00",

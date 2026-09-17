@@ -235,3 +235,7 @@ Never commit a GitHub PAT, GitHub App private key, OAuth client secret, Codex au
 ## Reproducibility review
 
 Before sharing a new library, run `npm run verify`, inspect the Pages URL, and manually test the ChatGPT Scheduled Task prompt against the intended repository permissions. Every command in this README maps to a checked-in script. Owner Editing additionally requires the one-time GitHub App and Cloudflare authorization documented above; without it, the public library remains read-only by design.
+
+### Detail depth
+
+Quick Read remains a short 1–3 minute orientation. Detail is a substantially expanded, body-backed reading brief with paragraph-level Motivation, Method, Experiments, limitations, profile-specific relation, and 3–6 structured paper-specific follow-up directions. Each `detail.what_can_be_done_next` item contains `title`, `rationale`, `concrete_plan`, `validation`, `expected_value`, and optional `source`; legacy string values remain readable for compatibility.

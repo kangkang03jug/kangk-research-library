@@ -334,12 +334,12 @@ function validResearchQuestions(value: unknown) {
           'source',
         ]) &&
         (question.type === 'explicit' || question.type === 'inferred') &&
-        (question.original_question === null ||
-          (typeof question.original_question === 'string' && question.original_question.trim())) &&
-        (question.type !== 'inferred' || question.original_question === null) &&
         ['question', 'how', 'answer', 'meaning'].every(
           (key) => typeof question[key] === 'string',
         ) &&
+        (question.original_question === null ||
+          (typeof question.original_question === 'string' && question.original_question.trim())) &&
+        (question.type !== 'inferred' || question.original_question === null) &&
         typeof question.source === 'string' &&
         question.source.trim().length > 0 &&
         (question.type !== 'inferred' || /introduction|motivation/i.test(question.source)),
@@ -359,6 +359,32 @@ function validContributions(value: unknown) {
         item.contribution.trim().length > 0 &&
         (item.source === null ||
           (typeof item.source === 'string' && item.source.trim().length > 0)),
+    )
+  );
+}
+function validNextSteps(value: unknown) {
+  if (typeof value === 'string') return value.trim().length > 0;
+  return (
+    Array.isArray(value) &&
+    value.length >= 3 &&
+    value.length <= 6 &&
+    value.every(
+      (step) =>
+        isObject(step) &&
+        hasOnlyKeys(step, [
+          'title',
+          'rationale',
+          'concrete_plan',
+          'validation',
+          'expected_value',
+          'source',
+        ]) &&
+        ['title', 'rationale', 'concrete_plan', 'validation', 'expected_value'].every(
+          (key) => typeof step[key] === 'string' && step[key].trim().length > 0,
+        ) &&
+        (step.source === undefined ||
+          step.source === null ||
+          (typeof step.source === 'string' && step.source.trim().length > 0)),
     )
   );
 }
@@ -408,8 +434,8 @@ function validDetail(value: unknown, readingBasis?: unknown) {
       'method',
       'experiments_and_key_findings',
       'relation_to_research',
-      'what_can_be_done_next',
     ].every((key) => typeof value[key] === 'string') &&
+    validNextSteps(value.what_can_be_done_next) &&
     validContributions(value.contributions) &&
     validResearchQuestions(value.research_questions) &&
     hasValidResearchQuestionMetadata &&

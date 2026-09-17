@@ -28,3 +28,9 @@ Run `npm run validate:data`, relevant tests, and `npm run build`. Commit and pus
 - “关键结果”只保留最重要的 1–3 个结论或代表性数字，并说明它们意味着什么。
 - “为什么重要 / AI 分析”要写成读者容易理解的研究启发，不能写成英文术语拼接或泛泛的 AI 建议。
 - 生成后逐字段检查：删除不必要的中英文混写、重复术语、过长句子和没有解释的缩写；不要改变原始标题、作者、摘要、BibTeX、标识符、链接或 `original_question`。
+
+## Detail 深度规范
+
+Quick Read 继续保持 1–3 分钟定位，Detail 则必须是充分展开的深入阅读版本，不能使用统一的 concise 要求把每个字段压缩成一两句话。对 full_text / official_html 论文，基于正文分段说明 Motivation、Contributions、Research Questions、Method、Experiments & Key Findings、Limitations、Relation to Research 和后续方向。说明背景、已有方法缺陷、设计选择、输入输出流程、主要数据集与基线、关键结果与消融、异常现象、具体局限，以及与 Research Profile 的直接关系；保留 Section/Page/Table/Figure locator。
+
+将 detail.what_can_be_done_next 写成 3–6 个对象的数组，每项包含 title、rationale、concrete_plan、validation、expected_value，可选 source。每个方向必须直接对应本文的方法、实验、局限、可迁移任务或正文问题，分别解释为什么值得做、如何实施、如何验证和预期价值；禁止通用 AI 建议。旧字符串仅用于兼容读取，新记录必须使用数组。

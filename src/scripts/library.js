@@ -323,6 +323,11 @@ import { localStateStorageKey, parseLocalState, serializeLocalState } from '../l
         null,
         2,
       );
+      q('[data-detail-next]', editor).value = JSON.stringify(
+        paperRecord.detail.what_can_be_done_next,
+        null,
+        2,
+      );
       editor.querySelectorAll('[data-limitations]').forEach((field) => {
         field.value = paperRecord.detail.limitations[field.dataset.limitations].join('\n');
       });
@@ -456,6 +461,7 @@ import { localStateStorageKey, parseLocalState, serializeLocalState } from '../l
           const contributions = JSON.parse(q('[data-contributions]', editor).value);
           if (!Array.isArray(contributions)) throw new Error('Contributions must be an array');
           detailPatch.contributions = contributions;
+          detailPatch.what_can_be_done_next = JSON.parse(q('[data-detail-next]', editor).value);
           detailPatch.limitations = {
             author_reported: splitLines(q('[data-limitations="author_reported"]', editor).value),
             ai_analysis: splitLines(q('[data-limitations="ai_analysis"]', editor).value),

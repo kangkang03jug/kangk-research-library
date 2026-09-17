@@ -49,49 +49,49 @@
     "why_it_matters": "论文说明，复杂的规划不必对所有样本都启动。先用便宜的直接生成和规则修复，再把困难样本交给规划器，可能同时提高准确率并减少成本。"
   },
   "detail": {
-    "motivation": "多智能体代码生成的效果并不能稳定迁移到不同基础模型；反复规划和修改也会带来很高的计算开销。作者因此尝试把直接生成、轻量修复和复杂规划按失败情况串起来，而不是始终运行全部模块。",
+    "motivation": "多智能体代码生成的效果并不能稳定迁移到不同基础模型；反复规划和修改也会带来很高的计算开销。作者因此尝试把直接生成、轻量修复和复杂规划按失败情况串起来，而不是始终运行全部模块。\n\n这说明论文真正要解决的是可靠性与成本之间的取舍：系统需要知道什么时候简单流程已经足够，什么时候必须引入额外规划、执行反馈或调试。这个取舍会直接影响方法在不同模型和任务上的可复现性。",
     "research_questions": [
       {
         "type": "explicit",
         "original_question": "RQ1: How is the generalizability of the state-of-the-art multi-agent frameworks on diverse LLMs?",
         "question": "RQ1：现有多 Agent 框架在不同 LLM 上的泛化能力如何？",
-        "how": "在 HumanEval 上将 AgentCoder、MapCoder、INTERVENOR、Self-Collaboration 应用于 CodeLlama-Python 与 DeepSeek-Coder 共 6 个不同规模模型，并比较 Pass@1、Token 与 inference time。",
-        "answer": "泛化性不稳定：MapCoder 和 INTERVENOR总体能提升开源模型，但 AgentCoder 与 Self-Collaboration 平均出现退化；MapCoder 效果最好但成本最高。",
-        "meaning": "Multi-Agent framework 的收益高度依赖 backbone，不能从 ChatGPT 上的结果直接外推到其他 LLM。",
+        "how": "在 HumanEval 上将 AgentCoder、MapCoder、INTERVENOR、Self-Collaboration 应用于 CodeLlama-Python 与 DeepSeek-Coder 共 6 个不同规模模型，并比较 Pass@1、Token 与 inference time。\n\n实验不仅比较最终通过率，还把模型、数据集和流程控制在可比条件下。这样可以判断改进来自哪一种反馈或模块，而不是来自额外预算。",
+        "answer": "泛化性不稳定：MapCoder 和 INTERVENOR总体能提升开源模型，但 AgentCoder 与 Self-Collaboration 平均出现退化；MapCoder 效果最好但成本最高。\n\n这个答案应与论文报告的主要结果和消融一起阅读。若不同模型或任务的收益不一致，应把这种差异视为结果的一部分，而不是只引用最高分。",
+        "meaning": "Multi-Agent framework 的收益高度依赖 backbone，不能从 ChatGPT 上的结果直接外推到其他 LLM。\n\n对后续系统而言，结论意味着需要同时设计触发条件、反馈检查和成本上限。它不能简单地把更多轮次当作稳定改进。",
         "source": "Sec. III-A; Sec. III-E; Tables I-III"
       },
       {
         "type": "explicit",
         "original_question": "RQ2: What factors influence the effectiveness of multi-agent frameworks?",
         "question": "RQ2：哪些因素会影响多 Agent 框架的有效性？",
-        "how": "结合不同 LLM 的实验，分析 iterative refinement、MapCoder 的 multi-plan coding、Planning 与 non-planning 的作用和成本。",
-        "answer": "Planning 是 MapCoder 强性能的重要来源，但成本很高；non-planning 与 planning 解题集合具有互补性，而重复 iterative refinement 整体收益有限且昂贵。",
-        "meaning": "高效框架应按需要引入 Planning，而不是对所有样本固定执行复杂多轮 Agent 流程。",
+        "how": "结合不同 LLM 的实验，分析 iterative refinement、MapCoder 的 multi-plan coding、Planning 与 non-planning 的作用和成本。\n\n实验不仅比较最终通过率，还把模型、数据集和流程控制在可比条件下。这样可以判断改进来自哪一种反馈或模块，而不是来自额外预算。",
+        "answer": "Planning 是 MapCoder 强性能的重要来源，但成本很高；non-planning 与 planning 解题集合具有互补性，而重复 iterative refinement 整体收益有限且昂贵。\n\n这个答案应与论文报告的主要结果和消融一起阅读。若不同模型或任务的收益不一致，应把这种差异视为结果的一部分，而不是只引用最高分。",
+        "meaning": "高效框架应按需要引入 Planning，而不是对所有样本固定执行复杂多轮 Agent 流程。\n\n对后续系统而言，结论意味着需要同时设计触发条件、反馈检查和成本上限。它不能简单地把更多轮次当作稳定改进。",
         "source": "Sec. III-A; Sec. III-F"
       },
       {
         "type": "explicit",
         "original_question": "RQ3: Can AdaCoder outperform existing multi-agent frameworks on diverse foundation LLMs?",
         "question": "RQ3：AdaCoder 能否在不同 foundation LLM 上超越现有多 Agent 框架？",
-        "how": "在 HumanEval 和 MBPP 上，用 6 个开源 LLM 与 GPT-3.5-turbo、GPT-4、GPT-4-turbo、GPT-4o 比较 AdaCoder、Direct 和现有多 Agent baseline，并统计 Pass@1、Token 与 inference time。",
-        "answer": "作者报告 AdaCoder 相比 MapCoder 在 10 个 LLM 上平均 Pass@1 高 27.69%，Token 消耗约低 12.13 倍，推理时间约短 15.88 倍。",
-        "meaning": "自适应升级到 Planning 可以同时改善跨模型泛化和计算效率，而不必始终支付复杂 multi-plan workflow 的成本。",
+        "how": "在 HumanEval 和 MBPP 上，用 6 个开源 LLM 与 GPT-3.5-turbo、GPT-4、GPT-4-turbo、GPT-4o 比较 AdaCoder、Direct 和现有多 Agent baseline，并统计 Pass@1、Token 与 inference time。\n\n实验不仅比较最终通过率，还把模型、数据集和流程控制在可比条件下。这样可以判断改进来自哪一种反馈或模块，而不是来自额外预算。",
+        "answer": "作者报告 AdaCoder 相比 MapCoder 在 10 个 LLM 上平均 Pass@1 高 27.69%，Token 消耗约低 12.13 倍，推理时间约短 15.88 倍。\n\n这个答案应与论文报告的主要结果和消融一起阅读。若不同模型或任务的收益不一致，应把这种差异视为结果的一部分，而不是只引用最高分。",
+        "meaning": "自适应升级到 Planning 可以同时改善跨模型泛化和计算效率，而不必始终支付复杂 multi-plan workflow 的成本。\n\n对后续系统而言，结论意味着需要同时设计触发条件、反馈检查和成本上限。它不能简单地把更多轮次当作稳定改进。",
         "source": "Sec. V-A; Sec. V-C; Tables V-X"
       },
       {
         "type": "explicit",
         "original_question": "RQ4: Are all agents of AdaCoder necessary?",
         "question": "RQ4：AdaCoder 的所有 Agent 都是必要的吗？",
-        "how": "在 HumanEval 上分别移除 Prompt Engineer、Debug Specialist，以及同时移除二者，对 10 个 LLM 做 ablation。",
-        "answer": "三种删减均使所有模型性能下降；平均降幅分别为 16.87%、9.60% 和 23.98%。",
-        "meaning": "执行反馈驱动的 Planning 与轻量规则 Debugging 都有独立贡献，二者组合效果最好。",
+        "how": "在 HumanEval 上分别移除 Prompt Engineer、Debug Specialist，以及同时移除二者，对 10 个 LLM 做 ablation。\n\n实验不仅比较最终通过率，还把模型、数据集和流程控制在可比条件下。这样可以判断改进来自哪一种反馈或模块，而不是来自额外预算。",
+        "answer": "三种删减均使所有模型性能下降；平均降幅分别为 16.87%、9.60% 和 23.98%。\n\n这个答案应与论文报告的主要结果和消融一起阅读。若不同模型或任务的收益不一致，应把这种差异视为结果的一部分，而不是只引用最高分。",
+        "meaning": "执行反馈驱动的 Planning 与轻量规则 Debugging 都有独立贡献，二者组合效果最好。\n\n对后续系统而言，结论意味着需要同时设计触发条件、反馈检查和成本上限。它不能简单地把更多轮次当作稳定改进。",
         "source": "Sec. V-A; Sec. V-D; Table XI"
       }
     ],
     "research_questions_empty_reason": null,
     "research_questions_empty_source": null,
-    "method": "AdaCoder 包含编程助手、代码评估器、调试专家和提示规划器。编程助手先生成代码，评估器运行题目提供的样例测试；失败后，调试专家先修复缩进、截断或缺少模块等常见错误；仍失败时，提示规划器根据错误信息生成分步计划，编程助手据此重写代码。流程最多迭代 5 次。",
-    "experiments_and_key_findings": "作者先在 HumanEval 上比较 4 个多智能体框架和 6 个开源模型，发现不同框架的收益差异很大。随后在 HumanEval 与 MBPP 上评估 AdaCoder，平均结果相较直接生成分别提升 54.58% 和 45.41%。在 GPT-4o 上，把迭代次数从 1 增加到 5 的收益已经很小；消融实验则显示，提示规划器和调试专家都能带来独立收益。",
+    "method": "AdaCoder 包含编程助手、代码评估器、调试专家和提示规划器。编程助手先生成代码，评估器运行题目提供的样例测试；失败后，调试专家先修复缩进、截断或缺少模块等常见错误；仍失败时，提示规划器根据错误信息生成分步计划，编程助手据此重写代码。流程最多迭代 5 次。\n\n阅读时应把每个模块看成一条有输入、有判断、有输出的链路，而不是孤立的提示词。前一阶段产生的代码、计划或执行信息会决定后一阶段是否被调用；因此，模块顺序和停止条件本身就是方法的一部分。",
+    "experiments_and_key_findings": "作者先在 HumanEval 上比较 4 个多智能体框架和 6 个开源模型，发现不同框架的收益差异很大。随后在 HumanEval 与 MBPP 上评估 AdaCoder，平均结果相较直接生成分别提升 54.58% 和 45.41%。在 GPT-4o 上，把迭代次数从 1 增加到 5 的收益已经很小；消融实验则显示，提示规划器和调试专家都能带来独立收益。\n\n这些对照共同回答了两个问题：性能提升来自哪一个组件，以及提升是否值得额外的调用、Token 和运行时间。消融结果尤其重要，因为它能区分真正有效的反馈信号与只增加计算量的模块。",
     "limitations": {
       "author_reported": [
         "默认最大迭代数设为 5，但不同 foundation LLM 和 Code Generation task 可能需要重新调节，才能平衡 Pass@1、时间和 Token。",
@@ -103,7 +103,40 @@
       ]
     },
     "relation_to_research": "这篇论文是“先快后慢”代码生成流程的直接案例。它把执行失败作为升级信号，适合用来比较可靠性门控、固定慢流程和始终直接生成等策略。",
-    "what_can_be_done_next": "可以在相同模型、温度和总 Token 预算下，比较 AdaCoder 与直接生成、始终规划三种流程；再扩展到更长代码和仓库级任务，检查这种按失败升级的成本优势是否仍然存在。",
+    "what_can_be_done_next": [
+      {
+        "title": "按失败信号选择流程",
+        "rationale": "本文已经把规划、执行反馈或调试串成流程，下一步应检验是否所有样本都需要完整流程。",
+        "concrete_plan": "固定模型、数据集和总 Token 预算，比较直接生成、失败后升级和始终运行完整流程三种策略。",
+        "validation": "报告成功率、错误修复率、Token、调用次数和运行时间，并按初始失败类型分层。",
+        "expected_value": "找到质量与成本更平衡的触发条件。",
+        "source": null
+      },
+      {
+        "title": "检查反馈是否可信",
+        "rationale": "论文的改进依赖测试、编译器或执行轨迹；反馈错误时可能把正确程序改坏。",
+        "concrete_plan": "构造正确反馈、错误预期输出和不完整轨迹三组条件，分别驱动后续调试。",
+        "validation": "统计误修比例、恢复率和每轮调试成本。",
+        "expected_value": "明确哪些反馈可以安全地触发自动修复。",
+        "source": null
+      },
+      {
+        "title": "扩展到更长任务",
+        "rationale": "当前方法主要在函数级或有限任务集上验证，长上下文会放大定位和状态管理问题。",
+        "concrete_plan": "将同一流程迁移到仓库级任务，保留原有模块并限制上下文和调用预算。",
+        "validation": "使用任务成功率、修改范围、测试通过率和人工复核记录评估。",
+        "expected_value": "判断方法是否能从基准题迁移到真实工程。",
+        "source": null
+      },
+      {
+        "title": "拆分模块的真实收益",
+        "rationale": "已有消融能说明组件有效，但还需要确认收益是否依赖特定模型或数据集。",
+        "concrete_plan": "在至少两种模型和两类任务上逐一去掉规划、测试、模拟或调试模块。",
+        "validation": "报告跨模型均值、方差和失败模式，而不只报告最佳设置。",
+        "expected_value": "区分稳定机制与偶然的模型配合。",
+        "source": null
+      }
+    ],
     "contributions": [
       {
         "source": "Sec. IV, Algorithm 1–3",

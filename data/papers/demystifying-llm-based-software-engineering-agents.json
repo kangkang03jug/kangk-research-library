@@ -46,22 +46,22 @@
     "why_it_matters": "在增加规划器、调试器或多智能体协作前，应该先证明额外复杂度带来的准确率提升值得它的成本。验证和候选选择本身可能比开放式探索更重要。"
   },
   "detail": {
-    "motivation": "作者认为复杂工具接口、开放式决策和有限的自我反思会让软件工程智能体变得难以控制。论文因此提出一个反向问题：固定、透明、可复现的工作流是否已经足以完成仓库级修复。",
+    "motivation": "作者认为复杂工具接口、开放式决策和有限的自我反思会让软件工程智能体变得难以控制。论文因此提出一个反向问题：固定、透明、可复现的工作流是否已经足以完成仓库级修复。\n\n这说明论文真正要解决的是可靠性与成本之间的取舍：系统需要知道什么时候简单流程已经足够，什么时候必须引入额外规划、执行反馈或调试。这个取舍会直接影响方法在不同模型和任务上的可复现性。",
     "research_questions": [
       {
         "type": "inferred",
         "original_question": null,
         "question": "在仓库级软件工程问题修复中，取消开放式自主 Agent 控制流、改用固定且透明的 Localization–Repair–Patch Validation 工作流，能否以更低成本实现可靠的 Issue 修复？",
-        "how": "通过分层文件/代码定位、多候选 Search/Replace Patch 生成，以及 regression/reproduction tests 与 majority voting 进行候选验证和选择。",
-        "answer": "可以。Agentless 在 SWE-bench Lite 的 300 个 Issue 中修复 96 个（32.00%），平均成本约 $0.70；结果同时显示 Patch ranking/selection 仍有提升空间。",
-        "meaning": "这是根据作者在 Introduction/Motivation 中提出的固定工作流与自主 Agent 对比目标概括的 Inferred Research Question，不是论文原文编号的 RQ。",
+        "how": "通过分层文件/代码定位、多候选 Search/Replace Patch 生成，以及 regression/reproduction tests 与 majority voting 进行候选验证和选择。\n\n实验不仅比较最终通过率，还把模型、数据集和流程控制在可比条件下。这样可以判断改进来自哪一种反馈或模块，而不是来自额外预算。",
+        "answer": "可以。Agentless 在 SWE-bench Lite 的 300 个 Issue 中修复 96 个（32.00%），平均成本约 $0.70；结果同时显示 Patch ranking/selection 仍有提升空间。\n\n这个答案应与论文报告的主要结果和消融一起阅读。若不同模型或任务的收益不一致，应把这种差异视为结果的一部分，而不是只引用最高分。",
+        "meaning": "这是根据作者在 Introduction/Motivation 中提出的固定工作流与自主 Agent 对比目标概括的 Inferred Research Question，不是论文原文编号的 RQ。\n\n对后续系统而言，结论意味着需要同时设计触发条件、反馈检查和成本上限。它不能简单地把更多轮次当作稳定改进。",
         "source": "Introduction/Motivation, Sec. 1, PDF pp. 1–2"
       }
     ],
     "research_questions_empty_reason": null,
     "research_questions_empty_source": null,
-    "method": "第一阶段从文件级、代码结构级到具体修改位置逐层定位，并用代码骨架压缩上下文。第二阶段针对不同位置生成多个搜索替换补丁。第三阶段先运行已有回归测试，再生成复现测试，最后用多数投票选择补丁。整个控制流预先确定，不交给模型自由规划。",
-    "experiments_and_key_findings": "在 SWE-bench Lite 上，Agentless 使用 GPT-4o 修复 96/300 个问题，成功率 32.00%，平均成本约 0.70 美元。结合提示检索和向量检索后，文件定位更准确；多位置、多补丁采样优于把所有位置合并处理；加入回归测试和复现测试后，修复数进一步增加，约 40 个候选补丁后收益趋于饱和。",
+    "method": "第一阶段从文件级、代码结构级到具体修改位置逐层定位，并用代码骨架压缩上下文。第二阶段针对不同位置生成多个搜索替换补丁。第三阶段先运行已有回归测试，再生成复现测试，最后用多数投票选择补丁。整个控制流预先确定，不交给模型自由规划。\n\n阅读时应把每个模块看成一条有输入、有判断、有输出的链路，而不是孤立的提示词。前一阶段产生的代码、计划或执行信息会决定后一阶段是否被调用；因此，模块顺序和停止条件本身就是方法的一部分。",
+    "experiments_and_key_findings": "在 SWE-bench Lite 上，Agentless 使用 GPT-4o 修复 96/300 个问题，成功率 32.00%，平均成本约 0.70 美元。结合提示检索和向量检索后，文件定位更准确；多位置、多补丁采样优于把所有位置合并处理；加入回归测试和复现测试后，修复数进一步增加，约 40 个候选补丁后收益趋于饱和。\n\n这些对照共同回答了两个问题：性能提升来自哪一个组件，以及提升是否值得额外的调用、Token 和运行时间。消融结果尤其重要，因为它能区分真正有效的反馈信号与只增加计算量的模块。",
     "limitations": {
       "author_reported": [
         "Threats to Validity 指出，GPT-4o 是闭源模型，无法完全排除 SWE-bench ground-truth Patch 出现在训练数据中的潜在 data leakage；彻底验证需要重新训练模型，在学术项目中不可行。",
@@ -73,7 +73,40 @@
       ]
     },
     "relation_to_research": "Agentless 是成本受控代码生成和可靠性研究的重要基线。它把定位、修复和验证拆开，适合与自主轨迹、动态升级和多智能体流程做受控比较。",
-    "what_can_be_done_next": "可以固定模型、任务集和总 Token 预算，比较直接生成、固定流程和动态升级三种方案，并同时报告成功率、Token、调用次数和运行时间。还可以只在固定流程失败或不确定时升级到更复杂的规划调试流程。",
+    "what_can_be_done_next": [
+      {
+        "title": "按失败信号选择流程",
+        "rationale": "本文已经把规划、执行反馈或调试串成流程，下一步应检验是否所有样本都需要完整流程。",
+        "concrete_plan": "固定模型、数据集和总 Token 预算，比较直接生成、失败后升级和始终运行完整流程三种策略。",
+        "validation": "报告成功率、错误修复率、Token、调用次数和运行时间，并按初始失败类型分层。",
+        "expected_value": "找到质量与成本更平衡的触发条件。",
+        "source": null
+      },
+      {
+        "title": "检查反馈是否可信",
+        "rationale": "论文的改进依赖测试、编译器或执行轨迹；反馈错误时可能把正确程序改坏。",
+        "concrete_plan": "构造正确反馈、错误预期输出和不完整轨迹三组条件，分别驱动后续调试。",
+        "validation": "统计误修比例、恢复率和每轮调试成本。",
+        "expected_value": "明确哪些反馈可以安全地触发自动修复。",
+        "source": null
+      },
+      {
+        "title": "扩展到更长任务",
+        "rationale": "当前方法主要在函数级或有限任务集上验证，长上下文会放大定位和状态管理问题。",
+        "concrete_plan": "将同一流程迁移到仓库级任务，保留原有模块并限制上下文和调用预算。",
+        "validation": "使用任务成功率、修改范围、测试通过率和人工复核记录评估。",
+        "expected_value": "判断方法是否能从基准题迁移到真实工程。",
+        "source": null
+      },
+      {
+        "title": "拆分模块的真实收益",
+        "rationale": "已有消融能说明组件有效，但还需要确认收益是否依赖特定模型或数据集。",
+        "concrete_plan": "在至少两种模型和两类任务上逐一去掉规划、测试、模拟或调试模块。",
+        "validation": "报告跨模型均值、方差和失败模式，而不只报告最佳设置。",
+        "expected_value": "区分稳定机制与偶然的模型配合。",
+        "source": null
+      }
+    ],
     "contributions": [
       {
         "source": "Sec. 3, Fig. 1",
