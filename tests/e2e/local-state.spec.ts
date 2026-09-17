@@ -1,4 +1,23 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+
+async function expectOnlySelectedRow(page: Page, paperHref: string) {
+  const rows = page.locator('[data-paper-row]');
+  await expect(rows.first()).toBeVisible();
+  await expect(rows.filter({ has: page.locator('a[href="' + paperHref + '"]') })).toBeVisible();
+  for (let index = 1; index < (await rows.count()); index += 1) {
+    await expect(rows.nth(index)).toBeHidden();
+  }
+  await expect(page.locator('[data-local-count]')).toHaveAttribute('data-count-value', '1');
+}
+
+async function expectNoRows(page: Page) {
+  const rows = page.locator('[data-paper-row]');
+  for (let index = 0; index < (await rows.count()); index += 1) {
+    await expect(rows.nth(index)).toBeHidden();
+  }
+  await expect(page.locator('[data-local-count]')).toHaveAttribute('data-count-value', '0');
+  await expect(page.locator('[data-local-empty]')).toBeVisible();
+}
 
 test('local Deep Read and Favorite state persists, filters, and is namespaced', async ({ page }) => {
   await page.goto('/paper-pool/');
@@ -16,20 +35,24 @@ test('local Deep Read and Favorite state persists, filters, and is namespaced', 
   await expect(page.locator('[data-local-field="favorite"]')).toBeChecked();
 
   await page.goto('/deep-read/');
-  await expect(page.locator('[data-paper-row]').filter({ has: page.locator('a[href="' + paperHref + '"]') })).toBeVisible();
-  await expect(page.locator('[data-paper-row]:not([hidden])')).toHaveCount(1);
+  await expectOnlySelectedRow(page, paperHref!);
+  await page.reload();
+  await expectOnlySelectedRow(page, paperHref!);
   await page.goto('/favorites/');
-  await expect(page.locator('[data-paper-row]').filter({ has: page.locator('a[href="' + paperHref + '"]') })).toBeVisible();
-  await expect(page.locator('[data-paper-row]:not([hidden])')).toHaveCount(1);
+  await expectOnlySelectedRow(page, paperHref!);
+  await page.reload();
+  await expectOnlySelectedRow(page, paperHref!);
 
   await page.goto(paperHref!);
   await page.locator('[data-read-detail]').click();
   await page.locator('[data-local-field="deep_read"]').uncheck();
   await page.locator('[data-local-field="favorite"]').uncheck();
   await page.goto('/deep-read/');
-  await expect(page.locator('[data-local-empty]')).toBeVisible();
+  await expectNoRows(page);
+  await page.reload();
+  await expectNoRows(page);
   await page.goto('/favorites/');
-  await expect(page.locator('[data-local-empty]')).toBeVisible();
+  await expectNoRows(page);
 
   const namespace = await page.locator('html').getAttribute('data-state-namespace');
   expect(namespace).toBeTruthy();
