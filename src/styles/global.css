@@ -496,6 +496,14 @@ label select {
   font-weight: 700;
   margin-bottom: 7px;
 }
+.rq-original {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.82em;
+  font-weight: 400;
+  line-height: 1.45;
+}
 .rq dd {
   margin: 0 0 7px;
   color: var(--muted);

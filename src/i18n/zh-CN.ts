@@ -84,7 +84,6 @@ export const zhCN = {
     researchQuestions: '研究问题',
     explicitResearchQuestion: '研究问题 / Research Question',
     inferredResearchQuestion: '隐含研究问题 / Inferred Research Question',
-    originalResearchQuestion: '原文 RQ / Original RQ',
     experiments: '实验与主要发现',
     limitations: '局限性',
     authorReported: '作者报告',

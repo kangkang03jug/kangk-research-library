@@ -94,7 +94,6 @@ export const en = {
     researchQuestions: 'Research Questions',
     explicitResearchQuestion: 'Research Question',
     inferredResearchQuestion: 'Inferred Research Question',
-    originalResearchQuestion: 'Original RQ',
     experiments: 'Experiments & Key Findings',
     limitations: 'Limitations',
     authorReported: 'Author-reported',
