@@ -1,0 +1,128 @@
+{
+  "id": "swe-exp-experience-driven-software-issue-resolution",
+  "title": "SWE-Exp: Experience-Driven Software Issue Resolution",
+  "authors": ["Silin Chen", "Shaoxin Lin", "Yuling Shi", "Heng Lian", "Xiaodong Gu", "Longfei Yun", "Dong Chen", "Lin Cao", "Jiyang Liu", "Nu Xia", "Qianxiang Wang"],
+  "year": 2025,
+  "publication_date": "2025-07-31",
+  "venue_or_source": "arXiv:2507.23361",
+  "venue_type": "Preprint",
+  "status": "Preprint",
+  "ranking": {"ccf": null, "cas": null, "jcr": null, "ranking_year": null, "ranking_source": null},
+  "identifiers": {"doi": null, "arxiv": "2507.23361", "openreview": null},
+  "urls": {"paper": "https://arxiv.org/abs/2507.23361", "code": "https://github.com/cslsolow/SWE-Exp"},
+  "topics": ["AI4SE", "Software Issue Resolution", "Experience Memory", "SWE-bench Verified", "MCTS", "Agent Memory", "Retrieval"],
+  "relevance": "High",
+  "reading_basis": "full_text",
+  "quick_read": {
+    "tldr": "SWE-Exp 把软件修复智能体过去的成功与失败轨迹压缩成可复用经验，再在新 issue 上检索最相关的经验指导理解、定位和修改。它在 SWE-bench Verified 上用 DeepSeek-V3-0324 达到 41.6% Pass@1，并发现检索 1 条高相关经验最好，继续增加反而会下降。",
+    "problem_and_motivation": "现有软件工程 Agent 即使使用 MCTS，也常把每个 issue 当作独立任务，从头探索同类错误，既重复消耗计算，又丢掉过去成功修复和失败尝试中可迁移的知识。论文关注如何把历史轨迹转化为可积累、可检索、能跨仓库复用的修复经验。",
+    "core_method": "系统先收集成功与失败的修复轨迹，再由 Experiencer 抽取问题理解和代码修改两类经验，并按 issue type/description 建库。处理新 issue 时先用向量检索找候选经验，再由 reranker 选出最合适的 1 条；高层 Instructor 负责策略，低层 Assistant 负责具体搜索、查看和修改。",
+    "key_results": "SWE-Exp 在 SWE-bench Verified 上达到 41.6% Pass@1，高于同模型的 SWE-Agent 38.8% 和 SWE-Search 35.4%。消融中移除 comprehension experience、modification experience、dual-agent 后分别降到 38.4%、39.0%、39.4%；经验数量从 1 增到 2–4 条时性能逐步下降。",
+    "why_it_matters": "这篇工作直接说明“有经验”并不等于“多塞经验”：经验质量、适用性和检索数量决定是否产生正迁移。对任何基于经验库的代码生成/软件工程 Agent，这都提示需要单独设计经验验证、适用性判断和负迁移控制。"
+  },
+  "detail": {
+    "motivation": "SWE-bench 类 repository-level 修复需要理解 issue、定位代码、修改并执行验证。MCTS 等方法虽然能扩大搜索空间，但仍会在每个新 issue 上重新试错，历史轨迹通常在任务结束后被丢弃。\n\n作者把这种现象概括为 memoryless explorer：同类错误会重复探索失败路径，成功补丁背后的问题理解和修改策略也无法跨 issue 复用。论文因此把经验积累放到 Agent 的长期工作流中，并专门讨论如何避免仓库内相似实例造成的数据泄漏。",
+    "contributions": [
+      {"contribution": "提出 SWE-Exp，将历史软件修复轨迹系统化蒸馏为可持续积累的经验库，使 issue resolution 从单次试错转为经验驱动。", "source": "Introduction, PDF pp. 1–2; Sec. 3.1"},
+      {"contribution": "将经验拆分为 comprehension 与 modification 两个层次，分别服务于问题理解/定位和代码修改，并对成功与失败轨迹保留不同信号。", "source": "Sec. 3.2–3.3, PDF pp. 3–4"},
+      {"contribution": "设计向量召回 + reranker + dual-agent 的在线复用流程，同时排除同仓库经验以降低数据泄漏风险。", "source": "Sec. 3.4, PDF pp. 4–5"},
+      {"contribution": "在 SWE-bench Verified 上进行主实验、组件消融和经验数量分析，显示经验质量和选择性比简单增加经验数量更重要。", "source": "Sec. 5–6; Tables 1–2; Figs. 3–4, PDF pp. 6–9"}
+    ],
+    "research_questions": [
+      {
+        "type": "explicit",
+        "question": "RQ1：SWE-Exp 相比其他方法在软件 issue 修复上有多有效？",
+        "original_question": "How effective is SWE-Exp in issue resolution compared to other approaches?",
+        "how": "在 SWE-bench Verified 上与 Agentless、SWE-Agent、SWE-Search、AutoCodeRover、CodeAct、OpenHands 等方法比较 Pass@1，并重点比较同一 DeepSeek-V3-0324 模型下的差异。",
+        "answer": "SWE-Exp 达到 41.6% Pass@1；同模型下高于 SWE-Agent 的 38.8% 和 SWE-Search 的 35.4%。",
+        "meaning": "固定基础模型时，经验驱动的编排与检索本身可以带来稳定增益，性能提升并非只能来自更大的模型。",
+        "source": "Sec. 4.1 RQ1; Sec. 5.1; Table 1, PDF pp. 5–6"
+      },
+      {
+        "type": "explicit",
+        "question": "RQ2：SWE-Exp 的各个组件分别贡献了多少性能？",
+        "original_question": "How does each component of SWE-Exp contribute to its overall performance?",
+        "how": "分别移除 comprehension experience、modification experience 和 dual-agent 结构，比较 Pass@1 下降幅度。",
+        "answer": "完整系统为 41.6%；移除三部分后分别为 38.4%、39.0% 和 39.4%。",
+        "meaning": "问题理解经验的贡献最大，但修改经验和角色分离同样提供互补收益，说明经验应与具体决策阶段匹配。",
+        "source": "Sec. 4.1 RQ2; Sec. 5.2; Table 2, PDF p. 7"
+      },
+      {
+        "type": "explicit",
+        "question": "RQ3：检索经验的数量会如何影响 SWE-Exp？",
+        "original_question": "How does the number of experiences impact the effectiveness of SWE-Exp?",
+        "how": "将每次使用的经验数量从 0 调整到 4，并比较 Pass@1 及不同设置下解决 issue 的差异。",
+        "answer": "0 条时为 37.8%，1 条达到最高 41.6%；2、3、4 条分别下降到 40.4%、40.2%、39.6%。",
+        "meaning": "更多经验可能造成注意力分散和冲突，经验系统需要质量优先和强筛选，而不是简单扩大上下文。",
+        "source": "Sec. 4.1 RQ3; Sec. 5.3; Figs. 3–4, PDF pp. 7–8"
+      }
+    ],
+    "research_questions_empty_reason": null,
+    "research_questions_empty_source": null,
+    "method": "离线阶段收集跨多类仓库、错误类型和复杂度的修复轨迹。每条轨迹保留高层指令、具体动作、仓库状态和环境反馈，并标记最终成功/失败；失败轨迹还记录失败原因。Experiencer 从中抽取可迁移的 comprehension/perspective 和 modification 经验，并生成 issue type 与 description，使用 Multilingual-E5-Large 向量化后存入 Experience Bank。\n\n在线处理新 issue 时，系统根据错误类型与描述从经验库召回 top-10，再由 reranking Agent 选择最适用的 k=1 经验。为减少泄漏，目标 issue 所在仓库的经验不会被检索。随后 Instructor 负责高层动作策略，Assistant 根据指令执行具体工具操作；经验作为可参考上下文，而不是强制 Agent 始终照搬历史策略。",
+    "experiments_and_key_findings": "主实验使用 SWE-bench Verified，基础框架扩展自 SWE-Search，Agent 模型为 DeepSeek-V3-0324，最多 20 次迭代、最多生成 2 个完成补丁。SWE-Exp 达到 41.6% Pass@1，同模型下超过 SWE-Agent 38.8%、Agentless 36.6%、SWE-Search 35.4% 和 OpenHands 38.8%。\n\n消融表明，移除 comprehension experience 的下降最大（41.6%→38.4%），其次是 modification experience（39.0%）和 dual-agent（39.4%）。经验数量实验更关键：1 条经验最好；继续增加到 2–4 条时逐步下降。讨论部分还指出，早期让 Instructor 显式依赖 comprehension experience 会产生过度依赖，因此最终把经验作为可参考上下文而非强制推理依据。",
+    "limitations": {
+      "author_reported": [
+        "效果依赖经验抽取质量以及经验与目标 issue 的相关性；不匹配的经验会降低表现。",
+        "当前系统缺少稳健的适用性评估机制，可能在新场景中过度复用不合适的历史模式。",
+        "作者提出未来需要更好的经验去噪、检索与对齐，并加入置信度/适用性评分和形式化验证。",
+        "实验主要依赖单一基础模型 DeepSeek-V3-0324，模型特异性可能限制结论泛化；训练数据与 SWE-bench 的潜在重叠也无法完全验证。"
+      ],
+      "ai_analysis": [
+        "经验构建高度依赖可验证的历史轨迹；迁移到缺少可靠执行 oracle 的任务时，经验质量控制会更困难。",
+        "论文通过排除同仓库经验控制泄漏，但跨仓库仍可能存在高度相似实现或 API 模式，仅以仓库边界不能完全刻画经验独立性。",
+        "1 条经验优于多条说明在线瓶颈可能不是召回率，而是适用性和冲突控制，这与先判断是否值得使用经验、再决定是否注入的可靠性门控直接相关。"
+      ]
+    },
+    "relation_to_research": "这篇论文与经验驱动的低成本代码生成/软件工程 Agent 高度相关。它同样从成功与失败轨迹中抽取可迁移知识，但应用在 repository-level issue resolution，并在在线阶段通过检索 + rerank 选择经验。最值得比较的是其经验数量实验和适用性局限：单条高相关经验优于多条，而不相关经验会负迁移。\n\n因此它可作为经验库设计的重要相关工作：一方面支持经验需要结构化抽取与阶段匹配，另一方面也说明单靠相似度检索不够，还需要可靠性/适用性检查、失败经验利用和跨任务泄漏控制。",
+    "what_can_be_done_next": [
+      {
+        "title": "为经验增加显式适用性门控",
+        "rationale": "论文已经观察到不匹配经验会降低表现，而且 1 条经验优于多条，说明是否使用经验本身需要判定。",
+        "concrete_plan": "在检索后增加独立 applicability gate，输入目标任务特征、经验元数据和公开执行/接口信号，输出 accept/reject/uncertain；只有通过的经验才进入后续 Agent。",
+        "validation": "比较无门控、reranker-only、门控三种方案的 Pass@1、负迁移率、平均注入经验数和额外 Token/调用成本。",
+        "expected_value": "把经验检索从相似就用改为相关且可信才用，降低经验误导。",
+        "source": "Sec. 5.3 and Sec. 6.2–6.3, PDF pp. 7–9"
+      },
+      {
+        "title": "区分建设性经验与警告经验",
+        "rationale": "SWE-Exp 同时收集成功和失败轨迹，但在线表示主要仍围绕 comprehension/modification；失败模式可以更明确地作为风险信号。",
+        "concrete_plan": "将成功/修复经验与失败警告分成独立检索通道：前者提供行动先验，后者提供 avoid/risk 条件，不把失败轨迹改写成正向建议。",
+        "validation": "测量只用正向、正向+失败警告、混合单通道三种设置的成功率、重复失败率和调试轮数。",
+        "expected_value": "保留失败轨迹中的风险信息，同时减少错误策略被正向复用的可能性。",
+        "source": "Sec. 3.2–3.3, PDF pp. 3–4"
+      },
+      {
+        "title": "比较始终使用经验与失败后升级到经验",
+        "rationale": "SWE-Exp 在主流程中直接进行经验增强，而经验检索和 reranking 本身会增加在线成本。",
+        "concrete_plan": "先运行直接修复/生成路径，仅在可靠性检查失败或不确定时升级到经验增强 Agent，并保持相同模型和总预算。",
+        "validation": "比较成功率、平均 Token、Agent 调用数、时间及每个新增成功样本的边际成本。",
+        "expected_value": "判断经验是否应成为默认上下文，还是仅用于困难样本，以提高成本效率。",
+        "source": "Sec. 3.4 and Sec. 5, PDF pp. 4–8"
+      },
+      {
+        "title": "做跨任务经验迁移实验",
+        "rationale": "论文重点验证跨仓库复用，但尚未系统回答一种任务类型上构建的经验是否能迁移到另一类代码任务。",
+        "concrete_plan": "分别从 repository repair、函数级代码生成和竞赛编程轨迹构建经验库，再做同域与跨域检索，保持模型、top-k 和预算一致。",
+        "validation": "报告同域/跨域准确率增益、负迁移率、检索覆盖率和经验类型分布，并分析哪些任务特征决定迁移成功。",
+        "expected_value": "界定经验的真正可迁移边界，避免把跨仓库有效误解为跨任务普遍有效。",
+        "source": "Sec. 6.1 and Sec. 7, PDF pp. 8–10"
+      }
+    ]
+  },
+  "original_abstract": null,
+  "bibtex": null,
+  "figures": [],
+  "evidence": [
+    {"claim": "SWE-Exp 从成功与失败修复轨迹中抽取 comprehension/modification 经验并构建 Experience Bank。", "locator": "Sec. 3.2–3.3, PDF pp. 3–4", "url": "https://arxiv.org/abs/2507.23361"},
+    {"claim": "在线检索先召回 top-10，再由 reranker 选择 k=1，并排除目标 issue 同仓库经验。", "locator": "Sec. 3.4 and Sec. 4.4, PDF pp. 4–6", "url": "https://arxiv.org/abs/2507.23361"},
+    {"claim": "SWE-Exp 在 SWE-bench Verified 上达到 41.6% Pass@1。", "locator": "Sec. 5.1; Table 1, PDF pp. 6–7", "url": "https://arxiv.org/abs/2507.23361"},
+    {"claim": "移除 comprehension/modification/dual-agent 后分别降到 38.4%、39.0%、39.4%。", "locator": "Sec. 5.2; Table 2, PDF p. 7", "url": "https://arxiv.org/abs/2507.23361"},
+    {"claim": "经验数量为 1 时最高 41.6%，2–4 条时分别为 40.4%、40.2%、39.6%。", "locator": "Sec. 5.3; Fig. 3, PDF pp. 7–8", "url": "https://arxiv.org/abs/2507.23361"},
+    {"claim": "作者指出经验质量、相关性和适用性判断是主要限制，并提出 confidence/applicability scoring 与 formal verification。", "locator": "Sec. 6.3, PDF p. 9", "url": "https://arxiv.org/abs/2507.23361"}
+  ],
+  "generated_by": "ChatGPT Daily Research Agent",
+  "generated_at": "2026-09-18T19:35:00+08:00",
+  "updated_at": "2026-09-18T19:35:00+08:00",
+  "owner_edited": false
+}

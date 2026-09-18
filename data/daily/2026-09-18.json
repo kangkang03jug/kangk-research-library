@@ -5,6 +5,11 @@
       "paper_id": "mapcoder-lite-distilling-multi-agent-coding",
       "primary": true,
       "run_type": "scheduled"
+    },
+    {
+      "paper_id": "swe-exp-experience-driven-software-issue-resolution",
+      "primary": false,
+      "run_type": "manual"
     }
   ]
 }
