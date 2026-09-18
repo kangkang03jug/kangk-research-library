@@ -1,0 +1,77 @@
+{
+  "id": "mapcoder-lite-distilling-multi-agent-coding",
+  "title": "MapCoder-Lite: Distilling Multi-Agent Coding into a Single Small LLM",
+  "authors": ["Woongkyu Lee", "Junhee Cho", "Jungwook Choi"],
+  "year": 2026,
+  "publication_date": "2026-03-24",
+  "venue_or_source": "Findings of the Association for Computational Linguistics: EACL 2026",
+  "venue_type": "Conference",
+  "status": "Published",
+  "ranking": {"ccf": null, "cas": null, "jcr": null, "ranking_year": null, "ranking_source": null},
+  "identifiers": {"doi": "10.18653/v1/2026.findings-eacl.346", "arxiv": "2509.17489", "openreview": null},
+  "urls": {"paper": "https://aclanthology.org/2026.findings-eacl.346/", "code": "https://github.com/aiha-lab/MapCoder-Lite"},
+  "topics": ["Code Generation", "Multi-Agent", "Trajectory Distillation", "LoRA", "Cost Efficiency", "Execution-Verified Data"],
+  "relevance": "High",
+  "reading_basis": "full_text",
+  "quick_read": {
+    "tldr": "MapCoder-Lite 想解决一个直接的问题：多智能体代码生成效果不错，但通常依赖大模型，成本很高。作者把强模型产生的成功轨迹用于训练一个 7B 模型，并为不同智能体配置轻量 LoRA 适配器，使小模型也能稳定完成检索、规划、编码和调试。",
+    "problem_and_motivation": "直接把小模型放进多智能体流程通常效果不好。它们容易输出错误格式，也可能在规划、编码或调试某一步出错，而且上游错误会继续影响后面的智能体。作者希望在保留多智能体分工的同时，把模型规模和运行成本降下来。",
+    "core_method": "方法有三步。第一，只保留最终代码通过测试的强模型轨迹作为训练数据。第二，当 7B 模型失败时，让更强的监督模型检查整条轨迹，只修正最可能出错的智能体，再把通过测试的结果加入训练集。第三，四个智能体共享同一个 Qwen2.5-7B 主干，只分别训练轻量 LoRA 适配器。",
+    "key_results": "在 xCodeEval 上，MapCoder-Lite 将 7B MapCoder 的准确率从 13.21% 提高到 28.30%，并把格式错误从 29 次降到 0。它在 APPS 和 CodeContests 上也有提升；相比 32B 版本，GPU 内存和每个输出 Token 的生成时间约降到四分之一。",
+    "why_it_matters": "这篇论文说明，多智能体系统不一定要靠更大的模型才能提升效果。更关键的是训练数据是否经过执行验证，以及是否针对不同角色训练。对低成本代码生成而言，这提供了另一条路线：把昂贵推理的一部分成本转移到一次性的离线经验构建和角色训练中。"
+  },
+  "detail": {
+    "motivation": "多智能体代码生成把检索、规划、编码和调试交给不同角色，可以提高复杂编程任务的完成率，但代价是更多模型调用、更多 Token 和更高延迟。论文还发现，小于 10B 的模型直接套用这类流程时，经常因为格式遵循能力和角色推理能力不足而失败。\n\n作者因此不再单纯增加推理轮次，而是尝试把强模型的成功经验蒸馏给一个小模型，并用执行测试筛掉不可靠轨迹。这样做的核心目标是让 7B 模型获得稳定的角色能力，同时控制部署成本。",
+    "contributions": [
+      {"contribution": "提出 MapCoder-Lite，用一个共享的 7B 主干和角色专属 LoRA 适配器承担检索、规划、编码和调试四种角色。", "source": "Sec. 5 and Fig. 1; PDF pp. 6570–6574"},
+      {"contribution": "构建基于最终测试通过结果筛选的轨迹蒸馏流程，只保留端到端成功的强模型轨迹作为训练数据。", "source": "Sec. 5.1 and Fig. 3; PDF p. 6573"},
+      {"contribution": "提出监督模型引导的跨智能体修正：失败时检查完整轨迹，只重新生成主要出错角色的输出，并再次执行验证。", "source": "Sec. 5.2 and Fig. 5; PDF pp. 6573–6574"},
+      {"contribution": "在 xCodeEval、APPS、CodeContests、HumanEval 和 MBPP 上验证了角色微调对准确率、格式稳定性和运行成本的影响。", "source": "Sec. 6–7; Tables 3–7; PDF pp. 6574–6576"}
+    ],
+    "research_questions": [
+      {
+        "type": "inferred",
+        "question": "一个经过角色化训练的 7B 模型，能否在明显降低成本的同时，保留多智能体代码生成的主要收益？",
+        "original_question": null,
+        "how": "作者先分析小模型在 MapCoder 中的格式错误和角色能力不足，再训练 MapCoder-Lite，并与直接生成、提示方法、原始 MapCoder 以及更大的 Qwen 模型比较。",
+        "answer": "可以。MapCoder-Lite 在 xCodeEval 上把 7B MapCoder 的准确率从 13.21% 提高到 28.30%，并消除格式错误；同时它的表现接近更大的模型，而 GPU 内存和生成时间明显更低。",
+        "meaning": "多智能体系统的能力不只取决于模型大小。高质量、经过执行验证的角色训练数据，可以让小模型更稳定地完成复杂流程，并降低在线推理成本。",
+        "source": "Introduction, Sec. 1; PDF pp. 6569–6570"
+      }
+    ],
+    "research_questions_empty_reason": null,
+    "research_questions_empty_source": null,
+    "method": "MapCoder-Lite沿用 MapCoder 的四个角色：检索器找相关算法，规划器生成解题步骤，编码器写程序，调试器根据测试结果修复代码。不同之处在于，这四个角色不再依赖多个大模型，而是共享同一个 Qwen2.5-7B-Instruct 主干，每个角色使用独立的 rank-32 LoRA 适配器。\n\n训练数据也经过专门处理。检索和调试数据主要来自强模型轨迹，并要求最终程序通过测试。规划和编码阶段则加入监督模型：如果 7B 模型生成的最终代码失败，监督模型查看完整轨迹，判断主要错误来自哪个角色，只修正该角色；修正后的程序通过测试后才进入训练集。监督模型只用于离线数据构建，不进入最终在线推理流程。",
+    "experiments_and_key_findings": "主要实验覆盖 xCodeEval、APPS 和 CodeContests，并补充 HumanEval、MBPP 和不同模型主干。使用 Qwen2.5-7B 时，MapCoder-Lite 在 xCodeEval 上达到 28.30%，原始 MapCoder 为 13.21%；APPS 从 6.00% 提高到 8.00%，CodeContests 从 6.06% 提高到 13.33%。在 HumanEval 和 MBPP 上，准确率分别从 70.73% 提高到 82.93%、从 67.51% 提高到 84.63%。\n\n消融实验表明，角色微调并不是简单地“参数越多越好”。只微调检索器即可减少格式错误，加入规划器后 xCodeEval 达到 26.42% 且格式错误降为 0；四个角色全部微调时达到最高的 28.30%。LoRA rank=32 的组合优于更小或更大的 rank。",
+    "limitations": {
+      "author_reported": [
+        "作者指出，7B 模型虽然从强模型轨迹中学习，但仍没有完全达到 DeepSeek-V3、Qwen2.5-32B 等强模型的能力，后续仍需要改进模型结构或训练目标。",
+        "多智能体角色的优化空间很大。本文对不同角色采用较统一的微调方案，作者认为更有针对性的角色训练可能进一步提高效果。"
+      ],
+      "ai_analysis": [
+        "论文把大量成本转移到了离线数据构建阶段：检索、规划、编码和调试数据的生成需要多张 A100，并使用强模型和监督模型。因此在线推理更便宜，不等于整个系统的训练与数据成本很低。",
+        "主要复杂任务来自竞赛编程数据集，尚不能直接说明同样的角色蒸馏方法在 repository-level 软件工程任务中也有相同收益。"
+      ]
+    },
+    "relation_to_research": "这篇论文与低成本多智能体代码生成高度相关。它与“在线按可靠性决定是否升级”的思路不同：MapCoder-Lite主要通过离线轨迹筛选和角色微调降低在线成本。尤其值得关注的是，它只保留最终通过测试的轨迹，并在失败时定位需要修正的角色，这说明执行验证可以直接用于经验筛选和角色级训练数据构建。",
+    "what_can_be_done_next": [
+      {"title": "比较离线训练与在线升级的成本", "rationale": "MapCoder-Lite把成本主要放在离线轨迹构建和微调，而可靠性升级方法把额外成本放在困难样本的在线处理。", "concrete_plan": "在同一 7B 模型和数据集上比较角色微调、按失败升级以及两者结合的方案。", "validation": "同时报告 Pass@1、离线 GPU 时间、在线 Token、调用次数和平均推理时间。", "expected_value": "判断哪种成本分配方式更适合长期部署。", "source": null},
+      {"title": "研究执行验证的经验筛选", "rationale": "论文显示，只按格式筛选轨迹不如保留最终程序通过测试的轨迹。", "concrete_plan": "构造格式正确、局部正确、端到端执行通过三种经验质量等级，并分别用于后续代码生成或调试。", "validation": "比较不同质量经验对准确率、负迁移率和调试成功率的影响。", "expected_value": "验证执行结果是否应作为经验入库的核心质量信号。", "source": null},
+      {"title": "按角色选择性注入经验", "rationale": "不同角色的错误类型和所需知识不同，统一经验可能增加无关信息。", "concrete_plan": "分别向规划器、编码器和调试器提供对应角色的历史经验，并与全角色共享经验比较。", "validation": "报告各角色单独注入和组合注入的成功率、Token 与错误类型变化。", "expected_value": "确定经验应该在哪些阶段使用，以及是否需要角色专属检索。", "source": null}
+    ]
+  },
+  "original_abstract": "Large language models (LLMs) have advanced code generation from single-function tasks to competitive-programming problems, but existing multi-agent solutions either rely on costly large-scale (> 30 B) models or collapse when downsized to small open-source models. We present MapCoder-Lite, a framework for distilling the complex reasoning of large, multi-agent coding systems into a single 7B model. Our contribution is a novel, three-pillar methodology that synergistically generates, refines, and encodes multi-agent knowledge: (i) pass-based trajectory distillation from strong LLMs fixes format fragility in retrieval and reduces failures in debugging, (ii) supervisor-guided correction with global feedback strengthens planning and coding agents, and (iii) agent-wise LoRA fine-tuning delivers memory-efficient specialisation. Comprehensive evaluation on xCodeEval, APPS, and CodeContests shows that MapCoder-Lite more than doubles xCodeEval accuracy (13.2% → 28.3%), eliminates all format failures, while reducing GPU memory and token-generation time by 4× compared to a 32B model. It also achieves over 10% gains on simpler coding benchmarks, demonstrating broad improvements beyond competitive programming. These results demonstrate that careful agent-wise fine-tuning unleashes high-quality multi-agent coding on a small language model. Our code is publicly available at https://github.com/aiha-lab/MapCoder-Lite.",
+  "bibtex": "@inproceedings{lee-etal-2026-mapcoder,\n  title = {{M}ap{C}oder-Lite: Distilling Multi-Agent Coding into a Single Small {LLM}},\n  author = {Lee, Woongkyu and Cho, Junhee and Choi, Jungwook},\n  booktitle = {Findings of the Association for Computational Linguistics: EACL 2026},\n  month = mar,\n  year = {2026},\n  address = {Rabat, Morocco},\n  publisher = {Association for Computational Linguistics},\n  url = {https://aclanthology.org/2026.findings-eacl.346/},\n  doi = {10.18653/v1/2026.findings-eacl.346},\n  pages = {6569--6596}\n}",
+  "figures": [],
+  "evidence": [
+    {"claim": "MapCoder-Lite 使用单个 Qwen2.5-7B 主干和四组角色专属 rank-32 LoRA 适配器，额外参数低于 3%。", "locator": "Sec. 5 and Sec. 5.3; PDF pp. 6572–6574", "url": "https://aclanthology.org/2026.findings-eacl.346.pdf"},
+    {"claim": "轨迹数据使用最终执行结果筛选，只保留程序通过全部单元测试的样本；失败轨迹可由监督模型定位并修正具体角色。", "locator": "Sec. 5.1–5.2; Fig. 3 and Fig. 5; PDF pp. 6573–6574", "url": "https://aclanthology.org/2026.findings-eacl.346.pdf"},
+    {"claim": "在 xCodeEval 上，MapCoder-Lite 从原始 7B MapCoder 的 13.21% 提高到 28.30%，格式错误从 29 降到 0。", "locator": "Table 3 and Sec. 7.1; PDF p. 6574", "url": "https://aclanthology.org/2026.findings-eacl.346.pdf"},
+    {"claim": "角色微调消融中，四个角色全部微调达到 28.30%；HumanEval 和 MBPP 分别达到 82.93% 和 84.63%。", "locator": "Table 5, Sec. 7.3 and Table 7; PDF pp. 6575–6576", "url": "https://aclanthology.org/2026.findings-eacl.346.pdf"},
+    {"claim": "作者限制包括小模型仍未完全复制强模型能力，以及不同智能体可能需要更有针对性的微调策略。", "locator": "Limitations; PDF p. 6577", "url": "https://aclanthology.org/2026.findings-eacl.346.pdf"}
+  ],
+  "generated_by": "ChatGPT",
+  "generated_at": "2026-09-18T08:01:00+08:00",
+  "updated_at": "2026-09-18T08:01:00+08:00",
+  "owner_edited": false
+}
