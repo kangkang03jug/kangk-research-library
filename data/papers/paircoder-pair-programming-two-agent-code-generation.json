@@ -1,0 +1,74 @@
+{
+  "id": "paircoder-pair-programming-two-agent-code-generation",
+  "title": "PairCoder: Pair Programming-Inspired Two-Agent Collaboration for Code Generation",
+  "authors": ["Junhao Chen", "Xiang Li", "Yibin Xu", "Yuehan Cui", "Fangsheng Weng", "Hao Zhao", "Fei Ma", "Qi Tian"],
+  "year": 2026,
+  "publication_date": "2026-07-02",
+  "venue_or_source": "Findings of the Association for Computational Linguistics: ACL 2026",
+  "venue_type": "Conference",
+  "status": "Published",
+  "ranking": {"ccf": null, "cas": null, "jcr": null, "ranking_year": null, "ranking_source": null},
+  "identifiers": {"doi": "10.18653/v1/2026.findings-acl.149", "arxiv": null, "openreview": null},
+  "urls": {"paper": "https://aclanthology.org/2026.findings-acl.149/", "code": "https://github.com/yisuanwang/PairCoder"},
+  "topics": ["Code Generation", "Multi-Agent", "Pair Programming", "Iterative Refinement", "Cost Efficiency", "Role Switching"],
+  "relevance": "High",
+  "reading_basis": "full_text",
+  "quick_read": {
+    "tldr": "PairCoder 用两个智能体模拟结对编程：Driver 负责写代码，Navigator 负责审查和给出修改意见；当连续修改仍没有进展时，两者交换角色。它想证明一个很实用的观点：多智能体代码生成不一定需要很多角色，设计好两个角色的协作方式也能提高正确率并控制成本。",
+    "problem_and_motivation": "单模型生成代码时容易陷入自己的思路，自己检查也可能重复同样的错误。已有多智能体方法虽然能增加不同视角，但通常需要很多角色和交互轮次，Token 和延迟成本较高。作者因此研究：能否把协作结构压缩到两个智能体，同时保留主要收益。",
+    "core_method": "一个 Driver 根据题目生成或修改代码，一个 Navigator 检查语法、功能和代码质量并返回具体意见。如果 Navigator 接受代码就结束；否则 Driver 继续修改。当连续错误表明当前 Driver 卡住时，两者交换角色，让另一个模型接手生成。",
+    "key_results": "在 HumanEval 上，PairCoder 对测试的 13 个模型都比单模型生成更好。八个代表性模型中最高达到 91.0% pass@1；Llama-3-8B 从 62.2% 提高到 74.8%。与更重的多智能体方法相比，它通常少用 40%–70% 的 Token。",
+    "why_it_matters": "这篇论文说明，提升多智能体代码生成不一定要继续增加角色数量。更简单的分工、有效的审查和在停滞时切换角色，也能取得明显收益。对关注成本的代码生成系统，这提供了一个很直接的轻量协作基线。"
+  },
+  "detail": {
+    "motivation": "代码生成不仅需要第一次写出程序，还经常需要检查、定位问题和反复修改。单个模型同时负责生成和自我审查时，容易受到自身盲点影响。多智能体方法通过引入不同角色缓解这一问题，但完整的软件团队式架构会带来大量额外调用和 Token。\n\n作者从人类结对编程得到启发，把问题简化为两个角色：一个人写，一个人持续审查。论文真正关心的不是“更多智能体是否更强”，而是“最小的协作结构能否仍然带来稳定提升”。",
+    "contributions": [
+      {"contribution": "提出 PairCoder，把人类结对编程中的 Driver–Navigator 分工转化为两个 LLM 智能体的代码生成流程。", "source": "Sec. 1 and Sec. 3.1; PDF pp. 3044–3045"},
+      {"contribution": "设计基于错误的角色切换机制：当连续修改信号表明当前生成者停滞时，让两个智能体交换职责。", "source": "Sec. 3.2 and Sec. 3.4; PDF pp. 3046–3048"},
+      {"contribution": "在 13 个不同 LLM 上系统评估两智能体协作，并与多种单模型和多智能体方法比较准确率与 Token 成本。", "source": "Sec. 4.1–4.7; PDF pp. 3048–3050"},
+      {"contribution": "验证 PairCoder 不仅能独立使用，还能作为代码生成模块加入 Self-Collaboration、MetaGPT 和 ChatDev 等更大系统。", "source": "Sec. 4.5 and Table 3; PDF pp. 3049–3050"}
+    ],
+    "research_questions": [
+      {
+        "type": "inferred",
+        "question": "只使用两个分工明确的智能体，能否在明显降低协作成本的同时，仍然稳定提高代码生成正确率？",
+        "original_question": null,
+        "how": "作者把一个智能体设为代码生成者，另一个设为审查者，并加入停滞时的角色切换；随后在 HumanEval 上用 13 个模型测试不同组合，并与单模型和多种多智能体方法比较。",
+        "answer": "可以。在测试的 13 个模型上，两智能体协作都优于对应的单模型生成；同时相较更重的多智能体基线，Token 使用量通常减少 40%–70%。",
+        "meaning": "多智能体系统的收益不只来自角色数量。清晰分工、外部审查以及在失败持续时改变负责生成的模型，可能比堆叠更多智能体更重要。",
+        "source": "Introduction, Sec. 1; PDF pp. 3043–3044"
+      }
+    ],
+    "research_questions_empty_reason": null,
+    "research_questions_empty_source": null,
+    "method": "PairCoder 维护两个角色。Driver 接收编程题目和历史交互，负责生成候选代码或根据反馈修改代码；Navigator 查看当前代码、题目和历史信息，检查正确性、功能一致性与代码质量。如果没有发现问题，Navigator 返回接受信号；否则给出具体修改建议。\n\n系统保存每轮的候选代码和审查结果，形成共享交互历史。为了避免角色在多轮对话中混淆，作者还使用角色提示持续提醒当前模型是 Driver 还是 Navigator。\n\n最关键的控制机制是角色切换。论文比较固定间隔切换和错误触发切换。后者根据连续出现的修改信号判断当前 Driver 是否卡住；一旦达到阈值，两个模型交换职责，让原来的 Navigator 接手写代码。实验中连续两次错误后切换整体最稳定。",
+    "experiments_and_key_findings": "主要实验在 HumanEval 上进行，覆盖 13 个模型，并与 AgentCoder、Self-Collaboration、MetaGPT、AgentVerse、ChatDev、Reflexion 和 AGILECODER 等方法比较。PairCoder 在所有测试模型上都比对应的单模型生成更好；八个代表性模型中有七个达到最好或并列最好结果。Llama-3-8B 从 62.2% 提高到 74.8%，GPT-3.5-turbo 从 69.5% 提高到 81.2%，GPT-4 达到 91.0%。\n\n角色切换实验表明，错误触发策略比长时间固定一个 Driver 更有效；连续两次错误后切换总体最稳定。不同模型配对实验还发现，很多异构组合能超过两个组成模型各自单独运行的结果，尤其是代码模型负责生成、通用对话模型负责审查时。\n\n成本方面，PairCoder 每题大约使用 500–900 Token，而更重的多智能体方法约为 1,000–2,100 Token。它仍比单次生成更贵，但处于单模型与复杂多智能体系统之间。",
+    "limitations": {
+      "author_reported": [],
+      "ai_analysis": [
+        "主要结论高度依赖 HumanEval。虽然论文提到 HumanEval-X 和 CoderEval 也观察到类似趋势，但正文的系统比较仍以函数级任务为主，因此不能直接说明两智能体结构在 APPS、LiveCodeBench 或 repository-level 软件工程任务上同样有效。",
+        "Navigator 的接受信号主要来自模型审查，而不是强制执行测试形成的可靠性证书。审查模型可能漏掉语义错误，因此“被接受”不等于程序已经经过执行验证。",
+        "PairCoder 比单模型仍需要约四倍 Token。它证明的是相对重型多智能体方法更省，而不是几乎没有额外成本。"
+      ]
+    },
+    "relation_to_research": "这篇论文与成本敏感的多智能体代码生成直接相关。它提供了一个很适合对比的轻量慢路径：只保留生成者和审查者，并在连续失败时切换角色。对于可靠性驱动的升级方法，可以进一步比较“什么时候升级”与“升级后需要多少角色”这两个独立问题。论文的错误触发切换也说明，失败信号不仅可以决定是否继续迭代，还可以决定由哪个角色接管下一步。",
+    "what_can_be_done_next": [
+      {"title": "把可靠性升级与两智能体慢路径结合", "rationale": "PairCoder 证明两个角色就能获得明显协作收益，但它默认每个任务都进入双智能体流程。", "concrete_plan": "先用直接生成处理所有任务，只对可靠性检查失败或不确定的样本启动 Driver–Navigator 协作。", "validation": "在 HumanEval、MBPP、APPS 和 LiveCodeBench 上同时比较准确率、升级比例、Token、调用次数和平均时间。", "expected_value": "判断按需使用 PairCoder 是否能进一步降低平均成本，同时保留困难样本上的协作收益。", "source": "Sec. 1 and Sec. 4.7"},
+      {"title": "用执行结果替代纯模型审查的停止信号", "rationale": "PairCoder 由 Navigator 判断是否接受代码，而代码生成任务通常还能获得测试执行结果。", "concrete_plan": "将可见测试、运行错误和接口检查作为外部证据，要求 Navigator 的接受判断与执行结果一致；对冲突情况单独处理。", "validation": "统计错误接受率、正确代码被误改率、最终 pass@1 和额外执行成本。", "expected_value": "减少审查模型漏错造成的错误提前停止，使双智能体协作更可靠。", "source": "Sec. 3.2–3.4"},
+      {"title": "研究失败信号驱动的角色切换策略", "rationale": "论文显示连续两次错误后切换总体最好，但最佳阈值会随模型组合变化。", "concrete_plan": "把固定错误次数改成由错误类型、连续失败、测试进展和模型置信信号共同决定的动态切换规则。", "validation": "比较固定阈值、动态阈值和不切换三种策略的成功率、平均轮数与 Token。", "expected_value": "判断更细粒度的可靠性信号能否减少无效切换并提高修复效率。", "source": "Sec. 4.2 and Fig. 6"}
+    ]
+  },
+  "original_abstract": "Large Language Models (LLMs) achieve strong results on code generation, but single model inference remains brittle on tasks that require iterative refinement. Existing multi agent frameworks improve reliability, yet they often incur substantial token and latency overhead. We introduce PairCoder, a framework that brings pair programming to autonomous LLM collaboration. PairCoder assigns one model to code generation and the other to review, and switches roles when repeated errors suggest that the current interaction has stalled. Across 13 LLMs on HumanEval, PairCoder consistently improves over single model inference. On eight representative backbones, it reaches 91.0% pass@1 and improves over single model inference by up to 20.3% while reducing token usage by 40% to 70% relative to multi agent baselines. Many heterogeneous pairings also outperform both constituent models, suggesting that the framework generalizes across model families. These results position PairCoder as an effective and deployment conscious alternative to heavier multi agent systems.Code is available at https://github.com/yisuanwang/PairCoder",
+  "bibtex": "@inproceedings{chen-etal-2026-paircoder,\n  title = {{P}air{C}oder: Pair Programming-Inspired Two-Agent Collaboration for Code Generation},\n  author = {Chen, Junhao and Li, Xiang and Xu, Yibin and Cui, Yuehan and Weng, Fangsheng and Zhao, Hao and Ma, Fei and Tian, Qi},\n  booktitle = {Findings of the Association for Computational Linguistics: ACL 2026},\n  month = jul,\n  year = {2026},\n  address = {San Diego, California, United States},\n  publisher = {Association for Computational Linguistics},\n  url = {https://aclanthology.org/2026.findings-acl.149/},\n  doi = {10.18653/v1/2026.findings-acl.149},\n  pages = {3043--3058},\n  ISBN = {979-8-89176-395-1}\n}",
+  "figures": [],
+  "evidence": [
+    {"claim": "PairCoder 使用 Driver 和 Navigator 两个角色进行生成、审查和迭代修改，并支持错误触发的角色切换。", "locator": "Sec. 3.1–3.4, Fig. 2–5; PDF pp. 3045–3048", "url": "https://aclanthology.org/2026.findings-acl.149.pdf"},
+    {"claim": "PairCoder 在测试的 13 个模型上都优于对应单模型生成，GPT-4 达到 91.0% pass@1。", "locator": "Sec. 4.3 and Table 1; PDF p. 3048", "url": "https://aclanthology.org/2026.findings-acl.149.pdf"},
+    {"claim": "错误触发切换在连续两次错误时总体表现最稳定。", "locator": "Sec. 4.2 and Fig. 6; PDF p. 3048", "url": "https://aclanthology.org/2026.findings-acl.149.pdf"},
+    {"claim": "PairCoder 每题约使用 500–900 Token，相比大型多智能体方法的 1,000–2,100 Token 更省。", "locator": "Sec. 4.7 and Fig. 7; PDF pp. 3049–3050", "url": "https://aclanthology.org/2026.findings-acl.149.pdf"}
+  ],
+  "generated_by": "ChatGPT Scheduled Task",
+  "generated_at": "2026-09-19T08:00:00+08:00",
+  "updated_at": "2026-09-19T08:00:00+08:00",
+  "owner_edited": false
+}
