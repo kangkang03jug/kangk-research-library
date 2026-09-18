@@ -429,12 +429,9 @@ function validDetail(value: unknown, readingBasis?: unknown) {
         : hasNoEmptyMetadata || hasValidEmptyMetadata);
   return (
     hasOnlyKeys(value, keys) &&
-    [
-      'motivation',
-      'method',
-      'experiments_and_key_findings',
-      'relation_to_research',
-    ].every((key) => typeof value[key] === 'string') &&
+    ['motivation', 'method', 'experiments_and_key_findings', 'relation_to_research'].every(
+      (key) => typeof value[key] === 'string',
+    ) &&
     validNextSteps(value.what_can_be_done_next) &&
     validContributions(value.contributions) &&
     validResearchQuestions(value.research_questions) &&

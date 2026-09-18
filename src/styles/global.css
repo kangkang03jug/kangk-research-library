@@ -595,11 +595,26 @@ html:not([data-local-state-ready]) [data-local-state-filter] [data-paper-row] {
   background: var(--soft);
   padding: 18px;
 }
-.next-steps { display: grid; gap: 22px; }
-.next-step { border: 1px solid var(--line); padding: 20px; background: var(--surface); }
-.next-step h3 { margin: 0 0 18px; font-size: 1.05rem; }
-.next-step p { margin-top: 0; }
-.next-step small { display: block; color: var(--muted); }
+.next-steps {
+  display: grid;
+  gap: 22px;
+}
+.next-step {
+  border: 1px solid var(--line);
+  padding: 20px;
+  background: var(--surface);
+}
+.next-step h3 {
+  margin: 0 0 18px;
+  font-size: 1.05rem;
+}
+.next-step p {
+  margin-top: 0;
+}
+.next-step small {
+  display: block;
+  color: var(--muted);
+}
 .abstract,
 .bibtex {
   border: 1px solid var(--line);
