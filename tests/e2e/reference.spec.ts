@@ -15,10 +15,9 @@ test('home hero wraps long titles naturally and localizes cleanly', async ({ pag
   await expect(heroTitle).toHaveText('LLM-based Code Generation');
   await expect(page.locator('.hero-subtitle')).toHaveText('Research Library');
   await expect(
-    page.getByText(
-      'A focused research library for LLM-based code generation and AI4SE.',
-      { exact: true },
-    ),
+    page.getByText('A focused research library for LLM-based code generation and AI4SE.', {
+      exact: true,
+    }),
   ).toBeVisible();
   const titleMetrics = await heroTitle.evaluate((element) => {
     const titleBounds = element.getBoundingClientRect();
@@ -54,17 +53,15 @@ test('home hero wraps long titles naturally and localizes cleanly', async ({ pag
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.getByRole('button', { name: '切换为 English' }).click();
   await expect(
-    page.getByText(
-      'A focused research library for LLM-based code generation and AI4SE.',
-      { exact: true },
-    ),
+    page.getByText('A focused research library for LLM-based code generation and AI4SE.', {
+      exact: true,
+    }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Switch to Chinese' }).click();
   await expect(
-    page.getByText(
-      'A focused research library for LLM-based code generation and AI4SE.',
-      { exact: true },
-    ),
+    page.getByText('A focused research library for LLM-based code generation and AI4SE.', {
+      exact: true,
+    }),
   ).toBeVisible();
   await expect(page.getByRole('link', { name: '论文池', exact: true })).toBeVisible();
 });
