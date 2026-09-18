@@ -11,8 +11,8 @@ export const zhCN = {
   locale: { toEnglish: '切换为 English', toChinese: '切换为中文' },
   footer: { content: '结构化数据存储在 Git · 内容优先', generated: '由 ChatGPT/Codex 生成' },
   home: {
-    eyebrow: 'Research Library ·',
-    libraryLabel: 'Research Library',
+    eyebrow: '研究知识库 ·',
+    libraryLabel: '研究知识库',
     lede: '一个持续更新的个人研究知识库，用于整理论文、记录阅读进展，并沉淀长期研究笔记与思考。',
     today: '今日论文',
     read: '阅读论文 →',

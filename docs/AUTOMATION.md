@@ -1,5 +1,7 @@
 # Automation
 
+Bootstrap language contract: when no preference is supplied, the profile uses `language.explanation: zh-CN`. The bootstrap step must keep `research_scope.primary[0]` and `profile.description` in natural Chinese for the homepage Hero; standard English terms belong in `research_scope.secondary`. The fixed Hero labels are localized from the profile-independent i18n files and are never customized per researcher.
+
 ## Recommended: ChatGPT Scheduled Task
 
 Create a recurring task in ChatGPT and use `prompts/chatgpt-scheduled-task.md` as its instructions. Set the schedule from `config/research-profile.yaml`; the default example is `08:00 Asia/Shanghai`. Each run must:

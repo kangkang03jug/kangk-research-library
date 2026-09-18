@@ -225,6 +225,18 @@ const dailySchema = z.object({
 });
 const profile = yaml.load(fs.readFileSync(path.join(root, 'config/research-profile.yaml'), 'utf8'));
 const containsChinese = (value) => /[\u3400-\u9fff]/u.test(value);
+if (profile?.language?.explanation === 'zh-CN') {
+  const primary = profile?.research_scope?.primary?.[0];
+  const description = profile?.profile?.description;
+  if (typeof primary !== 'string' || !containsChinese(primary))
+    throw new Error(
+      'zh-CN profiles must use a natural Chinese research_scope.primary[0] for the homepage Hero.',
+    );
+  if (typeof description !== 'string' || !containsChinese(description))
+    throw new Error(
+      'zh-CN profiles must use a natural Chinese profile.description for the homepage Hero.',
+    );
+}
 const summaryFields = (paper) => [
   ...Object.entries(paper.quick_read).map(([name, value]) => [`quick_read.${name}`, value]),
   ...[

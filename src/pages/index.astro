@@ -13,10 +13,10 @@ const primaryDirection = profile.research_scope?.primary?.find(
 ---
 <Layout title="Home" profile={profile}>
   <section class="hero">
-    <p class="eyebrow"><span data-i18n="home.eyebrow">Research Library ·</span> {profile.profile.researcher}</p>
+    <p class="eyebrow"><span data-i18n="home.eyebrow">研究知识库 ·</span> {profile.profile.researcher}</p>
     <div class="hero-title-group">
       <h1>{primaryDirection}</h1>
-      <p class="hero-subtitle" data-i18n="home.libraryLabel">Research Library</p>
+      <p class="hero-subtitle" data-i18n="home.libraryLabel">研究知识库</p>
     </div>
     <p class="lede">{profile.profile.description}</p>
   </section>

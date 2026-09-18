@@ -12,10 +12,11 @@ test('home hero wraps long titles naturally and localizes cleanly', async ({ pag
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto('/');
   const heroTitle = page.locator('.hero h1');
-  await expect(heroTitle).toHaveText('LLM-based Code Generation');
-  await expect(page.locator('.hero-subtitle')).toHaveText('Research Library');
+  await expect(heroTitle).toHaveText('LLM 代码生成');
+  await expect(page.locator('.eyebrow')).toContainText('研究知识库 ·');
+  await expect(page.locator('.hero-subtitle')).toHaveText('研究知识库');
   await expect(
-    page.getByText('A focused research library for LLM-based code generation and AI4SE.', {
+    page.getByText('围绕大语言模型代码生成，整理方法、评测与软件工程应用证据。', {
       exact: true,
     }),
   ).toBeVisible();
@@ -53,13 +54,13 @@ test('home hero wraps long titles naturally and localizes cleanly', async ({ pag
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.getByRole('button', { name: '切换为 English' }).click();
   await expect(
-    page.getByText('A focused research library for LLM-based code generation and AI4SE.', {
+    page.getByText('围绕大语言模型代码生成，整理方法、评测与软件工程应用证据。', {
       exact: true,
     }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Switch to Chinese' }).click();
   await expect(
-    page.getByText('A focused research library for LLM-based code generation and AI4SE.', {
+    page.getByText('围绕大语言模型代码生成，整理方法、评测与软件工程应用证据。', {
       exact: true,
     }),
   ).toBeVisible();
@@ -70,7 +71,7 @@ test('reference library reading, locale switching, and paper-pool interactions w
   page,
 }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'LLM-based Code Generation' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'LLM 代码生成' })).toBeVisible();
   await page.getByRole('link', { name: '论文池' }).click();
   await expect(page.getByRole('heading', { name: '论文池' })).toBeVisible();
   await expect(

@@ -1,10 +1,10 @@
 profile:
   researcher: 'KangK'
   library_name: 'KangK Research Library'
-  description: 'A focused research library for LLM-based code generation and AI4SE.'
+  description: '围绕大语言模型代码生成，整理方法、评测与软件工程应用证据。'
 research_scope:
   primary:
-    - 'LLM-based Code Generation'
+    - 'LLM 代码生成'
   secondary:
     - 'High-quality and interesting LLM-related AI4SE'
 paper_selection:
