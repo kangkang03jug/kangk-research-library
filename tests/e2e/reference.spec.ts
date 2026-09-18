@@ -82,7 +82,7 @@ test('reference library reading, locale switching, and paper-pool interactions w
     '搜索标题、方法、作者、笔记…',
   );
   await page.getByRole('searchbox').fill('SWE-agent');
-  await expect(page.getByText('1 篇论文')).toBeVisible();
+  await expect(page.locator('[data-result-count]')).toHaveAttribute('data-count-value', '1');
   await page.locator('[data-filter="topic"]').selectOption('Coding Agents');
   await page.getByRole('link', { name: /SWE-agent:/ }).click();
   await expect(page.getByRole('heading', { name: '快速阅读' })).toBeVisible();
