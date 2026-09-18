@@ -1,0 +1,10 @@
+{
+  "date": "2026-09-18",
+  "recommendations": [
+    {
+      "paper_id": "mapcoder-lite-distilling-multi-agent-coding",
+      "primary": true,
+      "run_type": "scheduled"
+    }
+  ]
+}
