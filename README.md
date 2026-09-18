@@ -73,7 +73,7 @@ Secondary: Foundation Models for Time Series
 Configured Timezone → ChatGPT Scheduled Task → Read Profile → Search multiple sources
 → Check existing Paper Pool → Select one quality/relevant paper
 → Quick Read + Detail → Structural checks → Atomic Commit + Push
-→ GitHub Actions CI/Pages gate → Published update
+→ Pages validation/build gate → Published update
 ```
 
 Runs process one paper. If no new paper clears the quality bar, the agent recommends an existing high-quality paper that is not deep-read. Use **Get Another Paper** with `npm run paper:next` to run again; it checks duplicates and papers already recommended today.
@@ -157,7 +157,7 @@ Edit `config/research-profile.yaml` and commit it; future agent runs use the new
 
 ## Automation without OpenAI API
 
-**Recommended:** create a cloud ChatGPT Scheduled Task using [`prompts/chatgpt-scheduled-task.md`](prompts/chatgpt-scheduled-task.md). Bind it to this exact repository with `Contents: Read and write`. It reads the Research Profile and existing Paper Pool, searches the web, processes one paper, performs structural checks, and writes one atomic commit. The repository's GitHub Actions CI and Pages workflow are the authoritative validation gate when the cloud task cannot run local `npm`; the task must wait for them and repair failures before reporting success. If access is read-only, approval is required, or the repository is ambiguous, it must make no data claim and report the exact limitation. This mode does not require the user's computer to remain on.
+**Recommended:** create a cloud ChatGPT Scheduled Task using [`prompts/chatgpt-scheduled-task.md`](prompts/chatgpt-scheduled-task.md). Bind it to this exact repository with `Contents: Read and write`. It reads the Research Profile and existing Paper Pool, searches the web, processes one paper, performs structural checks, and writes one atomic commit. The Pages workflow's `validate:data`, production build, and deployment are the hard gate when the cloud task cannot run local `npm`; the task must wait for them before reporting success. Inspect CI as well and repair failures caused by the task, while reporting unrelated pre-existing CI baseline failures separately. If access is read-only, approval is required, or the repository is ambiguous, it must make no data claim and report the exact limitation. This mode does not require the user's computer to remain on.
 
 **Alternative:** Codex CLI + cron/systemd on an always-on trusted lab server remains supported through `scripts/run-research-agent.mjs`. Use it when the laboratory already operates a continuously available machine. See [`docs/AUTOMATION.md`](docs/AUTOMATION.md). Never create `OPENAI_API_KEY` for either mode.
 

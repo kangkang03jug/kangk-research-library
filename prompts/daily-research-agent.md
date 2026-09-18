@@ -16,8 +16,15 @@ Language is mandatory: generate every AI-authored paper summary and analysis fie
 
 Research Questions 规则：`explicit` 只用于论文明确写出的 RQ / Research Question，保留实际数量、原文表述和 source locator。对 `full_text` / `official_html`，必须阅读 Introduction / Motivation；若能可靠概括作者实际研究目标或核心问题，必须至少生成一条 `type: inferred`，不能因没有 `RQ1/RQ2` 而留空。Inferred 必须标记为推断，不伪装成作者编号，并提供 Introduction / Motivation locator。只有阅读相关正文后仍无法可靠提取时才允许空数组；此时必须填写 `detail.research_questions_empty_reason`（具体解释，至少 20 个字符）和 `detail.research_questions_empty_source`（Introduction / Motivation 定位）。RQ 非空时这两个字段都必须为 `null`。Abstract + Metadata 不得作为推断依据，推断必须忠实于作者目标。
 
-When a local checkout is available, run `npm run validate:data`, relevant tests, and `npm run build` before committing. In a cloud Scheduled Task that only has connected GitHub access and no local shell, perform the structural/schema checks available in the repository, make one atomic commit through the authenticated connection, then wait for GitHub Actions CI and Pages; do not claim that local commands ran. Report the selected paper, whether it was new or existing, venue/source, relevance, modified files, commit SHA, and final CI/Pages status.
-+## 中文总结表达规范
+When a local checkout is available, run `npm run validate:data`, relevant tests, and `npm run build` before committing. In a cloud Scheduled Task that only has connected GitHub access and no local shell, perform the structural/schema checks available in the repository, make one atomic commit through the authenticated connection, then wait for the Pages workflow's validation/build and deployment; inspect CI too, but distinguish a failure caused by this commit from an unrelated pre-existing CI baseline failure. Do not claim that local commands ran. Report the selected paper, whether it was new or existing, venue/source, relevance, modified files, commit SHA, Pages status, and any separate CI status.
+
+## Detail 深度规范
+
+Quick Read 只用于 1–3 分钟定位，保持简洁；不要因为需要更完整的 Detail 而把 Quick Read 变成长报告。Detail 是 5–10 分钟以上的深入阅读版本，不能用统一的 `concise` 要求压缩成一两句话。对 `full_text` / `official_html`，先阅读正文，再按段落充分说明 Motivation、Contributions、Research Questions、Method、Experiments & Key Findings、Limitations、Relation to Research 和后续方向。Motivation 要交代背景、已有方法缺陷、作者为何提出方法及问题的重要性；Method 要写清输入输出、核心模块、模块关系、训练/推理流程和关键设计选择；Experiments 要覆盖主要数据集、基线、指标、主要结果、关键消融和异常现象，并保留 Section/Page/Table/Figure 定位。`author_reported` 与 `ai_analysis` 局限必须分开，AI 分析要具体讨论实验范围、数据、假设、成本、泛化和评价设计。Relation to Research 必须结合 Research Profile，指出可直接借鉴或对比的任务、方法、基线和实验设计。长内容使用空行分段，不要把所有分析挤成一个段落。
+
+`detail.what_can_be_done_next` 必须是 3–6 个对象组成的数组（旧字符串只为兼容读取）：每个对象包含 `title`、`rationale`、`concrete_plan`、`validation`、`expected_value`，以及可选 `source`。每个方向都必须直接来自本文的方法、实验、局限、可迁移任务或正文中提出的问题；`rationale` 说明为什么能从本文得到，`concrete_plan` 给出实际步骤，`validation` 设计对应实验，`expected_value` 说明可能解决的问题。不得填充与本文无关的通用 AI 建议或重复同一个方向。
+
+## 中文总结表达规范
 
 当 `language.explanation = zh-CN` 时，所有 AI 生成的 Quick Read、Detail、Research Questions、Contributions、Limitations、Relation 和后续研究建议都必须以自然、简单、直观的中文为主：
 
@@ -28,9 +35,3 @@ When a local checkout is available, run `npm run validate:data`, relevant tests,
 - “关键结果”只保留最重要的 1–3 个结论或代表性数字，并说明它们意味着什么。
 - “为什么重要 / AI 分析”要写成读者容易理解的研究启发，不能写成英文术语拼接或泛泛的 AI 建议。
 - 生成后逐字段检查：删除不必要的中英文混写、重复术语、过长句子和没有解释的缩写；不要改变原始标题、作者、摘要、BibTeX、标识符、链接或 `original_question`。
-
-## Detail 深度规范
-
-Quick Read 继续保持 1–3 分钟定位，Detail 则必须是充分展开的深入阅读版本，不能使用统一的 concise 要求把每个字段压缩成一两句话。对 full_text / official_html 论文，基于正文分段说明 Motivation、Contributions、Research Questions、Method、Experiments & Key Findings、Limitations、Relation to Research 和后续方向。说明背景、已有方法缺陷、设计选择、输入输出流程、主要数据集与基线、关键结果与消融、异常现象、具体局限，以及与 Research Profile 的直接关系；保留 Section/Page/Table/Figure locator。
-
-将 detail.what_can_be_done_next 写成 3–6 个对象的数组，每项包含 title、rationale、concrete_plan、validation、expected_value，可选 source。每个方向必须直接对应本文的方法、实验、局限、可迁移任务或正文问题，分别解释为什么值得做、如何实施、如何验证和预期价值；禁止通用 AI 建议。旧字符串仅用于兼容读取，新记录必须使用数组。
