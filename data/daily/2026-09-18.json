@@ -10,6 +10,11 @@
       "paper_id": "swe-exp-experience-driven-software-issue-resolution",
       "primary": false,
       "run_type": "manual"
+    },
+    {
+      "paper_id": "adacoder-adaptive-planning-multi-agent",
+      "primary": false,
+      "run_type": "manual"
     }
   ]
 }
