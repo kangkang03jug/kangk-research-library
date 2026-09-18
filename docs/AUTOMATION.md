@@ -7,8 +7,8 @@ Create a recurring task in ChatGPT and use `prompts/chatgpt-scheduled-task.md` a
 1. Read the Research Profile, daily-agent prompt, Paper Pool, user state, and today's archive.
 2. Search multiple academic sources, deduplicate first, and process exactly one paper.
 3. Generate summaries in the configured explanation language and preserve Owner notes, tags, Deep Read, and Favorites.
-4. Validate data, run tests, and build before writing.
-5. Commit and push only when the task has authenticated GitHub write permission. A read-only connector is not sufficient; if write permission is unavailable, report that fact explicitly and do not claim success.
+4. For a task with a local checkout, validate data, run tests, and build before writing. A cloud task that only has connected GitHub access must perform the structural/data checks it can perform, make one atomic commit, and use the repository's CI and Pages workflows as the post-push validation gate; it must never claim that local commands ran when they did not.
+5. Commit and push only when the task has authenticated GitHub write permission for this exact repository. A read-only connector, an ambiguous repository, or an approval prompt is a hard stop; report it explicitly and do not claim success.
 
 ChatGPT Scheduled Tasks can run recurring work and use supported connected apps when they are available for the account or workspace. Create and manage the task in ChatGPT's **Scheduled** view. See the [official ChatGPT Scheduled Tasks documentation](https://learn.chatgpt.com/zh-Hans/docs/automations). A cloud task that works through connected GitHub access does not require the user's computer to remain on. Do not bind the recommended task to uploaded project files or an unavailable local checkout.
 
@@ -16,8 +16,8 @@ Suggested setup:
 
 1. Connect the repository-capable GitHub app in ChatGPT and grant only the repository access needed for this library.
 2. Open ChatGPT **Scheduled**, create a daily task, paste `prompts/chatgpt-scheduled-task.md`, and select the configured time and timezone.
-3. Run it once manually. Confirm that it can read the current Paper Pool and, when write access is intended, create a real commit on `main`.
-4. Confirm CI and Pages complete successfully. If the test cannot write, change permissions or keep the task report-only until access is available.
+3. Run it once manually. Confirm that it can read the current Paper Pool and, when write access is intended, create a real commit on `main` for this exact repository.
+4. Confirm the commit's CI and Pages workflows complete successfully. A cloud task does not need a local checkout to run; if it cannot execute `npm`, it must not block after structural checks or falsely report local validation.
 
 No OpenAI API key is used.
 
@@ -39,4 +39,4 @@ Run `npm run paper:next` for a safe dry-run wrapper, or set `RUN_CODEX_AGENT=1` 
 
 ## Recovery
 
-If a run fails, inspect its report and repository status. No bad commit should be created. For the CLI alternative, if `.research-agent.lock` remains after a process crash, first confirm no agent is running, then remove only that file and retry. Resolve push conflicts without overwriting user notes.
+If a run fails, inspect its report, commit, and workflow status. A cloud run must not treat a failing commit as successful: use the CI log to make a focused repair commit and wait for Pages again. For the local CLI alternative, keep the pre-commit checks and do not create a commit that fails them. If `.research-agent.lock` remains after a process crash, first confirm no agent is running, then remove only that file and retry. Resolve push conflicts without overwriting user notes.

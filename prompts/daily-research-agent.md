@@ -16,7 +16,7 @@ Language is mandatory: generate every AI-authored paper summary and analysis fie
 
 Research Questions 规则：`explicit` 只用于论文明确写出的 RQ / Research Question，保留实际数量、原文表述和 source locator。对 `full_text` / `official_html`，必须阅读 Introduction / Motivation；若能可靠概括作者实际研究目标或核心问题，必须至少生成一条 `type: inferred`，不能因没有 `RQ1/RQ2` 而留空。Inferred 必须标记为推断，不伪装成作者编号，并提供 Introduction / Motivation locator。只有阅读相关正文后仍无法可靠提取时才允许空数组；此时必须填写 `detail.research_questions_empty_reason`（具体解释，至少 20 个字符）和 `detail.research_questions_empty_source`（Introduction / Motivation 定位）。RQ 非空时这两个字段都必须为 `null`。Abstract + Metadata 不得作为推断依据，推断必须忠实于作者目标。
 
-Run `npm run validate:data`, relevant tests, and `npm run build`. Commit and push only if every check succeeds. Report the selected paper, whether it was new or existing, venue/source, relevance, and modified files.
+When a local checkout is available, run `npm run validate:data`, relevant tests, and `npm run build` before committing. In a cloud Scheduled Task that only has connected GitHub access and no local shell, perform the structural/schema checks available in the repository, make one atomic commit through the authenticated connection, then wait for GitHub Actions CI and Pages; do not claim that local commands ran. Report the selected paper, whether it was new or existing, venue/source, relevance, modified files, commit SHA, and final CI/Pages status.
 +## 中文总结表达规范
 
 当 `language.explanation = zh-CN` 时，所有 AI 生成的 Quick Read、Detail、Research Questions、Contributions、Limitations、Relation 和后续研究建议都必须以自然、简单、直观的中文为主：
