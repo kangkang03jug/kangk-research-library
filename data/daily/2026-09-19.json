@@ -1,0 +1,10 @@
+{
+  "date": "2026-09-19",
+  "recommendations": [
+    {
+      "paper_id": "paircoder-pair-programming-two-agent-code-generation",
+      "primary": true,
+      "run_type": "scheduled"
+    }
+  ]
+}
