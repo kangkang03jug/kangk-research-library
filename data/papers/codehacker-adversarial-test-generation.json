@@ -1,0 +1,77 @@
+{
+  "id": "codehacker-adversarial-test-generation",
+  "title": "CodeHacker: Automated Test Case Generation for Detecting Vulnerabilities in Competitive Programming Solutions",
+  "authors": ["Jingwei Shi", "Xinxiang Yin", "Jing Huang", "Shengyu Tao", "Jinman Zhao"],
+  "year": 2026,
+  "publication_date": "2026-07-02",
+  "venue_or_source": "Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
+  "venue_type": "Conference",
+  "status": "Published",
+  "ranking": {"ccf": null, "cas": null, "jcr": null, "ranking_year": null, "ranking_source": null},
+  "identifiers": {"doi": "10.18653/v1/2026.acl-long.108", "arxiv": "2602.20213", "openreview": null},
+  "urls": {"paper": "https://aclanthology.org/2026.acl-long.108/", "code": "https://github.com/shi0712/CodeHacker"},
+  "topics": ["Code Generation", "Test Generation", "Adversarial Testing", "LLM Agent", "Code Evaluation", "Reinforcement Learning"],
+  "relevance": "High",
+  "reading_basis": "full_text",
+  "quick_read": {
+    "tldr": "CodeHacker 不再只给代码准备一组固定测试，而是针对每个候选程序主动寻找能让它出错的反例。系统先校准测试输入验证器和输出检查器，再结合代码分析、压力测试和定向反例生成攻击错误程序。实验表明，更强的对抗测试能找出原测试集漏掉的错误代码，也能提供更有效的强化学习训练数据。",
+    "problem_and_motivation": "代码生成模型的准确率依赖测试集是否真的能区分正确和错误程序。现有测试可能漏掉边界情况，让有缺陷的程序侥幸通过；简单增加随机测试数量也未必能击中具体程序的逻辑漏洞。作者因此把测试生成改成一个针对当前程序主动找反例的问题。",
+    "core_method": "CodeHacker 分两阶段工作。第一阶段先反复攻击并修正 Validator 和 Checker，确保测试输入合法、判题结果可信。第二阶段分析目标代码的具体弱点，再通过压力测试、LLM 定向生成和反哈希策略构造能触发错误的输入。预期输出由经过验证的标准程序产生，而不是让 LLM 猜答案。",
+    "key_results": "在 2,000 个 CodeContest+ 问题上，加入对抗测试后，Special Judge 场景的错误程序识别率（TNR）从 84.04% 提升到 96.05%。消融实验中，去掉迭代修正流程后攻击成功率从 51.40% 降到 46.60%。这些对抗样本用于训练 Qwen3-4B 后，在 LiveCodeBench 的不同难度上也取得更好结果。",
+    "why_it_matters": "这篇论文提醒我们：程序通过现有测试，不等于它真的正确。对于依赖执行反馈决定是否停止、调试或升级推理的代码生成系统，测试本身的可靠性也是必须控制的变量。"
+  },
+  "detail": {
+    "motivation": "LLM 代码生成通常把测试执行结果当作重要的正确性信号，但这个信号只有在测试足够强时才可靠。一个错误程序可能只是没有碰到能暴露缺陷的输入，因此在弱测试集上得到 Accepted。\n\n作者认为，传统随机扩充输入或只根据题目生成测试，本质上仍容易变成碰运气。更有效的做法是直接观察当前程序，分析它可能在哪些边界、复杂度或逻辑条件下失败，然后专门构造反例。竞技编程中的 hack 机制正好提供了这种思路。",
+    "contributions": [
+      {"contribution": "把竞技编程中的 hack 形式化为针对具体程序的对抗测试生成任务，并设计 LLM Agent 主动寻找高价值边界条件和逻辑反例。", "source": "Sec. 1; PDF pp. 2352–2353"},
+      {"contribution": "提出两阶段 CodeHacker：先校准 Validator/Checker，再分析目标代码并使用压力测试、LLM 定向生成和反哈希策略寻找失败输入。", "source": "Sec. 3.3–3.4 and Fig. 1; PDF pp. 2355–2356"},
+      {"contribution": "构建 CodeHackerBench，并通过人工审计评测工具和抽查 600 个生成反例来提高基准可靠性。", "source": "Sec. 3.5; PDF pp. 2356–2357"},
+      {"contribution": "证明对抗测试不仅能纠正代码模型评测中的虚高分数，还能作为强化学习数据提升模型在 LiveCodeBench 上的泛化表现。", "source": "Sec. 4.1 and Fig. 2; PDF pp. 2357–2358"}
+    ],
+    "research_questions": [
+      {
+        "type": "inferred",
+        "question": "能否自动模拟竞技编程专家寻找反例的过程，针对具体程序生成可靠且有效的测试，从而发现普通测试遗漏的错误？",
+        "original_question": null,
+        "how": "作者构建 CodeHacker，先校准判题工具，再让 Agent 分析目标程序并生成针对性反例；随后在 CodeContest+、CodeHackerBench 和 LiveCodeBench 上验证测试的区分能力及训练价值。",
+        "answer": "可以。对抗生成显著提高了错误程序的识别率，并揭示了一批原测试集会误判为正确的程序；这些样本用于强化学习后也提升了模型在独立代码基准上的表现。",
+        "meaning": "代码生成评测不能只关注生成器本身，还要检查用于判断正确性的测试是否足够强。针对候选程序动态补充反例，可以让执行反馈更可信。",
+        "source": "Introduction, Sec. 1; PDF pp. 2352–2353"
+      }
+    ],
+    "research_questions_empty_reason": null,
+    "research_questions_empty_source": null,
+    "method": "CodeHacker 的第一阶段是评测工具校准。Validator 负责判断测试输入是否满足题目约束，Checker 负责判断程序输出是否正确。Agent 会分别尝试构造“非法输入却被接受”“合法输入却被拒绝”等反例；一旦发现问题，就修正相应工具。Checker 的更新还加入独立模型交叉检查，减少错误答案污染判题逻辑。对于少数验证逻辑本身非常困难的问题，作者允许专家人工修补；论文报告这一比例低于 5%。\n\n第二阶段才真正攻击候选程序。Code Analyst 先阅读代码，并可通过 C++ 沙箱执行小规模探针、通过 Python 计算边界和复杂度，以确认怀疑的漏洞，而不是只靠静态猜测。随后三类生成器负责构造实际测试：压力测试覆盖极端规模和结构；LLM 生成器针对具体逻辑错误；反哈希生成器专门寻找哈希碰撞。\n\n一个反例只有同时满足三个条件才算成功：输入合法；经过验证的标准程序能正确处理；目标程序在该输入上失败。这样避免把 LLM 自己猜出的错误预期输出当成测试真值。",
+    "experiments_and_key_findings": "实验从 CodeContest+ 随机选择 2,000 个问题，其中 1,000 个使用普通判题，1,000 个使用 Special Judge，并尽量复现官方 Codeforces 工具链。作者同时构建 CodeHackerBench，并在 LiveCodeBench 上测试对抗数据用于强化学习后的泛化效果。\n\n在 Special Judge 问题上，CodeContest+ 的 TNR 为 84.04%，加入 CodeHacker 生成的 hack cases 后达到 96.05%。这说明许多错误程序确实会因为原测试覆盖不足而被放过。CodeHackerBench 还让多个强模型的 Pass@1 出现 1.7–3.5 个百分点的下降；作者将其解释为修正原有测试造成的分数虚高。\n\n攻击本身也需要较强推理。DeepSeek V3.2 的 HSR 为 64.83%，关闭显式推理后只有 23.76%。消融实验显示迭代修正流程最关键：GPT-5-mini 上完整系统 HSR 为 51.40%，去掉该流程降到 46.60%。加入对抗样本训练 Qwen3-4B 后，LiveCodeBench 的 Easy、Medium、Hard 难度均优于使用原始 CodeContests+ 数据训练。",
+    "limitations": {
+      "author_reported": [
+        "CodeHacker 仍可能漏掉细微算法缺陷，尤其是时间和内存等性能相关失败；作者认为更复杂的性能问题仍是开放挑战。",
+        "当前实验只覆盖有限的编程语言和问题类型，CodeHackerBench 需要扩展到更多语言和任务才能验证泛化能力。"
+      ],
+      "ai_analysis": [
+        "主要证据来自竞技编程和 C++，与真实软件仓库中的状态依赖、外部库、环境配置和多文件修改仍有明显差距。",
+        "第一阶段少数高难题需要人工修补 Validator 或 Checker，因此整个评测基础设施还不是完全自动化。",
+        "更强的对抗测试会增加执行和生成成本。若用于在线代码生成流程，需要决定哪些候选值得启动昂贵的反例搜索，而不是对所有样本统一运行。"
+      ]
+    },
+    "relation_to_research": "这篇论文与可靠性驱动的代码生成直接相关。很多系统把“可见测试通过”当作停止条件，但 CodeHacker 说明测试覆盖不足时，这个条件可能过早放行错误程序。它提供了一个重要的互补视角：可靠性门控不仅要判断候选代码，也要判断验证证据本身有多可信。\n\n对 fast-to-slow 代码生成框架，一个直接思路是在普通测试通过但风险仍高的样本上，增加轻量的反例搜索或边界测试；只有发现可疑行为时再进入更重的调试流程。论文中“先校准验证工具，再信任执行结果”的设计，也适合用来分析测试反馈错误如何影响后续 Debugger。",
+    "what_can_be_done_next": [
+      {"title": "把对抗测试加入可靠性门控", "rationale": "CodeHacker 表明普通测试通过仍可能漏掉错误程序，因此仅用 visible pass 作为可靠性信号可能过于乐观。", "concrete_plan": "对普通测试已通过但具有高风险特征的候选，额外生成少量边界或逻辑反例；只有这些测试也通过时才允许 fast exit。", "validation": "在 HumanEval-ET、MBPP-ET 和 LiveCodeBench 上比较误放行率、最终准确率、升级比例、Token 和执行时间。", "expected_value": "量化更强验证能否减少错误 early exit，并确定额外测试成本是否值得。", "source": "Sec. 4.1 and Table 3"},
+      {"title": "区分代码不可靠与测试不可靠", "rationale": "论文先校准 Validator/Checker，说明失败反馈本身也可能来自验证工具错误。", "concrete_plan": "在可靠性检查中分别维护候选代码风险和测试证据风险；当两者冲突时，不立即把执行失败归因于代码，而是触发测试复核。", "validation": "人工注入错误 expected output、非法输入和错误 checker，统计错误调试率、正确代码被误改率及恢复率。", "expected_value": "减少错误执行反馈把正确候选带入无效调试循环的问题。", "source": "Sec. 3.3"},
+      {"title": "将历史失败经验用于反例选择", "rationale": "CodeHacker 针对当前程序动态找漏洞，而经验记忆可以提供过去常见的失败模式和边界条件。", "concrete_plan": "根据任务结构和当前代码特征检索历史失败经验，把其中的风险条件转换成候选测试方向，再由执行环境验证。", "validation": "比较无经验随机测试、当前程序分析测试和经验引导测试在单位测试预算下发现新错误的比例。", "expected_value": "让经验记忆不仅指导生成和调试，也直接提高验证阶段发现错误的效率。", "source": "Sec. 3.4"}
+    ]
+  },
+  "original_abstract": "The evaluation of Large Language Models (LLMs) for code generation relies heavily on the quality and robustness of test cases. However, existing benchmarks often lack coverage for subtle corner cases, allowing incorrect solutions to pass. To bridge this gap, we propose CodeHacker, an automated agent framework dedicated to generating targeted adversarial test cases that expose latent vulnerabilities in program submissions. Mimicking the hack mechanism in competitive programming, CodeHacker employs a multi-strategy approach—including stress testing, anti-hash attacks, and logic-specific targeting to break specific code submissions. To ensure the validity and reliability of these attacks, we introduce a Calibration Phase, where the agent iteratively refines its own Validator and Checker via self-generated adversarial probes before evaluating contestant code. Experiments demonstrate that CodeHacker significantly improves the True Negative Rate (TNR) of existing datasets, effectively filtering out incorrect solutions that were previously accepted. Furthermore, generated adversarial cases prove to be superior training data, boosting the performance of RL-trained models on benchmarks like LiveCodeBench. All code, datasets, and evaluation scripts will be open-sourced to promote further investigation in LLMs for competitive programming.",
+  "bibtex": "@inproceedings{shi-etal-2026-codehacker,\n  title = {{C}ode{H}acker: Automated Test Case Generation for Detecting Vulnerabilities in Competitive Programming Solutions},\n  author = {Shi, Jingwei and Yin, Xinxiang and Huang, Jing and Tao, Shengyu and Zhao, Jinman},\n  booktitle = {Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)},\n  month = jul,\n  year = {2026},\n  address = {San Diego, California, United States},\n  publisher = {Association for Computational Linguistics},\n  url = {https://aclanthology.org/2026.acl-long.108/},\n  doi = {10.18653/v1/2026.acl-long.108},\n  pages = {2352--2382}\n}",
+  "figures": [],
+  "evidence": [
+    {"claim": "CodeHacker 先校准 Validator/Checker，再使用三类策略针对具体程序生成对抗测试。", "locator": "Sec. 3.3–3.4 and Fig. 1; PDF pp. 2355–2356", "url": "https://aclanthology.org/2026.acl-long.108.pdf"},
+    {"claim": "Special Judge 场景加入 hack cases 后 TNR 达到 96.05%。", "locator": "Table 5; PDF p. 2359", "url": "https://aclanthology.org/2026.acl-long.108.pdf"},
+    {"claim": "去掉 Refinement Loop 后 HSR 从 51.40% 降到 46.60%。", "locator": "Sec. 4.2, Table 4; PDF pp. 2358–2359", "url": "https://aclanthology.org/2026.acl-long.108.pdf"},
+    {"claim": "作者指出仍可能漏掉复杂失败，且当前覆盖的语言和问题域有限。", "locator": "Limitations; PDF p. 2360", "url": "https://aclanthology.org/2026.acl-long.108.pdf"}
+  ],
+  "generated_by": "ChatGPT Daily Research Agent",
+  "generated_at": "2026-09-20T08:00:00+08:00",
+  "updated_at": "2026-09-20T08:00:00+08:00",
+  "owner_edited": false
+}
