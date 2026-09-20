@@ -1,0 +1,10 @@
+{
+  "date": "2026-09-20",
+  "recommendations": [
+    {
+      "paper_id": "codehacker-adversarial-test-generation",
+      "primary": true,
+      "run_type": "scheduled"
+    }
+  ]
+}
