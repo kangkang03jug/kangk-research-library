@@ -1,0 +1,10 @@
+{
+  "date": "2026-09-21",
+  "recommendations": [
+    {
+      "paper_id": "semag-self-evolutionary-multi-agent-code-generation",
+      "primary": true,
+      "run_type": "scheduled"
+    }
+  ]
+}
