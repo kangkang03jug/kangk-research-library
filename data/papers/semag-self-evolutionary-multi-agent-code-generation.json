@@ -1,0 +1,77 @@
+{
+  "id": "semag-self-evolutionary-multi-agent-code-generation",
+  "title": "SEMAG: Self-Evolutionary Multi-Agent Code Generation",
+  "authors": ["Yulin Peng", "Haowen Hou", "Xinxin Zhu", "Ying Tiffany He", "F. Richard Yu"],
+  "year": 2026,
+  "publication_date": "2026-03-16",
+  "venue_or_source": "arXiv",
+  "venue_type": "Preprint",
+  "status": "New",
+  "ranking": {"ccf": null, "cas": null, "jcr": null, "ranking_year": null, "ranking_source": null},
+  "identifiers": {"doi": "10.48550/arXiv.2603.15707", "arxiv": "2603.15707", "openreview": null},
+  "urls": {"paper": "https://arxiv.org/abs/2603.15707", "code": null},
+  "topics": ["Code Generation", "Multi-Agent", "Adaptive Workflow", "Self-Evolution", "Planning", "Debugging", "Cost Efficiency"],
+  "relevance": "High",
+  "reading_basis": "official_html",
+  "quick_read": {
+    "tldr": "SEMAG 的核心思想是按题目难度逐步增加推理成本：简单题直接生成，失败后再进入规划、调试和多智能体讨论。系统还可以更换更合适的基础模型。这样做的目标是避免简单题浪费计算，同时让困难题获得更强的处理流程。",
+    "problem_and_motivation": "很多代码生成框架使用固定流程：无论题目简单还是困难，都执行相同数量的规划、调试和模型调用。这会让简单题产生不必要的开销，也可能让困难题得到的推理深度不够。另外，固定使用一个基础模型也难以适应模型能力快速变化。",
+    "core_method": "SEMAG 使用分层流程。先直接生成代码；失败后生成并验证解题计划；仍失败时利用执行信息进行多智能体调试；如果调试停滞，再让多个 Agent 讨论不同方案并选择更好的结果。框架还加入模型选择机制，可以根据任务需要切换基础模型。",
+    "key_results": "SEMAG 在七个代码生成基准上评测。使用 GPT-4o 时，HumanEval 的 Pass@1 达到 98.8%，CodeContests 达到 38.0%，后者比相同基础模型下的已有最佳方法高 3.3 个百分点。启用模型选择后，CodeContests 进一步达到 52.6%。",
+    "why_it_matters": "这篇论文说明，代码生成不一定需要对所有任务运行同样昂贵的流程。更合理的做法是先尝试便宜的方法，只有失败或停滞时才逐级增加规划、调试和协作成本。这与可靠性和成本共同驱动的自适应代码生成非常相关。"
+  },
+  "detail": {
+    "motivation": "现有代码生成方法常把推理深度和工作流固定下来。作者指出，这会产生两类问题：简单任务经过复杂流程会浪费 Token 和时间；困难任务如果只使用浅层调试，又可能无法跳出错误思路。与此同时，许多框架与某一个基础模型绑定，当更强模型出现或任务特征改变时，需要人工调整。\n\nSEMAG 因此把代码生成设计成逐级升级的过程。系统先用最简单的方式尝试，只有前一级失败时才进入更复杂的阶段。这样，计算资源会更多地集中在真正困难的样本上。",
+    "contributions": [
+      {"contribution": "提出分层代码生成流程，根据任务执行结果逐步从直接生成升级到规划、调试和讨论，而不是对所有任务固定使用完整多智能体流程。", "source": "Sec. 1; Sec. 3.2; Algorithm 1"},
+      {"contribution": "加入讨论与决策阶段，在常规调试无法继续改进时探索不同解法，降低反复停留在同一错误思路上的风险。", "source": "Sec. 1; Fig. 2"},
+      {"contribution": "加入自我进化的模型选择机制，使系统能够根据任务需求选择更合适的基础模型，而不是永久绑定单一模型。", "source": "Sec. 1; Fig. 1–2"},
+      {"contribution": "在 HumanEval、MBPP、HumanEval-ET、MBPP-ET、APPS、LiveCode 和 CodeContests 七个基准上验证方法，并报告准确率与资源效率收益。", "source": "Sec. 1; Experiments; Fig. 3"}
+    ],
+    "research_questions": [
+      {
+        "type": "inferred",
+        "question": "能否让代码生成系统根据任务难度和失败情况自动调整推理深度，并在需要时切换更合适的模型，从而同时提高准确率和资源效率？",
+        "original_question": null,
+        "how": "作者设计四级分层流程，让任务从直接生成逐步升级到规划、调试和讨论，并加入自动模型选择；随后在七个代码生成基准上与现有方法比较准确率和 Token 开销。",
+        "answer": "实验结果支持这一思路。固定 GPT-4o 时，SEMAG 在 CodeContests 上达到 38.0% Pass@1，并比相同基础模型下的已有最佳方法高 3.3 个百分点；启用模型选择后进一步达到 52.6%。简单基准上也能通过分层流程减少不必要的计算。",
+        "meaning": "复杂流程不必默认对所有样本开启。先运行低成本阶段，再根据失败情况升级，可以把额外预算集中到真正困难的任务上；模型选择还可以成为升级策略的一部分。",
+        "source": "Introduction, Sec. 1; Fig. 1–2"
+      }
+    ],
+    "research_questions_empty_reason": null,
+    "research_questions_empty_source": null,
+    "method": "SEMAG 的第一层是直接生成：Coder 根据题目和样例直接写代码，通过测试就立即返回。第二层在失败后启动规划：Planner 生成结构化解题计划，Verifier 根据题目和输入输出样例反复检查并修正计划，再让 Coder 按验证后的计划生成代码。\n\n如果规划后的代码仍然失败，系统进入更深的调试阶段。多个专门 Agent 分析执行轨迹、解释代码并提出修改建议，Debugger 据此修复程序。当常规调试难以继续改进时，讨论阶段让不同 Agent 提出替代方案，再由决策 Agent 选择更合适的方案。\n\n框架的另一部分是模型自我进化。系统不把整个流程永久绑定到一个基础模型，而是根据任务需求选择更合适的模型。整体设计的重点不是简单增加 Agent 数量，而是让更昂贵的能力只在前一级失败时出现。",
+    "experiments_and_key_findings": "作者在七个文本到代码基准上评测 SEMAG，包括 HumanEval、MBPP、HumanEval-ET、MBPP-ET、APPS、LiveCode 和 CodeContests，覆盖基础函数生成与更困难的竞赛级任务。\n\n使用 GPT-4o 时，SEMAG 在 HumanEval 达到 98.8% Pass@1，在 MBPP 达到 87.6%，在 LiveCode 达到 65.0%。CodeContests 上达到 38.0%，比相同 GPT-4o 基础模型下的 LPW 高 3.3 个百分点。启用自动模型选择并选到更强的 Claude-3.7-Sonnet 后，CodeContests 达到 52.6%。\n\n论文还报告分层策略能减少简单任务上的无效计算。与 LPW 相比，HumanEval 和 MBPP 的 Token 消耗分别减少约 19.3% 和 15.5%。这说明按失败逐级增加计算不仅影响准确率，也直接影响成本。",
+    "limitations": {
+      "author_reported": [
+        "论文的模型选择依赖能够访问并比较不断变化的外部基础模型，因此实际效果会受到模型可用性、接口和版本变化影响。",
+        "当前评测集中在文本到代码基准，尚不能直接证明同样的分层与模型切换策略在真实仓库级软件工程任务上具有相同收益。"
+      ],
+      "ai_analysis": [
+        "层级升级主要由样例测试是否通过来驱动。如果可见测试覆盖不足，系统可能在第一层就错误地接受隐藏测试会失败的程序。",
+        "自动切换到更强模型会把性能提升与框架本身的收益混在一起，因此比较方法时需要分别报告固定基础模型和动态模型选择两种设置。",
+        "多级 Agent 在困难任务上仍会增加调用次数和协调成本。实际系统需要明确升级阈值和预算上限，避免少量困难样本消耗过多资源。"
+      ]
+    },
+    "relation_to_research": "SEMAG 与自适应代码生成工作流高度相关。它同样采用“先便宜、失败后升级”的思路，并把规划、调试和多智能体讨论作为逐级增加的能力。最值得借鉴的是：复杂慢路径不应默认启动，而应由前一阶段的结果触发。\n\n同时，它也暴露出一个关键差异：SEMAG 主要根据样例测试失败决定升级，而可靠性驱动的方法还可以进一步判断“通过是否真的可信”。因此可以把 SEMAG 作为自适应工作流基线，用来比较单纯的 pass/fail 升级与更细致的可靠性门控。",
+    "what_can_be_done_next": [
+      {"title": "比较失败触发与可靠性触发", "rationale": "SEMAG 主要在测试失败后升级，但测试通过并不一定代表候选程序可靠。", "concrete_plan": "在相同基础模型和预算下，比较样例失败触发升级、可靠性门控触发升级以及始终运行完整流程三种策略。", "validation": "在 HumanEval-ET、MBPP-ET 和 LiveCodeBench 上报告准确率、错误早停率、升级比例、Token 和运行时间。", "expected_value": "判断更细致的可靠性判断能否减少错误早停，同时保留分层流程的成本优势。", "source": "Sec. 3.2; Algorithm 1"},
+      {"title": "固定模型分离框架收益", "rationale": "动态模型选择能显著提高结果，但这部分提升可能来自更强的基础模型，而不是工作流本身。", "concrete_plan": "固定同一个基础模型，只改变直接生成、规划、调试和讨论的触发策略；再单独增加动态模型选择作为附加实验。", "validation": "分别报告固定模型和动态模型设置下的 Pass@1、Token、调用次数和时间，并计算每次升级的边际收益。", "expected_value": "更清楚地区分自适应工作流本身与基础模型升级带来的性能提升。", "source": "Sec. 1; Fig. 1–2"},
+      {"title": "用历史经验决定升级后的动作", "rationale": "SEMAG 决定何时进入更深流程，但升级后仍主要依赖当前任务的规划和调试。历史成功与失败经验可以帮助选择更合适的修复方向。", "concrete_plan": "在进入规划或调试阶段时检索相似任务的构造经验和风险经验，并与无经验的 SEMAG 式升级流程比较。", "validation": "统计慢路径成功率、重复错误率、平均调试轮数和 Token，并按任务难度分层分析。", "expected_value": "检验经验复用是否能让升级后的慢路径更快找到有效方案，而不是仅增加更多推理轮次。", "source": "Sec. 3; Fig. 2"}
+    ]
+  },
+  "original_abstract": "Large Language Models (LLMs) have made significant progress in handling complex programming tasks. However, current methods rely on manual model selection and fixed workflows, which limit their ability to adapt to changing task complexities. To address this, we propose SEMAG, a Self-Evolutionary Multi-Agent code Generation framework that mimics human coding practices. It decomposes programming tasks into stages, including planning, coding, debugging, and discussion, while adapting workflows to task difficulty. Its self-evolutionary agents can access the latest models in real time and automatically upgrade the backbone model. SEMAG sets new state-of-the-art Pass@1 accuracy across benchmarks. Using identical backbone models, SEMAG outperforms prior methods by 3.3% on CodeContests. When augmented with self-evolutionary model selection that automatically identifies optimal backbones, SEMAG reaches 52.6%, showcasing both framework effectiveness and adaptability to evolving LLM capabilities.",
+  "bibtex": "@misc{peng2026semagselfevolutionarymultiagentcode,\n  title={SEMAG: Self-Evolutionary Multi-Agent Code Generation},\n  author={Yulin Peng and Haowen Hou and Xinxin Zhu and Ying Tiffany He and F. Richard Yu},\n  year={2026},\n  eprint={2603.15707},\n  archivePrefix={arXiv},\n  primaryClass={cs.SE},\n  doi={10.48550/arXiv.2603.15707},\n  url={https://arxiv.org/abs/2603.15707}\n}",
+  "figures": [],
+  "evidence": [
+    {"claim": "SEMAG 使用四级分层架构，根据任务失败情况逐步增加计算。", "locator": "Sec. 3.2; Algorithm 1", "url": "https://arxiv.org/html/2603.15707"},
+    {"claim": "GPT-4o 下 HumanEval Pass@1 为 98.8%，CodeContests 为 38.0%。", "locator": "Sec. 1; Experiments", "url": "https://arxiv.org/html/2603.15707"},
+    {"claim": "动态模型选择后 CodeContests Pass@1 达到 52.6%。", "locator": "Abstract; Sec. 1", "url": "https://arxiv.org/abs/2603.15707"},
+    {"claim": "分层流程旨在避免简单任务上的冗余计算，并为困难任务增加推理深度。", "locator": "Introduction, Sec. 1", "url": "https://arxiv.org/html/2603.15707"}
+  ],
+  "generated_by": "ChatGPT Scheduled Task",
+  "generated_at": "2026-09-21T08:02:00+08:00",
+  "updated_at": "2026-09-21T08:02:00+08:00",
+  "owner_edited": false
+}
