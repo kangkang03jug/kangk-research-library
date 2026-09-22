@@ -1,0 +1,67 @@
+{
+  "id": "tdd-agent-test-driven-reasoning-code-generation",
+  "title": "TDD-Agent: Test-Driven Reasoning for Code Generation",
+  "authors": ["Hongyue Yu", "Kefan Li", "Jiakun Li", "Hongzheng Chai", "Yuan Yuan", "Rui He", "Junyi Wei"],
+  "year": 2026,
+  "publication_date": "2026-08-17",
+  "venue_or_source": "arXiv",
+  "venue_type": "Preprint",
+  "ranking": {"ccf": null, "cas": null, "jcr": null, "ranking_year": null, "ranking_source": null},
+  "identifiers": {"doi": "10.48550/arXiv.2608.16742", "arxiv": "2608.16742", "openreview": null},
+  "urls": {"paper": "https://arxiv.org/abs/2608.16742", "code": null},
+  "topics": ["Code Generation", "Test-Driven Development", "Execution Feedback", "Repository-Level Code Generation", "Self-Debugging"],
+  "relevance": "High",
+  "reading_basis": "official_html",
+  "quick_read": {
+    "tldr": "TDD-Agent 把测试从“代码写完后的检查器”变成“写代码前先想清需求”的工具。模型先生成可执行测试，再写实现，并根据运行结果同时修改代码和测试。论文表明，这种先测试后实现的方式在函数级和仓库级代码生成中都能带来稳定收益。",
+    "problem_and_motivation": "很多代码生成方法先写代码，再用模型自己生成的测试检查结果。但自生成测试本身可能不完整甚至错误，固定把它当作正确答案会产生误导。仓库级任务还有跨文件依赖和环境模拟问题，使测试生成更加困难。",
+    "core_method": "方法分两步。第一步先查看仓库上下文并为目标函数生成单元测试，让模型在实现前明确输入、输出、边界情况和行为要求。第二步再生成代码并执行测试；如果失败，模型判断问题来自代码还是测试，并允许两者一起修改，最多迭代 10 轮。",
+    "key_results": "在 LiveCodeBench 上，TDD-prompt 在 GPT、DeepSeek 和 Qwen 三个模型上都取得最高 Pass@1，分别为 70.04%、67.86% 和 44.87%。在 RepoEval 的 455 个仓库级函数补全任务上，完整 TDD-Agent 也持续优于检索式和 Agent 基线。",
+    "why_it_matters": "这篇论文最有价值的观点是：测试不是天然可信的验证器，也可以作为会被修正的推理对象。对可靠代码生成而言，这意味着系统不仅要利用执行反馈，还应考虑产生反馈的测试本身是否可靠。"
+  },
+  "detail": {
+    "motivation": "现有测试驱动的代码生成通常把自生成测试放在代码之后，并把测试固定下来。这样做有两个问题。第一，错误或不完整的测试会给调试提供错误方向；第二，模型没有充分利用“设计测试”本身对理解需求的帮助。\n\n作者进一步关注仓库级代码生成。在这类任务中，目标函数依赖其他文件、接口和运行环境，测试不再只是简单的 assert。论文因此研究：能否先通过写测试明确需求，再允许测试和代码在执行过程中共同修正。",
+    "contributions": [
+      {"contribution": "提出 TDD-Agent，把测试驱动开发引入代码生成，让模型在实现代码前先生成可执行测试。", "source": "Introduction, Sec. 1; Methodology, Sec. 2.1"},
+      {"contribution": "提出代码与测试双向修正机制。执行失败时不默认代码一定错，而是允许模型同时检查并修改实现与测试。", "source": "Methodology, Sec. 2.1, Phase 2"},
+      {"contribution": "分别在 LiveCodeBench 和 RepoEval 上验证测试优先推理与完整 Agent，在函数级和仓库级任务上评估其效果。", "source": "Introduction, Sec. 1; Experiments, Sec. 3"}
+    ],
+    "research_questions": [
+      {
+        "type": "inferred",
+        "question": "先生成测试、再允许测试与代码共同迭代，能否比把自生成测试当作固定验证器更有效地提升代码生成正确性？",
+        "original_question": null,
+        "how": "作者先在 LiveCodeBench 用 TDD-prompt 单独验证“先写测试再写代码”的作用，再在 RepoEval 上评估完整 TDD-Agent，并分析迭代过程中代码正确性和测试质量的变化。",
+        "answer": "结果支持这一思路。TDD-prompt 在三个模型的 LiveCodeBench 实验中都优于对比提示方法；完整 TDD-Agent 在 RepoEval 上也持续超过检索式和 Agent 基线，同时生成测试的通过率、覆盖率和变异测试得分随迭代改善。",
+        "meaning": "执行反馈的价值取决于测试质量。与其把模型生成的测试永久视为真值，更合理的做法是让系统在调试代码的同时重新检查测试。",
+        "source": "Introduction, Sec. 1, paragraphs discussing self-generated tests and repository-level testing"
+      }
+    ],
+    "research_questions_empty_reason": null,
+    "research_questions_empty_source": null,
+    "method": "TDD-Agent 是单 Agent 框架。第一阶段，Agent 使用目录查看、结构检查、文件读取和代码搜索等工具理解仓库与目标函数，然后先生成一组单元测试。这里的目的不是立即判定代码对错，而是迫使模型先把需求转成可执行的行为描述。\n\n第二阶段，Agent 根据这些测试生成初始实现，并运行最新测试。如果执行成功，系统会提示它考虑是否需要补强测试；如果执行失败，Agent 分析错误来自实现、测试还是两者，并可同时修改代码和测试。循环最多进行 10 轮，也可以在模型认为任务完成时提前结束。预测阶段看不到仓库原有测试，最终评估才使用原始测试集，因此能减少直接针对评测测试过拟合的问题。",
+    "experiments_and_key_findings": "函数级实验使用 LiveCodeBench，并比较 one-shot、CoT、SCoT、Self-Planning、ICoT 与 TDD-prompt。TDD-prompt 在 GPT、DeepSeek、Qwen 上的 Pass@1 分别达到 70.04%、67.86%、44.87%，三种模型均为该表最佳。\n\n仓库级实验使用 RepoEval 的函数补全集，共 455 个问题，来自 8 个 Python 仓库。评估时把生成代码放回原仓库，并运行仓库原有单元测试判断功能正确性。论文报告 TDD-Agent 持续优于检索式和 Agent 基线。进一步分析还发现，随着双向迭代进行，代码正确性与生成测试质量都会改善；测试通过率、覆盖率和 mutation score 的变化说明测试可以作为持续演化的推理材料，而不只是一次性的检查器。",
+    "limitations": {
+      "author_reported": ["当前实验主要覆盖 LiveCodeBench 的函数级任务和 RepoEval 中 8 个 Python 仓库的函数补全任务，结论对更多语言、仓库类型和更大范围软件工程任务的泛化仍需进一步验证。"],
+      "ai_analysis": ["允许模型同时修改测试和代码虽然能修复错误测试，但也存在把测试改得更容易通过的风险。需要额外证据判断测试变好还是仅仅变弱。", "最多 10 轮的固定上限没有直接根据样本可靠性和难度分配预算；简单任务可能无需多轮，而困难任务可能需要更强的升级机制。", "RepoEval 最终依赖仓库原有测试判断正确性，因此测试覆盖不足仍可能影响最终准确性评价。"]
+    },
+    "relation_to_research": "这篇论文与可靠性驱动的代码生成高度相关。它直接说明自生成测试产生的反馈不能无条件相信，并把测试本身纳入修正过程。对可靠性门控而言，可以进一步把“测试是否可信”作为候选代码可靠性之外的第二类证据。\n\n它也适合作为执行反馈和自调试方向的对比工作：TDD-Agent 通过共同修正测试与代码降低错误反馈影响，而可靠性驱动方法可以选择在证据不足时升级到更强流程。两者解决的是同一类风险，但控制策略不同。",
+    "what_can_be_done_next": [
+      {"title": "把测试可靠性加入升级门控", "rationale": "TDD-Agent 表明自生成测试可能错误，因此仅看测试通过与否不足以判断代码可靠。", "concrete_plan": "为生成测试计算一致性、覆盖率或变异测试等可靠性信号，并与代码执行结果共同决定是否接受答案或进入慢路径。", "validation": "在 HumanEval-ET、MBPP-ET 和 LiveCodeBench 上比较只看 pass/fail 与联合测试可靠性门控的准确率、误接受率和升级比例。", "expected_value": "减少错误测试导致的错误接受或无效调试，同时控制额外调用成本。", "source": "Introduction, Sec. 1; Methodology, Sec. 2.1"},
+      {"title": "区分修代码与修测试的经验", "rationale": "双向修正的关键难点是判断失败究竟来自实现还是测试。", "concrete_plan": "从历史轨迹中分别提取“实现错误”和“测试错误”的可迁移经验，在执行失败时先判断错误来源，再检索对应经验。", "validation": "统计错误归因准确率、调试轮数、最终 Pass@1，并与不区分经验类型的检索方法比较。", "expected_value": "避免把正确代码按错误测试反复修改，也避免为了通过而削弱本来正确的测试。", "source": "Methodology, Sec. 2.1, Phase 2"},
+      {"title": "比较固定迭代与可靠性自适应预算", "rationale": "TDD-Agent 最多迭代 10 轮，但不同任务需要的调试深度并不相同。", "concrete_plan": "保留 TDD-Agent 的测试优先与双向修正机制，把固定轮数改为基于执行证据和停滞状态的动态停止或升级策略。", "validation": "比较固定 10 轮与自适应策略的 Pass@1、平均调用次数、Token、运行时间以及困难样本成功率。", "expected_value": "在保持测试驱动收益的同时减少简单任务上的无效计算，并把预算集中到真正困难的样本。", "source": "Methodology, Sec. 2.1, Phase 2"}
+    ]
+  },
+  "original_abstract": "Large Language Models (LLMs) have achieved remarkable progress in code generation, yet ensuring correctness in complex, repository-level tasks remains challenging. Existing approaches often use generated tests as static post-hoc validators, which limits their ability to guide implementation and may introduce misleading feedback when the tests themselves are incomplete or incorrect. In this paper, we introduce TDD-Agent, which operationalizes the test-driven development paradigm for code generation. TDD-Agent first prompts the model to generate executable tests, encouraging it to clarify expected behaviors before implementation, and then performs iterative dual-track refinement over both the generated code and tests using execution feedback. We first isolate the effect of test-first reasoning through a prompt variant TDD-prompt on LiveCodeBench, where it consistently improves upon reasoning-based prompting baselines. Building on this finding, we evaluate the full TDD-Agent framework on RepoEval, a repository-level benchmark, and show that it consistently outperforms retrieval-based and agent-based baselines. Additional analyses show that iterative refinement improves not only code correctness but also the effectiveness of the generated tests, yielding higher pass rates, coverage, and mutation scores, suggesting that tests can serve as evolving reasoning artifacts rather than fixed validators. Our source code is available at https://anonymous.4open.science/r/TDD-Agent-Framework-6370/.",
+  "bibtex": "@misc{yu2026tddagenttestdrivenreasoningcode,\n  title={TDD-Agent: Test-Driven Reasoning for Code Generation},\n  author={Hongyue Yu and Kefan Li and Jiakun Li and Hongzheng Chai and Yuan Yuan and Rui He and Junyi Wei},\n  year={2026},\n  eprint={2608.16742},\n  archivePrefix={arXiv},\n  primaryClass={cs.SE},\n  url={https://arxiv.org/abs/2608.16742}\n}",
+  "figures": [],
+  "evidence": [
+    {"claim": "TDD-Agent 先生成测试，再生成实现，并允许代码与测试共同迭代。", "locator": "Sec. 2.1, Fig. 2", "url": "https://arxiv.org/html/2608.16742"},
+    {"claim": "TDD-prompt 在 LiveCodeBench 三个模型上均取得表中最高 Pass@1。", "locator": "Sec. 3.1, Table 1", "url": "https://arxiv.org/html/2608.16742"},
+    {"claim": "RepoEval 实验使用来自 8 个 Python 仓库的 455 个函数补全问题。", "locator": "Sec. 3.2", "url": "https://arxiv.org/html/2608.16742"}
+  ],
+  "generated_by": "ChatGPT Scheduled Task",
+  "generated_at": "2026-09-22T08:02:00+08:00",
+  "updated_at": "2026-09-22T08:02:00+08:00",
+  "owner_edited": false
+}
