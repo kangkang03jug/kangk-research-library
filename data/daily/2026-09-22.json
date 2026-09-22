@@ -1,0 +1,10 @@
+{
+  "date": "2026-09-22",
+  "recommendations": [
+    {
+      "paper_id": "tdd-agent-test-driven-reasoning-code-generation",
+      "primary": true,
+      "run_type": "scheduled"
+    }
+  ]
+}
