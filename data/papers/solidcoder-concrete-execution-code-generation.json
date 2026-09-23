@@ -1,0 +1,79 @@
+{
+  "id": "solidcoder-concrete-execution-code-generation",
+  "title": "SolidCoder: Bridging the Mental-Reality Gap in LLM Code Generation through Concrete Execution",
+  "authors": ["Woojin Lee", "Jin-Xia Huang"],
+  "year": 2026,
+  "publication_date": "2026-07-02",
+  "venue_or_source": "Findings of the Association for Computational Linguistics: ACL 2026",
+  "venue_type": "Conference",
+  "status": "Published",
+  "ranking": {"ccf": null, "cas": null, "jcr": null, "ranking_year": null, "ranking_source": null},
+  "identifiers": {"doi": "10.18653/v1/2026.findings-acl.361", "arxiv": "2604.19825", "openreview": null},
+  "urls": {"paper": "https://aclanthology.org/2026.findings-acl.361/", "code": "https://github.com/10kH/SolidCoder"},
+  "topics": ["Code Generation", "Execution Feedback", "Multi-Agent", "Verification", "Property-Based Testing", "Self-Debugging"],
+  "relevance": "High",
+  "reading_basis": "full_text",
+  "quick_read": {
+    "tldr": "SolidCoder 解决一个很直接的问题：LLM 在脑中模拟代码执行时，可能把错误代码想成正确。它不再把这种“想象执行”当最终判断，而是让模型提前考虑边界情况，再用沙箱真正运行代码并检查性质。结果表明，真实执行与更完整的边界情况规划需要同时存在，才能更可靠地发现错误。",
+    "problem_and_motivation": "CodeSIM 等方法会让模型在规划和调试时自己模拟程序执行。但模型可能把变量状态或执行结果想错，最后反而确信错误代码是正确的。直接执行代码又面临一个问题：新测试通常没有已知正确输出。作者因此尝试不用精确答案，而是检查输出是否满足长度、顺序、排列等可执行性质。",
+    "core_method": "SolidCoder 在 CodeSIM 的规划、编码、调试框架上加入五个环节。规划前先主动找边界情况；用不依赖精确答案的性质断言检查结果；在沙箱中真实执行代码；先用一次轻量的内部模拟筛查明显错误；调试过程中持续保存已发现的失败测试，防止后续修改把旧错误重新引入。",
+    "key_results": "使用 GPT-4o 时，SolidCoder 的 pass@1 在 HumanEval、CodeContests 和 APPS 上分别达到 95.7%、77.0% 和 26.7%，均高于 CodeSIM。CodeContests 消融中，去掉提前考虑边界情况后下降 23.7 个百分点，去掉真实执行后下降 7.9 个百分点。",
+    "why_it_matters": "这篇论文说明，代码生成中的可靠性不能只靠模型自己判断。更重要的是把“模型认为正确”与“程序真实运行得到的证据”区分开，同时在生成前就覆盖容易遗漏的边界情况。"
+  },
+  "detail": {
+    "motivation": "现有多智能体代码生成已经会规划、编码和调试，但很多验证仍依赖 LLM 自己模拟程序执行。作者把这种内部推演与真实运行结果不一致的现象称为 Mental-Reality Gap。它有两类来源：规划时没想到边界情况，以及验证时把错误代码的执行过程想错。\n\n最直接的办法是真正运行代码，但新生成的测试往往没有可靠的标准答案。作者的关键思路是绕开精确输出：不要求模型猜“答案是多少”，而是生成可以执行检查的性质，例如输出长度是否保持、结果是否满足排序关系或是否仍是输入的一个排列。这样真实执行可以提供比文字模拟更可靠的证据。",
+    "contributions": [
+      {"contribution": "提出 Mental-Reality Gap，并把它拆成规划阶段遗漏边界情况的 Specification Gap 和验证阶段错误模拟执行的 Verification Gap。", "source": "Introduction, Sec. 1; PDF pp. 7294–7296"},
+      {"contribution": "提出 S.O.L.I.D. 框架，把边界情况规划、性质断言、真实执行、轻量内部模拟和失败测试累积整合到代码生成流程。", "source": "Method, Sec. 3.1–3.2; PDF pp. 7297–7298"},
+      {"contribution": "在 HumanEval、CodeContests 和 APPS 上跨三个模型验证方法，并通过消融区分规划不足与验证失真的影响。", "source": "Experiments, Sec. 4–5; Tables 2–3; PDF pp. 7298–7300"}
+    ],
+    "research_questions": [
+      {
+        "type": "inferred",
+        "question": "代码生成中，能否通过提前覆盖边界情况并用真实执行替代最终的内部模拟判断，同时减少规划遗漏和错误自我验证？",
+        "original_question": null,
+        "how": "作者在 CodeSIM 的多智能体流程上加入五个 S.O.L.I.D. 组件，并在 HumanEval、CodeContests、APPS 上与 Direct、CoT、Self-Planning、Analogical、MapCoder 和 CodeSIM 比较；同时在 CodeContests 上逐个移除组件做消融。",
+        "answer": "可以。SolidCoder 在三个模型和三个基准的九种组合中均不低于 CodeSIM。消融显示，提前考虑边界情况和真实执行解决的是不同错误：前者影响更大，但后者能发现单靠改进规划无法消除的错误。",
+        "meaning": "可靠代码生成需要同时改善“生成前是否想全”和“生成后是否验证真”。只加强其中一边，仍会留下另一类失败。",
+        "source": "Introduction, Sec. 1, discussion of the two dimensions of the Mental-Reality Gap; PDF pp. 7295–7296"
+      }
+    ],
+    "research_questions_empty_reason": null,
+    "research_questions_empty_source": null,
+    "method": "SolidCoder 延续 CodeSIM 的 Planning、Coding、Debugging 三类智能体，但改变了验证方式。首先，Shift-left Planning 在制定算法前要求模型主动寻找空输入、边界值和特殊情况，并把这些情况写进规划。随后 Coding Agent 根据计划生成代码。\n\n生成代码后，Intermediate Simulation 仍让模型用样例快速走一遍代码，但它只负责初筛，不再拥有最终裁决权。Oracle-based Assertions 不要求模型预测未知测试的精确输出，而是生成可验证的性质。Live Execution 把代码放入受限沙箱实际运行，运行错误或断言失败会进入调试。Defensive Accumulation 则保存已经发现的失败测试，每次修改代码后全部重跑，避免修复新问题时重新引入旧问题。\n\n整个流程最多使用 5 次规划和 5 次调试迭代，与 CodeSIM 的设置保持一致。最终是否通过由真实执行证据决定，而不是由模型的文字模拟决定。",
+    "experiments_and_key_findings": "实验使用 HumanEval 164 题、CodeContests 165 题和 APPS 150 题，覆盖从较简单函数题到更困难的算法题。模型包括 GPT-4o、GPT-OSS-120B 和 Grok-4.1-Fast，主要指标为 pass@1。SolidCoder 在九个模型-数据集组合中均达到或超过 CodeSIM。\n\nGPT-4o 上，SolidCoder 在 HumanEval、CodeContests、APPS 分别达到 95.7%、77.0%、26.7%，相对 CodeSIM 分别提高 0.6、4.3、3.4 个百分点。提升在 CodeContests 最明显，作者认为这类任务既足够复杂，能暴露内部模拟错误，又没有难到让初始算法本身完全失效。\n\nCodeContests 的消融更能说明各组件作用。完整方法为 77.0%；去掉 Shift-left Planning 降到 53.3%，去掉 Intermediate Simulation 为 64.0%，去掉 Oracle-based Assertions 为 65.4%，去掉 Live Execution 为 69.1%，去掉 Defensive Accumulation 为 70.3%。这说明提前考虑边界情况贡献最大，但真实执行仍能捕获另一类单靠规划无法发现的错误。代价也明显增加：GPT-4o 在 CodeContests 上 Token 从 CodeSIM 的 20.9K 增至 31.9K。",
+    "limitations": {
+      "author_reported": [
+        "Live Execution 目前只支持 Python，且实验集中在函数级和竞赛式任务；对 SWE-bench 等仓库级任务的泛化尚未验证。",
+        "性质断言仍由 LLM 生成，因此可能产生错误性质；当同一模型同时生成代码、性质和验证材料时，系统性偏差可能继续传播。",
+        "实验只覆盖 GPT-4o、GPT-OSS-120B 和 Grok-4.1-Fast，未覆盖 Gemini、Claude；同时不能完全排除基准污染。",
+        "SolidCoder 的 Token 成本高于 CodeSIM，且消融只在 GPT-4o 的 CodeContests 上进行，仍缺少等计算预算和跨基准消融。"
+      ],
+      "ai_analysis": [
+        "真实执行提高了证据可靠性，但性质断言本身仍可能错误，因此“执行成功”不等于“验证证据可信”。可以进一步对断言质量单独做可靠性评估。",
+        "完整流程对所有题目都启用多个组件，会在简单任务上增加不必要的调用和 Token；论文自己也把 difficulty-aware routing 列为后续方向。",
+        "该方法与 CodeSIM 共用较深的规划和调试流程，因此准确率收益与额外计算成本需要联合比较，尤其适合加入成本敏感的自适应升级基线。"
+      ]
+    },
+    "relation_to_research": "这篇论文与可靠性驱动的代码生成直接相关。它明确证明：模型自己的执行模拟不能作为强可靠性证据，真实运行能发现模型文字推演漏掉的错误。同时，消融又表明并非所有错误都需要执行后再修复，生成前覆盖边界情况本身就能避免大量失败。\n\n对自适应升级式代码生成，一个自然对比是：SolidCoder 默认把较完整的验证链路用于所有样本，而可靠性门控可以先尝试低成本生成，只在证据不足时升级到规划、执行验证和调试。两者可以比较准确率、误接受率、API 调用、Token 与时间，从而回答“可靠性提升是否必须付出全量验证成本”。",
+    "what_can_be_done_next": [
+      {"title": "把真实执行作为升级后的强证据", "rationale": "论文显示 Live Execution 能发现内部模拟无法发现的验证错误，但全量使用会增加成本。", "concrete_plan": "保留低成本直接生成与可靠性门控；只有门控不通过时，才启用性质断言和沙箱执行，并把执行结果用于后续调试。", "validation": "在 HumanEval、MBPP、APPS 和 LiveCodeBench 上比较全量 SolidCoder 式验证与按需验证的 Pass@1、升级比例、Token、时间和 API 调用。", "expected_value": "尽量保留真实执行带来的可靠性收益，同时减少简单样本上的额外计算。", "source": "Sec. 3.1 Live Execution; Table 4; Limitations"},
+      {"title": "评估验证证据本身的可靠性", "rationale": "作者指出性质断言仍可能被 LLM 幻觉影响，同一模型生成代码和断言还可能产生共同偏差。", "concrete_plan": "为性质断言增加独立检查，例如多模型一致性、静态约束或变异测试，并将断言可信度与代码执行结果分开记录。", "validation": "人工或程序构造错误断言，测量错误断言检出率、错误接受率以及对最终 Pass@1 的影响。", "expected_value": "避免把“程序通过了一个错误断言”误当作强可靠性证据。", "source": "Limitations, LLM dependency; PDF p. 7301"},
+      {"title": "把边界情况经验前移到快速路径", "rationale": "消融中去掉 Shift-left Planning 的降幅最大，说明很多失败来自生成前没有想到边界情况。", "concrete_plan": "从历史成功修复和失败轨迹中提取可迁移的边界情况经验，在初始生成前只注入少量高相关经验，而不是直接启动完整多智能体规划。", "validation": "比较无经验、完整规划和轻量经验注入三种设置的 Pass@1、边界测试通过率与额外 Token。", "expected_value": "用较低成本提前消除一部分常见失败，使后续升级更集中在真正困难的验证问题上。", "source": "Sec. 5.2, Table 3"},
+      {"title": "做等预算的可靠性方法比较", "rationale": "作者承认 SolidCoder 比 CodeSIM 消耗更多 Token，当前结果没有完全隔离方法设计与计算预算的影响。", "concrete_plan": "为不同方法设置相同的 Token、API 调用或时间预算，并允许自适应方法自行决定把预算分配给哪些样本。", "validation": "绘制准确率-Token、准确率-时间和准确率-API 调用曲线，并比较相同预算下的最优点。", "expected_value": "更公平地判断真实执行、经验注入和自适应升级各自带来的有效收益。", "source": "Table 4; Limitations, experimental scope"
+      }
+    ]
+  },
+  "original_abstract": "State-of-the-art code generation frameworks rely on mental simulation, where LLMs internally trace execution to verify correctness. We expose a fundamental limitation: the Mental-Reality Gap—where models hallucinate execution traces and confidently validate buggy code. This gap manifests along two orthogonal dimensions: the Specification Gap (overlooking edge cases during planning) and the Verification Gap (hallucinating correct behavior for flawed code). We propose SolidCoder with a simple principle: don’t imagine—execute. The S.O.L.I.D. architecture addresses both dimensions by forcing edge-case awareness before algorithm design and replacing imagined traces with sandboxed execution using property-based oracles. With GPT-4o, SolidCoder achieves state-of-the-art pass@1 performance: 95.7% on HumanEval (+0.6%p), 77.0% on CodeContests (+4.3%p), and 26.7% on APPS (+3.4%p). Ablation reveals that edge-case awareness provides the largest individual gain, while execution grounding catches categorically different errors that specification improvements cannot address. These gains generalize to RL post-trained models, validating that bridging both gap dimensions is essential for robust code synthesis. We release our code and framework to facilitate future research.",
+  "bibtex": "@inproceedings{lee-huang-2026-solidcoder,\n    title = \"{S}olid{C}oder: Bridging the Mental-Reality Gap in {LLM} Code Generation through Concrete Execution\",\n    author = \"Lee, Woojin  and Huang, Jin-Xia\",\n    editor = \"Liakata, Maria  and Moreira, Viviane P.  and Zhang, Jiajun  and Jurgens, David\",\n    booktitle = \"Findings of the {A}ssociation for {C}omputational {L}inguistics: {ACL} 2026\",\n    month = jul,\n    year = \"2026\",\n    address = \"San Diego, California, United States\",\n    publisher = \"Association for Computational Linguistics\",\n    url = \"https://aclanthology.org/2026.findings-acl.361/\",\n    doi = \"10.18653/v1/2026.findings-acl.361\",\n    pages = \"7294--7316\",\n    ISBN = \"979-8-89176-395-1\"\n}",
+  "figures": [],
+  "evidence": [
+    {"claim": "SolidCoder 用五个 S.O.L.I.D. 组件把边界情况规划、性质验证和真实执行整合进生成流程。", "locator": "Sec. 3.1–3.2, PDF pp. 7297–7298", "url": "https://aclanthology.org/2026.findings-acl.361.pdf"},
+    {"claim": "GPT-4o 上 HumanEval、CodeContests、APPS 的 pass@1 分别为 95.7%、77.0%、26.7%。", "locator": "Sec. 5.1, Table 2, PDF pp. 7299–7300", "url": "https://aclanthology.org/2026.findings-acl.361.pdf"},
+    {"claim": "CodeContests 消融中去掉 Shift-left Planning 下降 23.7 个百分点，去掉 Live Execution 下降 7.9 个百分点。", "locator": "Sec. 5.2, Table 3, PDF p. 7300", "url": "https://aclanthology.org/2026.findings-acl.361.pdf"},
+    {"claim": "作者指出 Python-only、仓库级泛化、LLM 生成性质的偏差和额外 Token 成本等限制。", "locator": "Limitations, PDF p. 7301", "url": "https://aclanthology.org/2026.findings-acl.361.pdf"}
+  ],
+  "generated_by": "ChatGPT Scheduled Task",
+  "generated_at": "2026-09-23T08:00:00+08:00",
+  "updated_at": "2026-09-23T08:00:00+08:00"
+}
