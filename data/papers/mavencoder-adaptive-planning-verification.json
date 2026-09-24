@@ -1,0 +1,70 @@
+{
+  "id": "mavencoder-adaptive-planning-verification",
+  "title": "MavenCoder: Competitive Code Generation via Model Adaptive Planning Strategies and Multi-Perspective Verification Enhancement",
+  "authors": ["ZhenChun Xu", "Yi Cai", "Dajun Zheng", "li Yuan", "Mengchen Zhao", "Qixiang Wang", "Jiexin Wang"],
+  "year": 2026,
+  "publication_date": "2026-07-02",
+  "venue_or_source": "Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)",
+  "venue_type": "Conference",
+  "status": "Published",
+  "ranking": {"ccf": null, "cas": null, "jcr": null, "ranking_year": null, "ranking_source": null},
+  "identifiers": {"doi": "10.18653/v1/2026.acl-long.1403", "arxiv": null, "openreview": null},
+  "urls": {"paper": "https://aclanthology.org/2026.acl-long.1403/", "code": "https://github.com/XZC888/MavenCoder"},
+  "topics": ["Code Generation", "Adaptive Planning", "Verification", "Multi-Agent", "Debugging", "Competitive Programming"],
+  "relevance": "High",
+  "reading_basis": "full_text",
+  "quick_read": {
+    "tldr": "MavenCoder 解决固定代码生成流程与模型能力不匹配的问题。它先根据模型自身置信度判断任务对当前模型是简单、中等还是困难，再分别采用直接规划、反思规划或树式分解，并在编码前从步骤可靠性、可执行事实和步骤贡献三个角度验证计划。实验表明，自适应规划和中间验证在复杂竞赛题上尤其有效。",
+    "problem_and_motivation": "现有 planning–coding–debugging 流程通常对所有题目使用同一种规划深度。简单题可能因过度规划引入错误，困难题又可能规划不足；同时，计划中的早期错误如果没有及时验证，会一路传播到最终代码。",
+    "core_method": "MavenCoder 先估计当前模型对题目的推理置信度，把任务分成 Easy、Medium、Hard。Easy 直接规划，Medium 加入自我反思，Hard 使用树式分解。随后验证每个计划步骤的置信度、执行事实和对最终答案的贡献；低于阈值的最早可疑步骤会被定位并修正。最后 Coding Agent 生成代码，Debugging Agent 根据公开测试反馈迭代修复。",
+    "key_results": "论文报告 MavenCoder 在 LiveCodeBench、HumanEval+、MBPP+、CodeContests 上的最佳 pass@1 分别达到 87.5%、93.9%、81.7%、46.1%。消融显示，在 CodeContests 上移除 debugging 可使 GPT-4.1-nano 下降 12.1 个百分点；固定使用同一种规划策略也会稳定降低性能。",
+    "why_it_matters": "它直接说明代码生成不应把完整慢流程平均施加给所有任务，而应根据模型对当前任务的能力动态决定推理深度；同时，中间步骤的可靠性也应在进入编码前被检查。"
+  },
+  "detail": {
+    "motivation": "作者观察到固定的 planning–coding–debugging 工作流存在两类问题。第一，同一题对不同模型的实际难度不同，而固定规划会让简单题过度思考、困难题思考不足。论文在 LiveCodeBench 案例中展示了这种错配：一个中等题本可直接解决，却被错误计划带偏；另一个困难题则因规划过于简单而失败。\n\n第二，现有流程往往缺少对中间推理步骤的有效验证。计划一旦在前部出错，Coding Agent 会忠实实现错误思路，后续调试只能在更晚阶段承担修复成本。MavenCoder 因此把“当前模型觉得这题有多难”和“计划中的哪一步不可信”都变成显式控制信号。",
+    "contributions": [
+      {"contribution": "提出模型自适应的代码生成框架，根据当前模型的推理置信度动态选择不同复杂度的规划策略，而不是固定使用同一流程。", "source": "Introduction, Sec. 1; PDF pp. 30415–30416"},
+      {"contribution": "提出多视角计划验证，从步骤可靠性、可执行事实正确性和步骤对最终结果的贡献三个方面定位并修正计划错误。", "source": "Method, Sec. 3.4; PDF pp. 30418–30419"},
+      {"contribution": "在六个代码生成基准和多个 backbone 上评估，并用消融分析自适应规划、验证与调试模块的独立作用。", "source": "Experiments, Sec. 4.1–4.6; Tables 1–3; PDF pp. 30419–30421"}
+    ],
+    "research_questions": [
+      {"type": "inferred", "question": "能否根据模型对当前编程任务的实际能力动态选择规划深度，并在编码前验证中间计划，从而同时减少过度规划、规划不足和错误传播？", "original_question": null, "how": "作者构建模型自适应难度评估、三档规划策略、多视角计划验证以及执行反馈调试流程，并在六个基准上与提示、置信度、修复和多智能体方法比较，再逐项移除模块。", "answer": "可以。完整 MavenCoder 在复杂竞赛基准上的提升最明显；固定规划策略、移除规划、移除验证信号或移除调试都会造成性能下降。", "meaning": "推理流程本身可以成为按任务和模型能力动态分配的资源，而不是固定模板；中间可靠性证据可以在错误进入代码前触发修正。", "source": "Introduction, Sec. 1, discussion of two limitations and MavenCoder objective; PDF pp. 30415–30416"}
+    ],
+    "research_questions_empty_reason": null,
+    "research_questions_empty_source": null,
+    "method": "输入是题目描述和公开测试。对于可获得 token log-probability 的模型，MavenCoder 先过滤 Markdown 符号、套话等高置信度模板 token，再用滑动窗口聚合真正推理 token 的置信度，通过 k-means 将其分成高低置信区间。高置信比例足够大则视为 Easy，低置信比例足够大则视为 Hard，其余为 Medium；无法访问内部概率的模型改用提示分类。\n\nPlanning Agent 随难度改变策略：Easy 直接生成计划，避免过度思考；Medium 先围绕样例、算法知识进行自我反思再规划；Hard 使用迭代加深的树式分解，把复杂问题拆成子问题，并通过历史子问题 embedding 去重。\n\n计划生成后，多视角验证模块给每一步计算三个信号。步骤可靠性来自该步 token 置信度；事实正确性要求为该步骤生成模块化函数，并用公开测试实际执行；结果贡献使用位置先验，强调更容易传播错误的早中期推理步骤。三者相乘形成综合分数，低于阈值时优先定位并修正最早的不可靠步骤。验证后的计划交给 Coding Agent。若公开测试失败，Debugging Agent 根据错误位置、原因和修复建议生成指令，Coding Agent 结合历次代码和错误继续迭代。",
+    "experiments_and_key_findings": "实验覆盖 HumanEval、HumanEval+、MBPP、MBPP+、LiveCodeBench V1 和 CodeContests，指标为 pass@1。比较对象覆盖 Direct、CoT、Self-Planning、HonestCoder、Self-Ask、Self-Refine、LDB、MapCoder、PairCoder、LPW、ToT 等多类方法。论文摘要报告 MavenCoder 在 LiveCodeBench、HumanEval+、MBPP+、CodeContests 上分别达到 87.5%、93.9%、81.7%、46.1% 的最佳 pass@1。\n\n收益主要集中在更困难的竞赛任务。论文指出，相对 LPW、PairCoder、CodeTree 等强基线，在 GPT-4.1-nano 上 LiveCodeBench 和 CodeContests 的相对提升分别达到 44.3% 和 157.7%；简单任务上的收益较小，因为强模型直接生成已经经常正确。\n\nTable 2 的消融进一步说明组件作用。在 CodeContests 上，GPT-4.1-nano 完整方法为 32.7%；移除 debugging 后降至 20.6%，移除 planning 后为 26.7%。把所有任务固定视为 Easy、Medium 或 Hard 也分别下降 4.9、5.4、3.0 个百分点。验证模块中，去掉步骤可靠性、事实正确性、位置贡献都会下降；作者总结事实正确性尤其重要，而 planning 与 debugging 是影响最大的模块。",
+    "limitations": {
+      "author_reported": [
+        "作者尚未在本地部署的中等规模模型上系统实验，当前结论主要来自指令遵循能力较强的 LLM。",
+        "部分闭源或 reasoning 模型不暴露 token-level log-probabilities，使基于内部置信度的难度估计无法直接使用。",
+        "方法对简单任务提升有限，因为强基础模型往往无需额外规划和验证就能直接成功。",
+        "作者计划进一步扩展到 repository-level code generation，以检验跨文件依赖和大规模代码上下文中的效果。"
+      ],
+      "ai_analysis": [
+        "难度门控依赖模型自身置信度，而置信度未必与真实正确率严格校准；错误的难度判断可能把题目路由到不合适的规划策略。",
+        "事实验证仍依赖公开测试和由模型生成的步骤级函数，因此验证证据可能不完整，尤其当公开样例覆盖不足时。",
+        "三档离散策略虽然比固定流程灵活，但仍是预设路线；更细粒度的按需升级可以只在特定可靠性信号失败时调用某个模块。"
+      ]
+    },
+    "relation_to_research": "MavenCoder 与可靠性驱动的自适应代码生成高度相关。它给出了一个很直接的证据：固定 workflow 会在简单任务上过度处理，也会在困难任务上处理不足；根据模型自身能力改变规划策略能显著改善复杂任务。\n\n它与可靠性门控式升级的差别也值得直接实验。MavenCoder 在生成代码前先做难度判断并选择三种规划；另一种路线是先尝试低成本直接生成，再根据可观察的可靠性证据决定是否升级。可以把 MavenCoder 的 confidence-based difficulty 与执行状态、接口约束、可见样例等外部证据放在同一实验中，比较误路由、准确率和成本。其多视角验证也可作为慢路径中的计划可靠性检查，而不是对所有样本强制启用。",
+    "what_can_be_done_next": [
+      {"title": "比较难度预测与失败后可靠性门控", "rationale": "MavenCoder 在生成前根据置信度预测难度，而可靠性升级可以先生成再根据真实可观察证据判断是否需要慢路径。", "concrete_plan": "在同一 backbone 和预算下实现三组：固定完整流程、MavenCoder 式预路由、直接生成后可靠性门控升级；统一规划和调试上限。", "validation": "在 MBPP、APPS、HumanEval、LiveCodeBench 上报告 pass@1、路由准确性、升级比例、Token、时间和 API calls，并按 Easy/Medium/Hard 分层。", "expected_value": "明确“先预测难度”与“先生成再验证”哪一种更能降低无效慢路径成本。", "source": "Sec. 3.2–3.3; Sec. 4.5"},
+      {"title": "把多视角计划验证作为慢路径可靠性检查", "rationale": "消融表明计划验证的多个信号都有贡献，但全量运行会增加执行和模型调用。", "concrete_plan": "只对已升级样本的 Planner 输出计算步骤置信度、执行事实和位置贡献；发现可疑步骤时局部重规划，否则直接进入 Coding。", "validation": "比较无计划验证、全量验证、仅慢路径验证的最终准确率、计划修正次数和成本。", "expected_value": "验证中间推理是否能提高慢路径成功率，同时避免简单任务承担额外验证成本。", "source": "Sec. 3.4; Table 2"},
+      {"title": "测试置信度失准下的路由鲁棒性", "rationale": "作者指出部分模型拿不到 log-probability，而且不同 confidence signal 的效果并不一致。", "concrete_plan": "分别使用 token mean、entropy、prompt classification 和外部可靠性特征作为路由信号，并人为加入置信度噪声或校准偏差。", "validation": "测量难度分层一致性、错误升级率、错误直返率以及最终 pass@1/成本曲线。", "expected_value": "判断自适应 workflow 是否真正依赖内部概率，以及外部证据能否提供更稳定的替代。", "source": "Sec. 4.6; Table 3; Limitations"},
+      {"title": "扩展到 repository-level 自适应升级", "rationale": "作者明确把 repository-level code generation 列为未来方向，当前实验仍以函数级和竞赛题为主。", "concrete_plan": "将难度/可靠性门控迁移到 SWE-bench 类任务，把检索、跨文件规划、测试和修复视为可按需启用的昂贵模块。", "validation": "报告任务解决率、修改文件数、测试通过率、Token、工具调用和墙钟时间，并分析跨文件依赖导致的失败。", "expected_value": "验证自适应计算思想能否从算法题扩展到真实软件工程任务。", "source": "Conclusion and Future Work; PDF p. 30422"}
+    ]
+  },
+  "original_abstract": "With the rapid advancement of large language models (LLMs), automated code generation has made remarkable progress. Recent studies explore multi-agent collaboration and adopt planning–coding–debugging workflows to enhance performance. However, these approaches are constrained by rigid, predefined workflows that fail to flexibly adjust their plans and lack effective verification of intermediate reasoning steps. In this work, we propose MavenCoder, a model-adaptive and verification–enhanced framework for competition-level code generation. MavenCoder leverages adaptive assessment aligned with the model’s capabilities to select planning strategies, while providing timely feedback and correction via multi-perspective verification. This adaptive problem-solving paradigm mitigates earlier limitations by enabling flexible planning and timely error correction. Compared with existing state-of-the-art approaches, MavenCoder achieves superior pass@1 results across multiple benchmarks, achieving 87.5% on LiveCodeBench, 93.9% on HumanEval+, 81.7% on MBPP+, and 46.1% on CodeContests, outperforming recent agent-based systems with improvement exceeding 3%–40%.",
+  "bibtex": "@inproceedings{xu-etal-2026-mavencoder,\n    title = \"{M}aven{C}oder: Competitive Code Generation via Model Adaptive Planning Strategies and Multi-Perspective Verification Enhancement\",\n    author = \"Xu, ZhenChun  and Cai, Yi  and Zheng, Dajun  and Yuan, li  and Zhao, Mengchen  and Wang, Qixiang  and Wang, Jiexin\",\n    booktitle = \"Proceedings of the 64th Annual Meeting of the {A}ssociation for {C}omputational {L}inguistics (Volume 1: Long Papers)\",\n    month = jul,\n    year = \"2026\",\n    address = \"San Diego, California, United States\",\n    publisher = \"Association for Computational Linguistics\",\n    url = \"https://aclanthology.org/2026.acl-long.1403/\",\n    doi = \"10.18653/v1/2026.acl-long.1403\",\n    pages = \"30415--30439\"\n}",
+  "figures": [],
+  "evidence": [
+    {"claim": "MavenCoder dynamically selects planning strategies according to model-specific confidence and task difficulty.", "locator": "Sec. 3.2–3.3, PDF pp. 30417–30418", "url": "https://aclanthology.org/2026.acl-long.1403.pdf"},
+    {"claim": "The verifier combines step reliability, factual correctness from execution, and outcome contribution.", "locator": "Sec. 3.4, PDF pp. 30418–30419", "url": "https://aclanthology.org/2026.acl-long.1403.pdf"},
+    {"claim": "Removing debugging or forcing a uniform planning strategy lowers pass@1, especially on CodeContests.", "locator": "Table 2 and Sec. 4.5, PDF pp. 30420–30421", "url": "https://aclanthology.org/2026.acl-long.1403.pdf"}
+  ],
+  "generated_by": "ChatGPT/Codex",
+  "generated_at": "2026-09-24T08:01:00+08:00",
+  "updated_at": "2026-09-24T08:01:00+08:00",
+  "owner_edited": false
+}
